@@ -25,6 +25,7 @@ function triggerFileInput() {
 }
 
 function importMetamodule(event) {
+    metamoduleBlocks = [];
     const file = event.target.files[0];
     if (file) {
         const reader = new FileReader();
