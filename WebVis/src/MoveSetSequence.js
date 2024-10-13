@@ -5,11 +5,13 @@ export class MoveSetSequence {
         this.totalMoveSets = moveSets.length;
         this.remainingMoveSets = moveSets.length;
         this.currentMoveSet = 0;
+        this.totalCheckpoints = moveSets.reduce((sum, x) => sum + x.checkpoint, 0);
+        this.currentCheckpoint = 0;
         this.updateMoveProgressString();
     }
 
     updateMoveProgressString() {
-        this.moveProgressString = `Move #${this.currentMoveSet} / #${this.totalMoveSets}`;
+        this.moveProgressString = `Move #${this.currentCheckpoint} / #${this.totalCheckpoints}`;
         document.getElementById("infoOverlay").innerHTML = this.moveProgressString;
     }
 
@@ -22,6 +24,7 @@ export class MoveSetSequence {
 
         this.remainingMoveSets--;
         this.currentMoveSet++;
+        if (moveSet.checkpoint) { this.currentCheckpoint += 1; }
 
         this.undostack.push(moveSet);
         
@@ -35,6 +38,7 @@ export class MoveSetSequence {
         }
 
         let moveSet = this.undostack.pop();
+        if (moveSet.checkpoint) { this.currentCheckpoint -= 1; }
 
         this.remainingMoveSets++;
         this.currentMoveSet--;
