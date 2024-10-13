@@ -507,8 +507,6 @@ var sketch1 = function (sketch) {
                     }
                 }
             }
-        } else if (sketch.key === '5') {
-            metamoduleBlocks = copyBlocks;
         }
     }
 }
