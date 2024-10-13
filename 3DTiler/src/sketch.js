@@ -12,6 +12,7 @@ mStatic = false;
 objects = [];
 blocks = [];
 copyBlocks = [];
+metamoduleBlocks = [];
 coloredBlocks = [];
 importBlocks = [];
 historyStack = [];
@@ -21,6 +22,29 @@ boundaryBox = [[-1, -1, -1], [-1, -1, -1]];
 
 function triggerFileInput() {
     document.getElementById('fileInput').click();
+}
+
+function importMetamodule(event) {
+    const file = event.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const jsonContent = JSON.parse(e.target.result);
+                defaultColor = [255, 255, 255];
+                var modules = parsedJson.modules;
+                for (let i = 0; i < modules.length; i++) {
+                    const { position } = modules[i];
+                    const [x, y, z = 0] = position;
+                    const block = { x, y, z };
+                    metamoduleBlocks.push(block);
+                }
+            } catch (error) {
+                console.error("Error parsing JSON:", error);
+            }
+        };
+        reader.readAsText(file);
+    }
 }
 
 function importFromJson(event) {

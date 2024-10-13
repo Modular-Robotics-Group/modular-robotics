@@ -13,6 +13,11 @@
 
 #define GENERATE_FINAL_STATE false
 #define PRINT_PATH false
+#if CONFIG_PARALLEL_MOVES && !PRINT_PATH
+#warning "Setting print path to true, since parallel move visualization isn't supported"
+#undef PRINT_PATH
+#define PRINT_PATH true
+#endif
 
 int main(int argc, char* argv[]) {
     bool ignoreColors = false;
@@ -80,6 +85,7 @@ int main(int argc, char* argv[]) {
             }
         }
     }
+#if !GENERATE_FINAL_STATE
     if (finalFile.empty()) {
         std::cout << "Path to final state:" << std::endl;
         int numTries = 0;
@@ -98,6 +104,7 @@ int main(int argc, char* argv[]) {
             }
         }
     }
+#endif
 
     // Generate names for export and analysis files if they are not specified
     std::size_t trimPos;

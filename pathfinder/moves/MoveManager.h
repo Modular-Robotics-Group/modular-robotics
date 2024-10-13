@@ -7,6 +7,7 @@
 #include <nlohmann/json.hpp>
 #include "../lattice/Lattice.h"
 #include "Isometry.h"
+#include "../search/ConfigurationSpace.h"
 
 // Verbosity Constants (Don't change these)
 #define MM_LOG_NONE 0
@@ -202,7 +203,7 @@ public:
     // Get what moves can be made by a module
     static std::vector<MoveBase*> CheckAllMoves(CoordTensor<int>& tensor, Module& mod);
 
-    static std::vector<std::set<ModuleData>> MakeAllParallelMoves();
+    static std::vector<std::set<ModuleData>> MakeAllParallelMoves(std::unordered_set<HashedState>& visited);
 
     static std::vector<MoveBase*> CheckAllMovesAndConnectivity(CoordTensor<int>& tensor, Module& mod);
 

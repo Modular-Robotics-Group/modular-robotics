@@ -3,6 +3,7 @@
 #include <filesystem>
 #include <execution>
 #include "MoveManager.h"
+#include "../search/ConfigurationSpace.h"
 
 void Move::RotateAnim(Move::AnimType& anim, const int a, const int b) {
     // For easily rotating move types
@@ -68,9 +69,54 @@ void Move::RotateAnim(Move::AnimType& anim, const int a, const int b) {
     }
 }
 
-bool MoveBase::FreeSpaceCheck(const CoordTensor<int> &tensor, const std::valarray<int> &coords) {
+bool MoveBase::FreeSpaceCheck(const CoordTensor<int>& tensor, const std::valarray<int> &coords) {
     return std::all_of(std::execution::par_unseq, moves.begin(), moves.end(), [&coords = std::as_const(coords), &tensor = std::as_const(tensor)](auto& move) {
-        if ( !move.second && (tensor[coords + move.first] > FREE_SPACE)) {
+        if (!move.second && (tensor[coords + move.first] > FREE_SPACE)) {
+            return false;
+        }
+        if (move.second && (tensor[coords + move.first] == OUT_OF_BOUNDS)) {
+            return false;
+        }
+        return true;
+    });
+}
+
+int GetChebyshevDistance(const std::valarray<int>& a, const std::valarray<int>& b) {
+    std::valarray dist = a + b;
+    return *std::ranges::max_element(dist);
+}
+
+int GetManhattanDistance(const std::valarray<int>& a, const std::valarray<int>& b) {
+    int result = 0;
+    for (auto val : std::valarray<int>(a + b)) {
+        result += std::abs(val);
+    }
+    return result;
+}
+
+bool MoveBase::FreeSpaceCheckHelpLimit(const CoordTensor<int>& tensor, const std::valarray<int>& coords, const CoordTensor<int>& helpTensor, int help) {
+    int helpUsed = 0;
+    std::vector<std::valarray<int>*> helperPositions;
+    return std::all_of(std::execution::seq, moves.begin(), moves.end(), [&](auto& move) {
+        if (!move.second && (tensor[coords + move.first] > FREE_SPACE)) {
+            return false;
+        }
+        if (move.second && tensor[coords + move.first] <= FREE_SPACE) {
+            int minHelpNeeded = 0;
+            if (helpUsed == 0) {
+                helpUsed = helpTensor[coords + move.first];
+            } else for (const auto pos : helperPositions) {
+#if LATTICE_RD_EDGECHECK
+                minHelpNeeded = std::min(helpTensor[coords + move.first], GetChebyshevDistance(move.first, *pos));
+#else
+                minHelpNeeded = std::min(helpTensor[coords + move.first], GetManhattanDistance(move.first, *pos));
+#endif
+            }
+            helpUsed += minHelpNeeded;
+            helperPositions.push_back(&move.first);
+            if (tensor[coords + move.first] != OUT_OF_BOUNDS && helpUsed < help) {
+                return true;
+            }
             return false;
         }
         return true;
@@ -461,6 +507,7 @@ std::vector<std::vector<Module*>> GenerateFreeModulePowerSet() {
 
 bool ParallelMoveCheck(CoordTensor<int>& freeSpace, const Module& mod, const MoveBase* move) {
     if (freeSpace[mod.coords + move->MoveOffset()] == OUT_OF_BOUNDS) return false;
+    //if (freeSpace[mod.coords + move->MoveOffset()] >= ModuleIdManager::MinStaticID()) return false;
     bool result = std::all_of(std::execution::par_unseq, move->moves.begin(), move->moves.end(), [&move = std::as_const(move), &mod = std::as_const(mod), &freeSpace](auto& moveCheck) {
         if (freeSpace[mod.coords + moveCheck.first] < 0) {
             // Space is not occupied
@@ -494,21 +541,75 @@ bool ParallelMoveCheck(CoordTensor<int>& freeSpace, const Module& mod, const Mov
     return result;
 }
 
-std::vector<std::set<ModuleData>> MoveManager::MakeAllParallelMoves() {
+std::vector<std::set<ModuleData>> MoveManager::MakeAllParallelMoves(std::unordered_set<HashedState>& visited) {
     static std::vector<std::vector<Module*>> modsToMove = GenerateFreeModulePowerSet();
     static CoordTensor<int> freeSpaceInternal(Lattice::Order(), Lattice::AxisSize(), FREE_SPACE);
+    // Needed for cut vertex checks
+    // std::set<Module*> movableModules = std::set(Lattice::MovableModules().begin(), Lattice::MovableModules().end());
+    // Might speed things up
+    static std::vector<std::unordered_set<MoveBase*>> failedMoves(ModuleIdManager::MinStaticID(), std::unordered_set<MoveBase*>());
+    for (auto fails : failedMoves) {
+        fails.clear();
+    }
+    for (const auto& mod : ModuleIdManager::FreeModules()) {
+        Lattice::coordTensor[mod.coords] = FREE_SPACE;
+    }
+    for (const auto& mod : ModuleIdManager::FreeModules()) {
+        for (auto move : _moves) {
+            if (!move->FreeSpaceCheck(Lattice::coordTensor, mod.coords)) {
+                failedMoves[mod.id].insert(move);
+            }
+        }
+    }
+    for (const auto& mod : ModuleIdManager::FreeModules()) {
+        Lattice::coordTensor[mod.coords] = mod.id;
+    }
     std::vector<std::set<ModuleData>> adjStates;
     // Iterate over all combinations of movable modules
     for (const auto& mods : modsToMove) {
         if (mods.empty()) continue;
+        // if (std::any_of(std::execution::par_unseq, mods.begin(), mods.end(), [&](auto mod) {
+        //     return !movableModules.contains(mod);
+        // })) {
+        //     continue;
+        // }
+        for (const auto& mod : mods) {
+            Lattice::ClearAdjacencies(mod->id);
+            Lattice::AddEdge(mod->id, ModuleIdManager::MinStaticID());
+        }
+        bool connected = Lattice::checkConnected();
+        for (const auto& mod : mods) {
+            Lattice::ClearAdjacencies(mod->id);
+#if LATTICE_RD_EDGECHECK
+            Lattice::RDEdgeCheck(*mod);
+#else
+            Lattice::EdgeCheck(*mod);
+#endif
+        }
+        if (!connected) continue;
         //freeSpaceInternal.Fill(FREE_SPACE);
         const int modCount = mods.size();
         const int moveCount = _moves.size();
+        // const int movesToProcess = /*moveCount * modCount*/ std::pow(modCount, moveCount);
+        // int movesProcessed = 0;
+        const int movesToProcess = std::pow(moveCount, modCount);
+        int movesProcessed = 0;
+        bool skipUpdate = false;
         // Starts at [0, ... , 0], should end at [moveCount - 1, ... , moveCount - 1]
+        // std::cout << "BEGIN PROCESSING" << std::endl;
         std::vector<int> modMoveIndex(modCount, 0);
-        while (modMoveIndex[0] < moveCount - 1) {
+        modMoveIndex.back() = -1;
+        while (!std::ranges::all_of(modMoveIndex, [&](int index) {
+            return index == moveCount - 1;
+        })) {
+            // std::cout << "Current Move Indices:  ";
+            // for (int i = 0; i < modCount; i++) {
+            //     std::cout << modMoveIndex[i] << " ";
+            // }
+            // std::cout << std::endl;
             // Set indices to next batch of moves to check
             for (int i = modCount - 1; i >= 0; i--) {
+                if (skipUpdate) break;
                 if (modMoveIndex[i] == moveCount - 1) {
                     modMoveIndex[i] = 0;
                 } else {
@@ -516,6 +617,76 @@ std::vector<std::set<ModuleData>> MoveManager::MakeAllParallelMoves() {
                     break;
                 }
             }
+            movesProcessed++;
+            skipUpdate = false;
+            // another day another banger
+            int indexFailed = -1;
+            // for (int i = 0; i < modCount; i++) {
+            //     if (failedMoves[mods[i]->id].contains(_moves[modMoveIndex[i]])) {
+            //         indexFailed = i;
+            //         break;
+            //     }
+            // }
+            if (indexFailed == -1) {
+                for (int i = 0; i < modCount; i++) {
+                    if (!_moves[modMoveIndex[i]]->FreeSpaceCheck(Lattice::coordTensor, mods[i]->coords)) {
+                        indexFailed = i;
+                        break;
+                    }
+                }
+            }
+            if (indexFailed != -1) {
+                skipUpdate = true;
+                if (modMoveIndex[indexFailed] == moveCount - 1) {
+                    if (indexFailed == 0) break;
+                    modMoveIndex[indexFailed] = 0;
+                    bool escape = false;
+                    for (int i = indexFailed; i >= 0; i--) {
+                        if (i == indexFailed) continue;
+                        //modMoveIndex[i] = 0;
+                        if (modMoveIndex[i] == moveCount - 1) {
+                            if (i == 0) {
+                                escape = true;
+                                break;
+                            }
+                            modMoveIndex[i] = 0;
+                        } else {
+                            modMoveIndex[i]++;
+                            break;
+                        }
+                    }
+                    if (escape) break;
+                } else {
+                    modMoveIndex[indexFailed]++;
+                }
+                for (int i = indexFailed + 1; i < modCount - 1; i++) {
+                    modMoveIndex[i] = 0;
+                }
+                // std::cout << "Promoted Move Indices: ";
+                // for (int i = 0; i < modCount; i++) {
+                //     std::cout << modMoveIndex[i] << " ";
+                // }
+                // std::cout << std::endl;
+                continue;
+            }
+            // std::cout << "New Move Indices:      ";
+            // for (int i = 0; i < modCount; i++) {
+            //     std::cout << modMoveIndex[i] << " ";
+            // }
+            // std::cout << std::endl;
+            // Check to avoid duplicate state
+            for (int i = 0; i < modCount; i++) {
+                auto move = _moves[modMoveIndex[i]];
+                auto mod = mods[i];
+                mod->coords += move->MoveOffset();
+            }
+            bool duplicate = visited.contains(HashedState(Lattice::GetModuleInfo()));
+            for (int i = 0; i < modCount; i++) {
+                auto move = _moves[modMoveIndex[i]];
+                auto mod = mods[i];
+                mod->coords -= move->MoveOffset();
+            }
+            if (duplicate) continue;
             // Set up local free space tensor to match lattice
             freeSpaceInternal.FillFromVector(Lattice::coordTensor.GetArrayInternal());
             //freeSpaceInternal = Lattice::coordTensor;
@@ -540,8 +711,8 @@ std::vector<std::set<ModuleData>> MoveManager::MakeAllParallelMoves() {
                     auto mod = mods[i];
                     Lattice::MoveModule(*mod, move->MoveOffset());
                 }
-                // TODO: Need connectivity check here
                 adjStates.push_back(Lattice::GetModuleInfo());
+                visited.insert(HashedState(Lattice::GetModuleInfo()));
                 for (int i = 0; i < modCount; i++) {
                     auto move = _moves[modMoveIndex[i]];
                     auto mod = mods[i];
@@ -549,6 +720,11 @@ std::vector<std::set<ModuleData>> MoveManager::MakeAllParallelMoves() {
                 }
             }
         }
+        // std::cout << "Final Move Indices: ";
+        // for (int i = 0; i < modCount; i++) {
+        //     std::cout << modMoveIndex[i] << " ";
+        // }
+        // std::cout << std::endl;
     }
     return adjStates;
 }

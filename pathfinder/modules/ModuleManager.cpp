@@ -197,6 +197,10 @@ std::span<Module>& ModuleIdManager::FreeModules() {
     return freeModules;
 }
 
+std::span<Module> &ModuleIdManager::StaticModules() {
+    static std::span<Module> staticModules = std::span(_modules).subspan(_staticStart, _modules.size() - _staticStart);
+    return staticModules;
+}
 
 Module& ModuleIdManager::GetModule(const int id) {
     return _modules[id];

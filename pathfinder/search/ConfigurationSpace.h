@@ -130,13 +130,11 @@ namespace ConfigurationSpace {
 
     std::vector<Configuration*> BFS(Configuration* start, const Configuration* final);
 
-    std::vector<Configuration*> BFSParallelized(Configuration* start, const Configuration* final);
-
     std::vector<Configuration*> AStar(Configuration* start, const Configuration* final);
 
     std::vector<Configuration*> FindPath(Configuration* start, Configuration* final);
 
-    Configuration GenerateRandomFinal(int targetMoves = 24);
+    Configuration GenerateRandomFinal(int targetMoves = 8);
 }
 
 #endif //MODULAR_ROBOTICS_CONFIGURATIONSPACE_H

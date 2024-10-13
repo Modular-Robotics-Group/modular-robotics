@@ -88,8 +88,8 @@ bool Lattice::checkConnected() {
     std::vector<bool> visited(moduleCount, false);
     std::stack<int> stack;
     int visitedCount = 0;
-    stack.push(0);
-    visited[0] = true;
+    stack.push(ModuleIdManager::MinStaticID());
+    visited[ModuleIdManager::MinStaticID()] = true;
     while (!stack.empty()) {
         int node = stack.top();
         stack.pop();

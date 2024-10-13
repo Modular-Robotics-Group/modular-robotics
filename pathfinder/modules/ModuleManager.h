@@ -189,6 +189,9 @@ public:
     // Get span of non-static modules
     static std::span<Module>& FreeModules();
 
+    // Get span of static modules
+    static std::span<Module>& StaticModules();
+
     // Get module by ID
     static Module& GetModule(int id);
 

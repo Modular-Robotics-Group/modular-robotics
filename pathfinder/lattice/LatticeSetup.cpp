@@ -63,6 +63,9 @@ namespace LatticeSetup {
             for (const auto& bound : j["boundaries"]) {
                 std::valarray<int> coords = bound;
                 coords += Lattice::boundaryOffset;
+#if FLIP_Y_COORD
+                coords[1] = Lattice::AxisSize() - coords[1] - 1;
+#endif
                 if (Lattice::coordTensor[coords] < 0) {
                     Lattice::AddBound(coords);
                 } else {
