@@ -13,6 +13,7 @@ let EXAMPLE_SCENARIOS = [
 	'3x3 Metamodule Sub-case 1',
 	'3x3 Metamodule Sub-case 2',
 	'3x3 Metamodule Sub-case 3',
+    'Parallel Move Debugging'
 ]
 
 const SliderType = Object.freeze({

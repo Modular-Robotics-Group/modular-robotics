@@ -1,13 +1,12 @@
 import * as THREE from 'three';
 import { ModuleType, MoveType } from './utils.js';
 
-export class Move{
-    constructor(id, anchorDir, deltaPos, moveType, checkpoint, moduleType = ModuleType.CUBE) { 
+export class Move {
+    constructor(id, anchorDir, deltaPos, moveType, moduleType) { 
         this.id = id;
         this.anchorDir = anchorDir;
         this.deltaPos = deltaPos;
         this.moveType = moveType;
-        this.checkpoint = checkpoint;
 
         this.moduleType = moduleType;
         // TODO refactor this out to someplace it belongs
@@ -102,6 +101,6 @@ export class Move{
             newAnchorDir = this.anchorDir.clone();
         }
 
-        return new Move(this.id, newAnchorDir, newDeltaPos, this.moveType, this.checkpoint, this.moduleType);
+        return new Move(this.id, newAnchorDir, newDeltaPos, this.moveType, this.moduleType);
     }
 }

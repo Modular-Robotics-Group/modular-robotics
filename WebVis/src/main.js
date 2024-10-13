@@ -4,7 +4,7 @@ import { Module } from "./Module.js";
 import { User } from "./User.js";
 import { ModuleType, MoveType } from "./utils.js";
 import { Move } from "./Move.js";
-import { MoveSequence } from "./MoveSequence.js";
+import { MoveSetSequence } from "./MoveSetSequence.js";
 import { gGui } from "./GUI.js";
 import { Scenario } from "./Scenario.js";
 
@@ -25,7 +25,7 @@ window.gwForward = true;
 window.gwNextAnimationRequested = false;
 window.gwAnimSpeed = 1.0;
 window.gwUser = null;
-window.gwMoveSequence = new MoveSequence();
+window.gwMoveSetSequence = new MoveSetSequence();
 window.gwScenarioCentroid = new THREE.Vector3(0.0, 0.0, 0.0);
 window.gwScenarioRadius = 1.0;
 
@@ -100,14 +100,14 @@ document.addEventListener("DOMContentLoaded", async function () {
 });
 
 // TODO Put all this in a better place?
-let move;
+let moveSet;
 let lastFrameTime = 0;
 let gDeltaTime;
 let readyForNewAnimation = true;
 let currentAnimProgress = 0.0; // 0.0-1.0
 
 export function cancelActiveMove() {
-    move = null;
+    moveSet = null;
     currentAnimProgress = 0.0;
     readyForNewAnimation = true;
     window.gwNextAnimationRequested = false;
@@ -118,7 +118,10 @@ function animate(time) {
     lastFrameTime = time;
 
     if (currentAnimProgress > 1.0) { // Wrap up current animation if needed
-        gModules[move.id].finishMove(move); // Offset the module
+        for (let i = 0; i < moveSet.moves.length; i++) {
+            let move = moveSet.moves[i];
+            gModules[move.id].finishMove(move); // Offset the module
+        }
         readyForNewAnimation = true; // Flag that we can handle starting a new anim
 
         // If we're auto-animating, flag that we want another anim
@@ -129,24 +132,37 @@ function animate(time) {
         if (window.gwAutoAnimate) {
             window.gwNextAnimationRequested = true;
         } else {
-            let _move = window.gwForward ? window.gwMoveSequence.moves[0] : move;
-            window.gwNextAnimationRequested = _move ? !_move.checkpoint : false;
+            let _moveSet = window.gwForward ? window.gwMoveSetSequence.moveSets[0] : moveSet;
+            window.gwNextAnimationRequested = _moveSet ? !_moveSet.checkpoint : false;
         }
 
         currentAnimProgress = 0.0;
-        move = null;
+        moveSet = null;
     }
 
-    if (readyForNewAnimation && window.gwNextAnimationRequested) { // Fetch and start new animation if needed
-        move = window.gwForward ? window.gwMoveSequence.pop() : window.gwMoveSequence.undo();
-        // TODO could add some effects to show which cube is moving --
-        //  e.g. attaching a light to the mover,
-        //  changing its material, etc
-        if (move) { readyForNewAnimation = false; }
+    if (readyForNewAnimation && window.gwNextAnimationRequested) { // Fetch and start new animations if needed
+        moveSet = window.gwForward ? window.gwMoveSetSequence.pop() : window.gwMoveSetSequence.undo();
+
+        // if there was no moveset to extract,
+        //  keep readyForNewAnimation = true,
+        //  but set request to false
+        // otherwise, proceed as usual
+        if (moveSet == null) {
+            window.gwNextAnimationRequested = false;
+        } else {
+            readyForNewAnimation = false;
+        }
+
+        // TODO could add some effects to show which modules are moving --
+        //  e.g. attaching a light to the movers,
+        //  changing their materials, etc
     }
 
-    if (move) { // Perform animation (if there's one active)
-        gModules[move.id].animateMove(move, currentAnimProgress);
+    if (moveSet) { // Perform animation (if there's one active)
+        for (let i = 0; i < moveSet.moves.length; i++) {
+            let move = moveSet.moves[i];
+            gModules[move.id].animateMove(move, currentAnimProgress);
+        }
         currentAnimProgress += gDeltaTime * window.gwAnimSpeed / 1000.0;
     }
 

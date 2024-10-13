@@ -2,7 +2,8 @@ import * as THREE from 'three';
 import { ModuleType, MoveType } from "./utils.js";
 import { Module } from "./Module.js";
 import { Move } from "./Move.js";
-import { MoveSequence } from "./MoveSequence.js";
+import { MoveSet } from "./MoveSet.js";
+import { MoveSetSequence } from "./MoveSetSequence.js";
 import { gModules, gRenderer, gUser, cancelActiveMove } from "./main.js";
 
 function Visgroup(r, g, b, scale) {
@@ -12,7 +13,7 @@ function Visgroup(r, g, b, scale) {
 
 // TODO this doesn't really need to be a class, with the way the code is structured
 //  modules are loaded globally into gModules,
-//  and moves/MoveSequence is loaded globally into window.gwMoveSequence
+//  and moves/MoveSetSequence is loaded globally into window.gwMoveSetSequence
 export class Scenario {
     constructor(rawString) {
         for (let module in gModules) gModules[module].destroy();
@@ -38,20 +39,38 @@ export class Scenario {
         let dataLines = dataString.split('\n');
         let nBlock = 0;
         let checkpointMove = true;
-        let moves = [];
+        let moveSet = new MoveSet();
+        let moveSets = [];
         let numModules = 0;
         let totalMass = new THREE.Vector3(0.0, 0.0, 0.0);
         let minCoords, maxCoords;
         let maxRadius = 1.0;
         for (let iLine = 0; iLine < dataLines.length; iLine++) {
 
-            // sanitize the line: remove spaces,, and comments
-            let line = dataLines[iLine].replace(/ /g, '').split("//")[0];
+            // Read the line, sanitize it (remove comments and whitespace)
+            let line = dataLines[iLine];
+            line = line.replace(/ /g, '').split("//")[0];
 
             // if the line is empty, skip it and increment our block counter
-            //  also, flag the next move as a checkpoint move
-            //      (will only be relevant if we're on block 2+)
-            if (!line) { nBlock++; checkpointMove = true; continue; }
+            // if we were constructing a MoveSet,
+            //  add it to our list of MoveSets and initialize a new one
+            if (!line) { 
+                nBlock++;
+                if (moveSet.moves.length > 0) {
+                    moveSets.push(moveSet);
+                    moveSet = new MoveSet();
+                    checkpointMove = false;
+                }
+                continue;
+            }
+
+            // check if it's a checkpoint move (first character of sanitized string is *)
+            //  if it is, strip the * character
+            console.log(line);
+            if (line[0] == '*') {
+                checkpointMove = true;
+                line = line.substring(1);
+            }
 
             // extract the individual values from the line
             let lineVals = line.split(',').map((val) => parseInt(val));
@@ -123,12 +142,14 @@ export class Scenario {
                         default: anchorDir = new THREE.Vector3( 0.0,  0.0,  0.0 ); console.log("Unknown rotation code ", anchorDirCode, " -- treating as sliding move"); break;
                     }
                     anchorDir.normalize();
-                    moves.push(new Move(moverId, anchorDir, deltaPos, moveType, checkpointMove, scenarioModuleType));
-                    if (checkpointMove) { checkpointMove = false; }
+
+                    moveSet.moves.push(new Move(moverId, anchorDir, deltaPos, moveType, scenarioModuleType));
+                    moveSet.checkpoint = moveSet.checkpointMove || checkpointMove;
                     break;
                 }
             }  // end Switch statement
         } // end For loop (line iteration)
+        if (moveSet.moves.length > 0) { moveSets.push(moveSet); }
 
         let centroid = totalMass.divideScalar(numModules);
         let radius = Math.max(...maxCoords.sub(minCoords).toArray());
@@ -137,7 +158,7 @@ export class Scenario {
         gUser.camera.position.z = centroid.z + radius + 3.0;
         gUser.controls.target.set(...centroid);
 
-        window.gwMoveSequence = new MoveSequence(moves);
+        window.gwMoveSetSequence = new MoveSetSequence(moveSets);
         window.gwScenarioCentroid = centroid;
         window.gwScenarioRadius = radius;
 
