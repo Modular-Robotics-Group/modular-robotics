@@ -66,7 +66,6 @@ export class Scenario {
 
             // check if it's a checkpoint move (first character of sanitized string is *)
             //  if it is, strip the * character
-            console.log(line);
             if (line[0] == '*') {
                 checkpointMove = true;
                 line = line.substring(1);
