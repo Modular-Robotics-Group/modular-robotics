@@ -85,6 +85,7 @@ int main(int argc, char* argv[]) {
             }
         }
     }
+#if !GENERATE_FINAL_STATE
     if (finalFile.empty()) {
         std::cout << "Path to final state:" << std::endl;
         int numTries = 0;
@@ -103,6 +104,7 @@ int main(int argc, char* argv[]) {
             }
         }
     }
+#endif
 
     // Generate names for export and analysis files if they are not specified
     std::size_t trimPos;

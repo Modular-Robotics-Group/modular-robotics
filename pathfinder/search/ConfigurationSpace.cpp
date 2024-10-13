@@ -215,60 +215,6 @@ std::vector<Configuration*> ConfigurationSpace::BFS(Configuration* start, const 
     throw BFSExcept();
 }
 
-std::vector<Configuration*> ConfigurationSpace::BFSParallelized(Configuration* start, const Configuration* final) {
-    std::queue<Configuration*> q;
-    std::unordered_set<HashedState> visited;
-    q.push(start);
-    visited.insert(start->GetHash());
-
-    while (!q.empty()) {
-        Configuration* current = q.front();
-        Lattice::UpdateFromModuleInfo(q.front()->GetModData());
-#if CONFIG_VERBOSE > CS_LOG_NONE
-        if (q.front()->depth != depth) {
-            depth++;
-#if CONFIG_VERBOSE > CS_LOG_FINAL_DEPTH
-            std::cout << "BFS depth: " << q.front()->depth << std::endl << Lattice::ToString() << std::endl;
-#endif
-        }
-#endif
-        q.pop();
-        if (current->GetModData() == final->GetModData()) {
-#if CONFIG_VERBOSE > CS_LOG_FINAL_DEPTH
-            std::cout << "BFS final depth: " << depth << std::endl << Lattice::ToString() << std::endl;
-#endif
-            return FindPath(start, current);
-        }
-#if !CONFIG_PARALLEL_MOVES
-        auto adjList = current->MakeAllMoves();
-#else
-        auto adjList = MoveManager::MakeAllParallelMoves(visited);
-#endif
-        #pragma omp parallel for
-        for (const auto& moduleInfo : adjList) {
-            const int thread_id = omp_get_thread_num();
-            std::cout << "Thread " << thread_id << " is processing moduleInfo." << std::endl;
-            HashedState hashedState(moduleInfo);
-            bool isVisited = false;
-            #pragma omp critical
-            {
-                isVisited = (visited.find(hashedState) != visited.end());
-            }
-            if (!isVisited) {
-                auto nextConfiguration = current->AddEdge(moduleInfo);
-                nextConfiguration->SetParent(current);
-                #pragma omp critical
-                {
-                    q.push(nextConfiguration);
-                }
-                nextConfiguration->depth = current->depth + 1;
-                visited.insert(HashedState(moduleInfo));
-            }
-        }
-    }
-    throw BFSExcept();
-}
-
 int Configuration::GetCost() const {
     return cost;
 }

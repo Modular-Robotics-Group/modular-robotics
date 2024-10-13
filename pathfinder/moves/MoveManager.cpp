@@ -107,7 +107,7 @@ bool MoveBase::FreeSpaceCheckHelpLimit(const CoordTensor<int>& tensor, const std
                 helpUsed = helpTensor[coords + move.first];
             } else for (const auto pos : helperPositions) {
 #if LATTICE_RD_EDGECHECK
-                minHelpNeeded = std::min(helpTensor[coords + move.first], GetChebyshevDistance(move.first, *pos))
+                minHelpNeeded = std::min(helpTensor[coords + move.first], GetChebyshevDistance(move.first, *pos));
 #else
                 minHelpNeeded = std::min(helpTensor[coords + move.first], GetManhattanDistance(move.first, *pos));
 #endif

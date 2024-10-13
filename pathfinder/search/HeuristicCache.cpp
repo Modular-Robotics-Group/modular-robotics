@@ -130,7 +130,7 @@ CoordTensor<int> BuildInternalDistanceCache() {
             }
 #if LATTICE_RD_EDGECHECK
             // 90% sure Chebyshev distance should work for rhombic dodecahedra edge checking
-            ChebyshevEnqueueAdjacentInternal(coordQueue, coordQueue.front())
+            ChebyshevEnqueueAdjacentInternal(coordQueue, coordQueue.front());
 #else
             // Manhattan distance works for regular edge checking
             ManhattanEnqueueAdjacentInternal(coordQueue, coordQueue.front());
