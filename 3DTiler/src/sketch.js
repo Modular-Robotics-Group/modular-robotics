@@ -33,7 +33,7 @@ function importMetamodule(event) {
             try {
                 const jsonContent = JSON.parse(e.target.result);
                 defaultColor = [255, 255, 255];
-                var modules = parsedJson.modules;
+                var modules = jsonContent.modules;
                 for (let i = 0; i < modules.length; i++) {
                     const { position } = modules[i];
                     const [x, y, z = 0] = position;
