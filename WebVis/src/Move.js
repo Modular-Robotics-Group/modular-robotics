@@ -1,13 +1,12 @@
 import * as THREE from 'three';
 import { ModuleType, MoveType } from './utils.js';
 
-export class Move{
-    constructor(id, anchorDir, deltaPos, moveType, checkpoint, moduleType = ModuleType.CUBE) { 
+export class Move {
+    constructor(id, anchorDir, deltaPos, moveType, moduleType) { 
         this.id = id;
         this.anchorDir = anchorDir;
         this.deltaPos = deltaPos;
         this.moveType = moveType;
-        this.checkpoint = checkpoint;
 
         this.moduleType = moduleType;
         // TODO refactor this out to someplace it belongs
@@ -88,20 +87,30 @@ export class Move{
     reverse() {
         let newDeltaPos = this.deltaPos.clone().negate();
 
-        //  For cube "double-move" pivots and RD pivots, we need to calculate a new anchor direction
-        //  For cube "single-move" pivots, we can just use the old anchor direction
+        // Calculate a new anchor direction
         let newAnchorDir;
-        if (this.deltaPos.abs().sum() > 1) {
-            // In the coordinate system centered at the origin of the "anchor" shape,
-            //  take our position and subtract the delta-position of the move.
-            //  This results in the end-position of the move, which...
-            //  happens to correspond neatly the anchor direction in this coordinate system.
-            //      (Same property that allows us to identify our position in this coordinate system)
-            newAnchorDir = this.anchorDir.clone().multiplyScalar(this.inscsphere * 2).sub(this.deltaPos).normalize();
-        } else {
+
+        // Very basic moves (manhattan distance of 1, or generic slides) are easy
+        if ((this.deltaPos.abs().sum() <= 1) || (this.anchorDir.abs().sum() < 0.1)) {
             newAnchorDir = this.anchorDir.clone();
+        } else {
+            // Complicated moves (manhattan distance > 1)
+            //  need to do some math to find new anchor direction
+            // Sliding moves are relatively easy
+            if (this.moveType == MoveType.SLIDING) {
+                let testVec = new THREE.Vector3(1.0, 1.0, 1.0);
+                newAnchorDir = testVec.sub(this.anchorDir.abs()).multiply(newDeltaPos).abs();
+            } else {
+                // Pivot moves are the most complicated
+                // In the coordinate system centered at the origin of the "anchor" shape,
+                //  take our position and subtract the delta-position of the move.
+                //  This results in the end-position of the move, which...
+                //  happens to correspond neatly the anchor direction in this coordinate system.
+                //      (Same property that allows us to identify our position in this coordinate system)
+                newAnchorDir = this.anchorDir.clone().multiplyScalar(this.inscsphere * 2).sub(this.deltaPos).normalize();
+            }
         }
 
-        return new Move(this.id, newAnchorDir, newDeltaPos, this.moveType, this.checkpoint, this.moduleType);
+        return new Move(this.id, newAnchorDir, newDeltaPos, this.moveType, this.moduleType);
     }
 }

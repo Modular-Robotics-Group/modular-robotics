@@ -20,8 +20,32 @@ redoStack = [];
 rgbColor = [255, 255, 255];
 boundaryBox = [[-1, -1, -1], [-1, -1, -1]];
 
-function triggerFileInput() {
-    document.getElementById('fileInput').click();
+function triggerFileInput(inputId) {
+    document.getElementById(inputId).click();
+}
+
+function importMetamodule(event) {
+    metamoduleBlocks = [];
+    const file = event.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const jsonContent = JSON.parse(e.target.result);
+                defaultColor = [255, 255, 255];
+                var modules = jsonContent.modules;
+                for (let i = 0; i < modules.length; i++) {
+                    const { position } = modules[i];
+                    const [x, y, z = 0] = position;
+                    const block = { x, y, z };
+                    metamoduleBlocks.push(block);
+                }
+            } catch (error) {
+                console.error("Error parsing JSON:", error);
+            }
+        };
+        reader.readAsText(file);
+    }
 }
 
 function importFromJson(event) {
@@ -507,8 +531,6 @@ var sketch1 = function (sketch) {
                     }
                 }
             }
-        } else if (sketch.key === '5') {
-            metamoduleBlocks = copyBlocks;
         }
     }
 }
