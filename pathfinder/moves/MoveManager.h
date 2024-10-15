@@ -133,6 +133,8 @@ public:
     virtual bool MoveCheck(const CoordTensor<int>& tensor, const Module& mod) = 0;
     // Check to see if free space requirements are satisfied at a given position
     virtual bool FreeSpaceCheck(const CoordTensor<int>& tensor, const std::valarray<int>& coords);
+    // Check to see if move is possible from a given position assuming some non-static modules would help
+    virtual bool FreeSpaceCheckHelpLimit(const CoordTensor<int>& tensor, const std::valarray<int>& coords, const CoordTensor<int>& helpTensor, int help);
 
     [[nodiscard]]
     MoveBase* MakeCopy() const override = 0;
