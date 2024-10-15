@@ -410,7 +410,7 @@ MoveOffsetPropertyHeuristicCache::MoveOffsetPropertyHeuristicCache(const std::se
         coordQueue.push({desiredModuleData.Coords(), 0, (desiredModuleData.Properties().AsInt())});
         while (!coordQueue.empty()) {
             //std::valarray<int> coords = coordQueue.front().coords;
-            std::valarray<int> coordProps(Lattice::Order() + 1, 0);
+            std::valarray<int> coordProps(0, Lattice::Order() + 1);
             for (int i = 0; i < Lattice::Order(); i++) {
                 coordProps[i] = coordQueue.front().coords[i];
             }
@@ -468,7 +468,7 @@ MoveOffsetPropertyHeuristicCache::MoveOffsetPropertyHeuristicCache(const std::se
 }
 
 float MoveOffsetPropertyHeuristicCache::operator[](const std::valarray<int> &coords, std::uint_fast64_t propInt) const {
-    static std::valarray<int> coordProps(Lattice::Order() + 1, 0);
+    static std::valarray<int> coordProps(0, Lattice::Order() + 1);
     for (int i = 0; i < Lattice::Order(); i++) {
         coordProps[i] = coords[i];
     }
