@@ -76,10 +76,10 @@
     <button id="redo">Redo</button>
     <button id="clear">Clear</button>
     <button id="switch-shape">Switch to Dodecahedron</button>
-    <button id="importFromJson" onclick="triggerFileInput()">Import from JSON</button>
-    <input type="file" id="fileInput" accept=".json" style="display: none;" onchange="importFromJson(event)">
-    <button id="importMetaModule" onclick="triggerFileInput()">Import Metamodule</button>
-    <input type="file" id="fileInput" accept=".json" style="display: none;" onchange="importMetamodule(event)">
+    <button id="importFromJson" onclick="triggerFileInput('fileInputJson')">Import from JSON</button>
+    <input type="file" id="fileInputJson" accept=".json" style="display: none;" onchange="importFromJson(event)">
+    <button id="importMetamodule" onclick="triggerFileInput('fileInputMetamodule')">Import Metamodule</button>
+    <input type="file" id="fileInputMetamodule" accept=".json" style="display: none;" onchange="importMetamodule(event)">
     <button id="exportToJson" onclick="exportToJson()">Export to JSON</button>
     <button id="exportToObj" onclick="exportToObj()">Export to OBJ</button>
     <button id="static" onclick="toggleStatic()">Static</button>

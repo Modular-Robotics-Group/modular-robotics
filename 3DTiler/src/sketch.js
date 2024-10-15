@@ -20,8 +20,8 @@ redoStack = [];
 rgbColor = [255, 255, 255];
 boundaryBox = [[-1, -1, -1], [-1, -1, -1]];
 
-function triggerFileInput() {
-    document.getElementById('fileInput').click();
+function triggerFileInput(inputId) {
+    document.getElementById(inputId).click();
 }
 
 function importMetamodule(event) {
