@@ -214,6 +214,9 @@ public:
     // Get a pair containing which module has to make what move in order to reach an adjacent state
     static std::pair<Module*, MoveBase*> FindMoveToState(const std::set<ModuleData>& modData);
 
+    // Get a vector of pairs of modules to move and moves to make in order to reach an adjacent state
+    static std::vector<std::pair<Module*, MoveBase*>> FindParallelMovesToState(const std::set<ModuleData>& modData);
+
     friend class MoveOffsetHeuristicCache;
 
     friend class MoveOffsetPropertyHeuristicCache;
