@@ -39,7 +39,6 @@ namespace LatticeSetup {
 #endif
             if (!Lattice::ignoreProperties && module.contains("properties")) {
                 ModuleIdManager::RegisterModule(coords, module["static"], module["properties"]);
-                //colors.insert(Colors::colorToInt[module["color"]]);
             } else {
                 ModuleIdManager::RegisterModule(coords, module["static"]);
             }
@@ -83,8 +82,6 @@ namespace LatticeSetup {
         }
         nlohmann::json j;
         file >> j;
-        //CoordTensor<bool> desiredState(Lattice::Order(), Lattice::AxisSize(), false);
-        //CoordTensor<int> desiredColors(Lattice::Order(), Lattice::AxisSize(), -1);
         std::set<ModuleData> desiredState;
         for (const auto& module : j["modules"]) {
             if (module["static"] == true) continue;
@@ -96,16 +93,12 @@ namespace LatticeSetup {
 #if FLIP_Y_COORD
             coords[1] = Lattice::AxisSize() - coords[1] - 1;
 #endif
-            //desiredState[coords] = true;
             ModuleProperties props;
             if (!Lattice::ignoreProperties && module.contains("properties")) {
                 props.InitProperties(module["properties"]);
-                //desiredColors[coords] = Colors::colorToInt[module["color"]];
             }
             desiredState.insert({coords, props});
         }
-        //return {desiredState, desiredColors};
-        //TODO: add property stuff here
         return Configuration(desiredState);
     }
 

@@ -198,14 +198,10 @@ PropertyInitializer::PropertyInitializer(const std::string& name, IModulePropert
 }
 
 std::size_t boost::hash<ModuleProperties>::operator()(const ModuleProperties& moduleProperties) const noexcept {
-    //std::size_t prev = 0;
     auto cmp = [](const int a, const int b) { return a < b; };
     std::set<std::size_t, decltype(cmp)> hashes(cmp);
     for (const auto property : moduleProperties._properties) {
-        //auto current = property->GetHash();
         hashes.insert(property->GetHash());
-        //boost::hash_combine(prev, current);
     }
-    //return prev;
     return boost::hash_range(hashes.begin(), hashes.end());
 }

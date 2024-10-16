@@ -105,11 +105,6 @@ const std::set<ModuleData>& Configuration::GetModData() const {
     return hash.GetState();
 }
 
-/*void Configuration::SetStateAndHash(const std::vector<ModuleBasic>& modData) {
-    _nonStatModData = modData;
-    hash = HashedState(modData);
-}*/
-
 void Configuration::SetParent(Configuration* configuration) {
     parent = configuration;
 }
@@ -137,8 +132,6 @@ std::vector<Configuration*> ConfigurationSpace::BFS(Configuration* start, const 
     int statesProcessed = 0;
     std::queue<Configuration*> q;
     std::unordered_set<HashedState> visited;
-    //start->SetStateAndHash(start->GetModData());
-    //final->SetStateAndHash(final->GetModData());
     q.push(start);
     visited.insert(start->GetHash());
     while (!q.empty()) {
@@ -170,7 +163,6 @@ std::vector<Configuration*> ConfigurationSpace::BFS(Configuration* start, const 
 #endif
         q.pop();
         if (current->GetHash() == final->GetHash()) {
-        //if (current->GetModData() == final->GetModData()) {
 #if CONFIG_VERBOSE > CS_LOG_FINAL_DEPTH
 #if CONFIG_OUTPUT_JSON
             SearchAnalysis::PauseClock();
@@ -201,7 +193,6 @@ std::vector<Configuration*> ConfigurationSpace::BFS(Configuration* start, const 
 #endif
                 auto nextConfiguration = current->AddEdge(moduleInfo);
                 nextConfiguration->SetParent(current);
-                //nextConfiguration->SetStateAndHash(moduleInfo);
                 q.push(nextConfiguration);
                 nextConfiguration->depth = current->depth + 1;
 #if !CONFIG_PARALLEL_MOVES
@@ -255,7 +246,6 @@ float Configuration::ManhattanDistance(const Configuration* final) const {
     while (currentIt != currentData.end() && finalIt != finalData.end()) {
         const auto& currentModule = *currentIt;
         const auto& finalModule = *finalIt;
-        //std::valarray<int> diff = currentModule.Coords() - finalModule.Coords();
         diff += currentModule.Coords() - finalModule.Coords();
         ++currentIt;
         ++finalIt;
@@ -407,7 +397,6 @@ std::vector<Configuration*> ConfigurationSpace::AStar(Configuration* start, cons
 #endif
 #endif
         pq.pop();
-        //if (current->GetModData() == final->GetModData()) {
         if (current->GetHash() == final->GetHash()) {
 #if CONFIG_VERBOSE > CS_LOG_FINAL_DEPTH
 #if CONFIG_OUTPUT_JSON

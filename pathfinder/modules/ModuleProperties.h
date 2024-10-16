@@ -52,7 +52,6 @@ private:
 public:
     ModuleProperties() = default;
 
-    //ModuleProperties(const ModuleProperties&) = delete;
     ModuleProperties(const ModuleProperties& other);
 
     static void LinkProperties();
@@ -94,14 +93,11 @@ public:
     ~ModuleProperties();
 
     friend class IModuleProperty;
-//    template<typename T, class C, class... Args>
-//    friend class PropertyFunction;
     friend struct PropertyInitializer;
     friend class boost::hash<ModuleProperties>;
 };
 
 // An interface for properties that a module might have, ex: Color, Direction, etc.
-// This
 class IModuleProperty {
 protected:
     std::string key;
@@ -139,9 +135,6 @@ public:
     friend class ModuleProperties;
 };
 
-//template<typename T, class C, class... Args>
-//class PropertyFunction;
-
 // These properties can change as a result of certain events, such as moving, or even having a module move adjacent to
 // the affected module.
 class IModuleDynamicProperty : public IModuleProperty {
@@ -154,13 +147,10 @@ protected:
     IModuleDynamicProperty* MakeCopy() const override = 0;
 };
 
-// extern boost::any& ResultInternal();
-
 template<typename T>
 T& ResultHolder() {
     static T result;
     return result;
-    // return boost::any_cast<T&>(ResultInternal());
 }
 
 // Used by property classes to add their constructor to the constructor map

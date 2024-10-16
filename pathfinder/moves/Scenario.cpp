@@ -116,7 +116,6 @@ void Scenario::exportToScen(const std::vector<Configuration *> &path, const Scen
             file << modDef.str() << std::endl << std::endl;
             checkpoint = false;
         }
-        //file << std::endl;
         Lattice::MoveModule(*modToMove, move->MoveOffset());
 #endif
     }
