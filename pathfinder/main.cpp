@@ -150,8 +150,8 @@ int main(int argc, char* argv[]) {
 #if CONFIG_OUTPUT_JSON
         SearchAnalysis::ExportData(analysisFile);
 #endif
-    } catch(BFSExcept& bfsExcept) {
-        std::cerr << bfsExcept.what() << std::endl;
+    } catch(SearchExcept& searchExcept) {
+        std::cerr << searchExcept.what() << std::endl;
     }
 
 #if PRINT_PATH

@@ -27,7 +27,7 @@
 #define CONFIG_OUTPUT_JSON false
 #endif
 
-class BFSExcept final : std::exception {
+class SearchExcept final : std::exception {
 public:
     [[nodiscard]]
     const char * what() const noexcept override;

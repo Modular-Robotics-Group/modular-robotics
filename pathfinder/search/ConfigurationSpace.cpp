@@ -10,8 +10,8 @@
 #include "HeuristicCache.h"
 #include "SearchAnalysis.h"
 
-const char * BFSExcept::what() const noexcept {
-    return "BFS exhausted without finding a path!";
+const char * SearchExcept::what() const noexcept {
+    return "Search exhausted without finding a path!";
 }
 
 HashedState::HashedState(const std::set<ModuleData>& modData) {
@@ -203,7 +203,7 @@ std::vector<Configuration*> ConfigurationSpace::BFS(Configuration* start, const 
 #endif
         }
     }
-    throw BFSExcept();
+    throw SearchExcept();
 }
 
 int Configuration::GetCost() const {
@@ -439,7 +439,7 @@ std::vector<Configuration*> ConfigurationSpace::AStar(Configuration* start, cons
 #endif
         }
     }
-    throw BFSExcept();
+    throw SearchExcept();
 }
 
 std::vector<Configuration*> ConfigurationSpace::FindPath(Configuration* start, Configuration* final) {
