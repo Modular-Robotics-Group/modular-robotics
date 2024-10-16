@@ -1,6 +1,7 @@
 #include "Scenario.h"
 #include <iostream>
 #include <fstream>
+#include <queue>
 #include <boost/format.hpp>
 #include "../modules/ModuleManager.h"
 #include "MoveManager.h"
@@ -70,9 +71,40 @@ void Scenario::exportToScen(const std::vector<Configuration *> &path, const Scen
         file << modDef.str() << std::endl;
     }
     file << std::endl;
+#if CONFIG_PARALLEL_MOVES
+    std::vector<std::queue<std::pair<Move::AnimType, std::valarray<int>>>> parallelAnimQueues(ModuleIdManager::MinStaticID());
+#endif
     for (size_t i = 1; i < path.size(); i++) {
-        auto [movingModule, move] = MoveManager::FindMoveToState(path[i]->GetModData());
         bool checkpoint = true;
+#if CONFIG_PARALLEL_MOVES
+        auto parallelMoves = MoveManager::FindParallelMovesToState(path[i]->GetModData());
+        // Enqueue move animations
+        int animsToExport = 0;
+        for (auto [mod, move] : parallelMoves) {
+            for (const auto& anim : move->AnimSequence()) {
+                parallelAnimQueues[mod->id].push(anim);
+                animsToExport++;
+            }
+        }
+        // Export animations to scenario file
+        while (animsToExport != 0) {
+            for (int id = 0; id < ModuleIdManager::MinStaticID(); id++) {
+                if (parallelAnimQueues[id].empty()) continue;
+                auto [type, offset] = parallelAnimQueues[id].front();
+                modDef % (checkpoint ? '*' : ' ') % id % type % offset[0] % offset[1] % offset[2];
+                file << modDef.str() << std::endl;
+                checkpoint = false;
+                parallelAnimQueues[id].pop();
+                animsToExport--;
+            }
+            file << std::endl;
+        }
+        // Make moves
+        for (auto [mod, move] : parallelMoves) {
+            Lattice::MoveModule(*mod, move->MoveOffset());
+        }
+#else
+        auto [movingModule, move] = MoveManager::FindMoveToState(path[i]->GetModData());
         if (move == nullptr) {
             std::cout << "Failed to generate scenario file, no move to next state found.\n";
             file.close();
@@ -86,6 +118,7 @@ void Scenario::exportToScen(const std::vector<Configuration *> &path, const Scen
         }
         //file << std::endl;
         Lattice::MoveModule(*modToMove, move->MoveOffset());
+#endif
     }
     file.close();
 }
