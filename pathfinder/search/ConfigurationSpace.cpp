@@ -4,7 +4,6 @@
 #include <queue>
 #include <set>
 #include <utility>
-#include <omp.h>
 #include "../moves/MoveManager.h"
 #include "ConfigurationSpace.h"
 #include "HeuristicCache.h"
