@@ -13,11 +13,6 @@
 
 #define GENERATE_FINAL_STATE false
 #define PRINT_PATH false
-#if CONFIG_PARALLEL_MOVES && !PRINT_PATH
-#warning "Setting print path to true, since parallel move visualization isn't supported"
-#undef PRINT_PATH
-#define PRINT_PATH true
-#endif
 
 int main(int argc, char* argv[]) {
     bool ignoreColors = false;
@@ -155,8 +150,8 @@ int main(int argc, char* argv[]) {
 #if CONFIG_OUTPUT_JSON
         SearchAnalysis::ExportData(analysisFile);
 #endif
-    } catch(BFSExcept& bfsExcept) {
-        std::cerr << bfsExcept.what() << std::endl;
+    } catch(SearchExcept& searchExcept) {
+        std::cerr << searchExcept.what() << std::endl;
     }
 
 #if PRINT_PATH

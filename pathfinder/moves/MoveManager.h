@@ -126,13 +126,14 @@ protected:
     std::valarray<int> initPos, finalPos;
     std::vector<std::pair<Move::AnimType, std::valarray<int>>> animSequence;
 public:
-    // Load in move info from a given file
-    // virtual void InitMove(std::ifstream& moveFile) = 0;
+    // Load in move info from a given JSON move definition
     virtual void InitMove(const nlohmann::basic_json<>& moveDef) = 0;
     // Check to see if move is possible for a given module
     virtual bool MoveCheck(const CoordTensor<int>& tensor, const Module& mod) = 0;
     // Check to see if free space requirements are satisfied at a given position
     virtual bool FreeSpaceCheck(const CoordTensor<int>& tensor, const std::valarray<int>& coords);
+    // Check to see if move is possible from a given position assuming some non-static modules would help
+    virtual bool FreeSpaceCheckHelpLimit(const CoordTensor<int>& tensor, const std::valarray<int>& coords, const CoordTensor<int>& helpTensor, int help);
 
     [[nodiscard]]
     MoveBase* MakeCopy() const override = 0;
@@ -159,7 +160,6 @@ public:
     Move2d();
     [[nodiscard]]
     MoveBase* MakeCopy() const override;
-    //void InitMove(std::ifstream& moveFile) override;
     void InitMove(const nlohmann::basic_json<>& moveDef) override;
     bool MoveCheck(const CoordTensor<int>& tensor, const Module& mod) override;
 };
@@ -169,7 +169,6 @@ public:
     Move3d();
     [[nodiscard]]
     MoveBase* MakeCopy() const override;
-    //void InitMove(std::ifstream& moveFile) override;
     void InitMove(const nlohmann::basic_json<>& moveDef) override;
     bool MoveCheck(const CoordTensor<int>& tensor, const Module& mod) override;
 };
@@ -211,6 +210,9 @@ public:
 
     // Get a pair containing which module has to make what move in order to reach an adjacent state
     static std::pair<Module*, MoveBase*> FindMoveToState(const std::set<ModuleData>& modData);
+
+    // Get a vector of pairs of modules to move and moves to make in order to reach an adjacent state
+    static std::vector<std::pair<Module*, MoveBase*>> FindParallelMovesToState(const std::set<ModuleData>& modData);
 
     friend class MoveOffsetHeuristicCache;
 

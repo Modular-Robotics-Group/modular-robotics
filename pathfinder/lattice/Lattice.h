@@ -103,9 +103,6 @@ public:
     // Get non-static module information
     static std::set<ModuleData> GetModuleInfo();
 
-    // Assign from state tensor
-    //static void UpdateFromState(const CoordTensor<bool>& state, const CoordTensor<int>& colors);
-
     static int Order();
 
     static int AxisSize();

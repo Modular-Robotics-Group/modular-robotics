@@ -65,15 +65,6 @@ ChebyshevHeuristicCache::ChebyshevHeuristicCache(const std::set<ModuleData>& des
 void ManhattanEnqueueAdjacentInternal(std::queue<SearchCoord>& coordQueue, const SearchCoord& coordInfo) {
     std::vector<std::valarray<int>> adjCoords;
     adjCoords.push_back(coordInfo.coords);
-    // for (int i = 0; i < Lattice::Order(); i++) {
-    //     auto adjCoordsTemp = adjCoords;
-    //     for (auto adj : adjCoordsTemp) {
-    //         adj[i]--;
-    //         adjCoords.push_back(adj);
-    //         adj[i] += 2;
-    //         adjCoords.push_back(adj);
-    //     }
-    // }
     auto adjCoordsTemp = adjCoords;
     for (auto adj : adjCoordsTemp) {
         for (int i = 0; i < Lattice::Order(); i++) {
@@ -176,7 +167,7 @@ void MoveOffsetHeuristicCache::MoveOffsetEnqueueAdjacent(std::queue<SearchCoord>
         for (const auto& offset : MoveManager::_offsets) {
 #if CONFIG_HEURISTIC_CACHE_DIST_LIMITATIONS
 #if CONFIG_HEURISTIC_CACHE_HELP_LIMITATIONS
-            if (internalDistanceCache[adj + offset] > currentHelp) continue;
+            if (internalDistanceCache[adj + offset] > currentHelp + 1) continue;
 #else
             if (internalDistanceCache[adj + offset] > ModuleIdManager::MinStaticID()) continue;
 #endif
@@ -223,14 +214,12 @@ MoveOffsetHeuristicCache::MoveOffsetHeuristicCache(const std::set<ModuleData> &d
         CoordTensor<bool> internalVisitTensor(Lattice::Order(), Lattice::AxisSize(), false);
         std::queue<SearchCoord> coordQueue;
         coordQueue.push({desiredModuleData.Coords()});
-        // internalVisitTensor[desiredModuleData.Coords()] = true;
         while (!coordQueue.empty()) {
             if (internalVisitTensor[coordQueue.front().coords]) {
                 coordQueue.pop();
                 continue;
             }
             internalVisitTensor[coordQueue.front().coords] = true;
-            //if (desiredPositions.contains(coordQueue.front().coords)) {
             if (std::any_of(std::execution::par_unseq, desiredPositions.begin(), desiredPositions.end(), [&](std::valarray<int>& coord) {
                 std::valarray valArrComparison = coord == coordQueue.front().coords;
                 for (const auto result : valArrComparison) {
@@ -314,7 +303,7 @@ void MoveOffsetPropertyHeuristicCache::MoveOffsetPropertyEnqueueAdjacent(std::qu
         for (const auto& offset : MoveManager::_offsets) {
 #if CONFIG_HEURISTIC_CACHE_DIST_LIMITATIONS
 #if CONFIG_HEURISTIC_CACHE_HELP_LIMITATIONS
-            if (internalDistanceCache[adj + offset] > currentHelp) continue;
+            if (internalDistanceCache[adj + offset] > currentHelp + 1) continue;
 #else
             if (internalDistanceCache[adj + offset] > ModuleIdManager::MinStaticID()) continue;
 #endif
@@ -372,14 +361,12 @@ MoveOffsetPropertyHeuristicCache::MoveOffsetPropertyHeuristicCache(const std::se
         CoordTensor<bool> internalVisitTensor(Lattice::Order(), Lattice::AxisSize(), false);
         std::queue<SearchCoordProp> coordQueue;
         coordQueue.push({desiredModuleData.Coords()});
-        // internalVisitTensor[desiredModuleData.Coords()] = true;
         while (!coordQueue.empty()) {
             if (internalVisitTensor[coordQueue.front().coords]) {
                 coordQueue.pop();
                 continue;
             }
             internalVisitTensor[coordQueue.front().coords] = true;
-            //if (desiredPositions.contains(coordQueue.front().coords)) {
             if (std::any_of(std::execution::par_unseq, desiredPositions.begin(), desiredPositions.end(), [&](std::valarray<int>& coord) {
                 std::valarray valArrComparison = coord == coordQueue.front().coords;
                 for (const auto result : valArrComparison) {
@@ -409,8 +396,7 @@ MoveOffsetPropertyHeuristicCache::MoveOffsetPropertyHeuristicCache(const std::se
         std::queue<SearchCoordProp> coordQueue;
         coordQueue.push({desiredModuleData.Coords(), 0, (desiredModuleData.Properties().AsInt())});
         while (!coordQueue.empty()) {
-            //std::valarray<int> coords = coordQueue.front().coords;
-            std::valarray<int> coordProps(Lattice::Order() + 1, 0);
+            std::valarray<int> coordProps(0, Lattice::Order() + 1);
             for (int i = 0; i < Lattice::Order(); i++) {
                 coordProps[i] = coordQueue.front().coords[i];
             }
@@ -468,7 +454,7 @@ MoveOffsetPropertyHeuristicCache::MoveOffsetPropertyHeuristicCache(const std::se
 }
 
 float MoveOffsetPropertyHeuristicCache::operator[](const std::valarray<int> &coords, std::uint_fast64_t propInt) const {
-    static std::valarray<int> coordProps(Lattice::Order() + 1, 0);
+    static std::valarray<int> coordProps(0, Lattice::Order() + 1);
     for (int i = 0; i < Lattice::Order(); i++) {
         coordProps[i] = coords[i];
     }

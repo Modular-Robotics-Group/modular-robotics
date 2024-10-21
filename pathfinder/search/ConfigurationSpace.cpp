@@ -4,14 +4,13 @@
 #include <queue>
 #include <set>
 #include <utility>
-#include <omp.h>
 #include "../moves/MoveManager.h"
 #include "ConfigurationSpace.h"
 #include "HeuristicCache.h"
 #include "SearchAnalysis.h"
 
-const char * BFSExcept::what() const noexcept {
-    return "BFS exhausted without finding a path!";
+const char * SearchExcept::what() const noexcept {
+    return "Search exhausted without finding a path!";
 }
 
 HashedState::HashedState(const std::set<ModuleData>& modData) {
@@ -105,11 +104,6 @@ const std::set<ModuleData>& Configuration::GetModData() const {
     return hash.GetState();
 }
 
-/*void Configuration::SetStateAndHash(const std::vector<ModuleBasic>& modData) {
-    _nonStatModData = modData;
-    hash = HashedState(modData);
-}*/
-
 void Configuration::SetParent(Configuration* configuration) {
     parent = configuration;
 }
@@ -137,8 +131,6 @@ std::vector<Configuration*> ConfigurationSpace::BFS(Configuration* start, const 
     int statesProcessed = 0;
     std::queue<Configuration*> q;
     std::unordered_set<HashedState> visited;
-    //start->SetStateAndHash(start->GetModData());
-    //final->SetStateAndHash(final->GetModData());
     q.push(start);
     visited.insert(start->GetHash());
     while (!q.empty()) {
@@ -170,7 +162,6 @@ std::vector<Configuration*> ConfigurationSpace::BFS(Configuration* start, const 
 #endif
         q.pop();
         if (current->GetHash() == final->GetHash()) {
-        //if (current->GetModData() == final->GetModData()) {
 #if CONFIG_VERBOSE > CS_LOG_FINAL_DEPTH
 #if CONFIG_OUTPUT_JSON
             SearchAnalysis::PauseClock();
@@ -201,7 +192,6 @@ std::vector<Configuration*> ConfigurationSpace::BFS(Configuration* start, const 
 #endif
                 auto nextConfiguration = current->AddEdge(moduleInfo);
                 nextConfiguration->SetParent(current);
-                //nextConfiguration->SetStateAndHash(moduleInfo);
                 q.push(nextConfiguration);
                 nextConfiguration->depth = current->depth + 1;
 #if !CONFIG_PARALLEL_MOVES
@@ -212,7 +202,7 @@ std::vector<Configuration*> ConfigurationSpace::BFS(Configuration* start, const 
 #endif
         }
     }
-    throw BFSExcept();
+    throw SearchExcept();
 }
 
 int Configuration::GetCost() const {
@@ -255,7 +245,6 @@ float Configuration::ManhattanDistance(const Configuration* final) const {
     while (currentIt != currentData.end() && finalIt != finalData.end()) {
         const auto& currentModule = *currentIt;
         const auto& finalModule = *finalIt;
-        //std::valarray<int> diff = currentModule.Coords() - finalModule.Coords();
         diff += currentModule.Coords() - finalModule.Coords();
         ++currentIt;
         ++finalIt;
@@ -407,7 +396,6 @@ std::vector<Configuration*> ConfigurationSpace::AStar(Configuration* start, cons
 #endif
 #endif
         pq.pop();
-        //if (current->GetModData() == final->GetModData()) {
         if (current->GetHash() == final->GetHash()) {
 #if CONFIG_VERBOSE > CS_LOG_FINAL_DEPTH
 #if CONFIG_OUTPUT_JSON
@@ -450,7 +438,7 @@ std::vector<Configuration*> ConfigurationSpace::AStar(Configuration* start, cons
 #endif
         }
     }
-    throw BFSExcept();
+    throw SearchExcept();
 }
 
 std::vector<Configuration*> ConfigurationSpace::FindPath(Configuration* start, Configuration* final) {

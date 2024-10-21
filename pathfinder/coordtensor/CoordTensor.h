@@ -348,11 +348,5 @@ template<typename T>
 void CoordTensor<T>::FillFromVector(const std::vector<T> &vec) {
     _arrayInternal = vec;
 }
-// Would only work with C++20
-/*template <typename T>
-std::vector<T>::size_type CoordTensor<T>::size() const {
-    return _arrayInternal.size();
-}*/
-
 
 #endif //TENSORFINAL_COORDTENSOR_H
