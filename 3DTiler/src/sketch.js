@@ -17,7 +17,7 @@ coloredBlocks = [];
 importBlocks = [];
 historyStack = [];
 redoStack = [];
-rgbColor = [255, 255, 255];
+rgbColor = [0, 0, 255];
 boundaryBox = [[-1, -1, -1], [-1, -1, -1]];
 
 function triggerFileInput(inputId) {
