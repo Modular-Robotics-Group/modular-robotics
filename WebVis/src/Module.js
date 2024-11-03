@@ -30,7 +30,8 @@ function _createModuleMesh(moduleType, color = 0x808080, scale = 1.0) {
     let texture = moduleType == ModuleType.CUBE ? cubeTexture : rdTexture;
     switch (moduleType) {
         case ModuleType.CUBE: /* fallthrough */
-        case ModuleType.RHOMBIC_DODECAHEDRON: material = materialConstructor(texture, color); break;
+        case ModuleType.RHOMBIC_DODECAHEDRON: /* fallthrough */
+        case ModuleType.CATOM: material = materialConstructor(texture, color); break;
     }
 
     let mesh = new THREE.Mesh(geometry, material);

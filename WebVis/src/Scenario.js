@@ -32,6 +32,7 @@ export class Scenario {
         switch (metadataLines[2]) {
             case 'CUBE': scenarioModuleType = ModuleType.CUBE; break;
             case 'RHOMBIC_DODECAHEDRON': scenarioModuleType = ModuleType.RHOMBIC_DODECAHEDRON; break;
+            case 'CATOM': scenarioModuleType = ModuleType.CATOM; break;
             default: console.log("Unknown module type ", metadataLines[2], " -- defaulting to CUBE"); scenarioModuleType = ModuleType.CUBE; break;
         }
 
