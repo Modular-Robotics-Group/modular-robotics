@@ -327,7 +327,7 @@ for (const vertex of _catomGeometryVertices) {
 }
 
 const _catomGeometry = new THREE.BufferGeometry();
-_catomGeometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(_catomVertexPositions.map((x) => x / 2.0)), 3));
+_catomGeometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(_catomVertexPositions.map((x) => x / (opr + 1))), 3));
 _catomGeometry.setAttribute('uv', new THREE.BufferAttribute(new Float32Array(_catomVertexUvs), 2));
 _catomGeometry.computeVertexNormals();
 
