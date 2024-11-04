@@ -347,7 +347,6 @@ void Lattice::BuildMovableModulesNonRec() {
         if (visited[id]) {
             continue;
         }
-        // can probably convert these to vectors
         std::vector<int> discovery(moduleCount, 0);
         std::vector<int> low(moduleCount, 0);
         int root_children = 0;

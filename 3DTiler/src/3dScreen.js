@@ -246,6 +246,10 @@ class threeDScreen {
     }
 
     drawCubes(sketch) {
+        if (metamoduleBlocks.length > 0) {
+            this.drawCubesAsMetamodule(sketch);
+            return;
+        }
         const halfWidth = this.width / 2;
         const halfHeight = this.height / 2;
     
@@ -284,6 +288,54 @@ class threeDScreen {
             sketch.fill(128, 0, 128);
             sketch.box(this.tileSize);
             sketch.pop();
+        }
+    }
+
+    drawCubesAsMetamodule(sketch) {
+        const halfWidth = this.width / 2;
+        const halfHeight = this.height / 2;
+    
+        for (let i = 0; i < this.cubes.length; i++) {
+            const cube = this.cubes[i];
+            let minX = Math.min(...metamoduleBlocks.map(block => block.x));
+            let maxX = Math.max(...metamoduleBlocks.map(block => block.x));
+            let minY = Math.min(...metamoduleBlocks.map(block => block.y));
+            let maxY = Math.max(...metamoduleBlocks.map(block => block.y));
+            let minZ = Math.min(...metamoduleBlocks.map(block => block.z));
+            let maxZ = Math.max(...metamoduleBlocks.map(block => block.z));
+            let diffX = maxX - minX + 1;
+            let diffY = maxY - minY + 1;
+            let diffZ = maxZ - minZ + 1;
+            let start = [cube.x * diffX, cube.y * diffY, cube.z * diffZ];
+            for (let j = 0; j < metamoduleBlocks.length; j++) {
+                const newX = start[0] + metamoduleBlocks[j].x;
+                const newY = start[1] + metamoduleBlocks[j].y;
+                const newZ = start[2] + metamoduleBlocks[j].z;
+                const x = newX * this.tileSize - halfWidth;
+                const y = newY * this.tileSize - halfHeight;
+                const z = newZ * this.tileSize;
+                let highlightBorder = highlightCoords[0] == this.cubes[i].x && highlightCoords[1] == this.cubes[i].y && highlightCoords[2] == this.cubes[i].z;
+                sketch.push();
+                sketch.translate(x, y, z);
+                if (highlight && this.cubes[i].z === layer) {
+                    sketch.fill(0, 0, 255);
+                } else {
+                    sketch.fill(this.cubes[i].color[0], this.cubes[i].color[1], this.cubes[i].color[2]);
+                }
+                sketch.box(this.tileSize);
+                if (highlightBorder) {
+                    sketch.stroke(255, 204, 0);
+                    sketch.noFill();
+                    sketch.box(this.tileSize * 1.1);
+                }
+                const isMatching = (box, cube) => box[0] == cube.x && box[1] == cube.y && box[2] == cube.z;
+                if ([boundaryBox[0], boundaryBox[1]].some(box => isMatching(box, this.cubes[i]))) {
+                    sketch.stroke(128, 0, 128);
+                    sketch.noFill();
+                    sketch.box(this.tileSize * 1.1);
+                }
+                sketch.pop();
+            }
         }
     }
 

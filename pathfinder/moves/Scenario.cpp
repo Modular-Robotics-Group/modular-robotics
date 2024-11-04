@@ -1,6 +1,7 @@
 #include "Scenario.h"
 #include <iostream>
 #include <fstream>
+#include <queue>
 #include <boost/format.hpp>
 #include "../modules/ModuleManager.h"
 #include "MoveManager.h"
@@ -54,23 +55,55 @@ void Scenario::exportToScen(const std::vector<Configuration *> &path, const Scen
         file << "\n";
     }
     auto idLen = std::to_string(ModuleIdManager::Modules().size()).size();
-    boost::format padding("%%0%dd, %s");
-    boost::format modDef((padding % idLen % "%d, %d, %d, %d").str());
+    boost::format padding("%s%%0%dd, %s");
+    boost::format modDef((padding % "%s" % idLen % "%d, %d, %d, %d").str());
     Lattice::UpdateFromModuleInfo(path[0]->GetModData());
     for (size_t id = 0; id < ModuleIdManager::Modules().size(); id++) {
         auto &mod = ModuleIdManager::Modules()[id];
         if (Lattice::ignoreProperties) {
-            modDef % id % (mod.moduleStatic ? 1 : 0) % mod.coords[0] % mod.coords[1] % (mod.coords.size() > 2
+            modDef % "" % id % (mod.moduleStatic ? 1 : 0) % mod.coords[0] % mod.coords[1] % (mod.coords.size() > 2
                     ? mod.coords[2]
                     : 0);
         } else {
-            modDef % id % (mod.properties.Find(COLOR_PROP_NAME))->CallFunction<int>("GetColorInt") % mod.
+            modDef % "" % id % (mod.properties.Find(COLOR_PROP_NAME))->CallFunction<int>("GetColorInt") % mod.
                     coords[0] % mod.coords[1] % (mod.coords.size() > 2 ? mod.coords[2] : 0);
         }
         file << modDef.str() << std::endl;
     }
     file << std::endl;
+#if CONFIG_PARALLEL_MOVES
+    std::vector<std::queue<std::pair<Move::AnimType, std::valarray<int>>>> parallelAnimQueues(ModuleIdManager::MinStaticID());
+#endif
     for (size_t i = 1; i < path.size(); i++) {
+        bool checkpoint = true;
+#if CONFIG_PARALLEL_MOVES
+        auto parallelMoves = MoveManager::FindParallelMovesToState(path[i]->GetModData());
+        // Enqueue move animations
+        int animsToExport = 0;
+        for (auto [mod, move] : parallelMoves) {
+            for (const auto& anim : move->AnimSequence()) {
+                parallelAnimQueues[mod->id].push(anim);
+                animsToExport++;
+            }
+        }
+        // Export animations to scenario file
+        while (animsToExport != 0) {
+            for (int id = 0; id < ModuleIdManager::MinStaticID(); id++) {
+                if (parallelAnimQueues[id].empty()) continue;
+                auto [type, offset] = parallelAnimQueues[id].front();
+                modDef % (checkpoint ? '*' : ' ') % id % type % offset[0] % offset[1] % offset[2];
+                file << modDef.str() << std::endl;
+                checkpoint = false;
+                parallelAnimQueues[id].pop();
+                animsToExport--;
+            }
+            file << std::endl;
+        }
+        // Make moves
+        for (auto [mod, move] : parallelMoves) {
+            Lattice::MoveModule(*mod, move->MoveOffset());
+        }
+#else
         auto [movingModule, move] = MoveManager::FindMoveToState(path[i]->GetModData());
         if (move == nullptr) {
             std::cout << "Failed to generate scenario file, no move to next state found.\n";
@@ -79,11 +112,12 @@ void Scenario::exportToScen(const std::vector<Configuration *> &path, const Scen
         }
         auto modToMove = movingModule;
         for (const auto &[type, offset]: move->AnimSequence()) {
-            modDef % modToMove->id % type % offset[0] % offset[1] % offset[2];
-            file << modDef.str() << std::endl;
+            modDef % (checkpoint ? '*' : ' ') % modToMove->id % type % offset[0] % offset[1] % offset[2];
+            file << modDef.str() << std::endl << std::endl;
+            checkpoint = false;
         }
-        file << std::endl;
         Lattice::MoveModule(*modToMove, move->MoveOffset());
+#endif
     }
     file.close();
 }

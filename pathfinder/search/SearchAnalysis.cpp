@@ -29,9 +29,6 @@ void SearchAnalysis::ResumeClock() {
 
 void SearchAnalysis::EnterGraph(const std::string &key) {
     if (!data.contains(key)) {
-        //nlohmann::json obj = {key, emptyGraph};
-        //data.update(obj);
-        //data.push_back({key, emptyGraph});
         data[key] = emptyGraph;
     }
     current = &(data[key]);
