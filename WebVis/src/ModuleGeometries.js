@@ -338,3 +338,15 @@ export const ModuleGeometries = new Map([
     [ModuleType.RHOMBIC_DODECAHEDRON, _rhombicDodecahedronGeometry],
     [ModuleType.CATOM, _catomGeometry]
 ]);
+
+export const ModuleDihedralAngles = new Map([
+    [ModuleType.CUBE, 90.0],
+    [ModuleType.RHOMBIC_DODECAHEDRON, 60.0],
+    [ModuleType.CATOM, 45.0],
+]);
+
+export const ModuleMidspheres = new Map([
+    [ModuleType.CUBE, 0.7071],
+    [ModuleType.RHOMBIC_DODECAHEDRON, 0.8165],
+    [ModuleType.CATOM, .5795],
+]);
