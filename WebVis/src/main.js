@@ -16,6 +16,11 @@ THREE.Vector3.prototype.abs = function() {
 THREE.Vector3.prototype.sum = function() {
     return (this.x + this.y + this.z);
 }
+THREE.Vector3.prototype.setNaN = function(newVal) {
+    return new THREE.Vector3(isNaN(this.x) ? newVal : this.x,
+                             isNaN(this.y) ? newVal : this.y,
+                             isNaN(this.z) ? newVal : this.z);
+}
 
 // Following are global attributes set directly to the window object
 //  This allows them to (more easily) be added to the GUI,

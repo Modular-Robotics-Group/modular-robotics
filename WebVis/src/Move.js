@@ -1,26 +1,86 @@
 import * as THREE from 'three';
 import { ModuleType, MoveType } from './utils.js';
 
+function constructAdc(ad) {
+    // Given a THREE.Vector3 'ad' (anchor direction),
+    //  returns an integral Anchor Direction Code.
+    let i;
+    let adc = 0;
+    for (i = 0; i < 3; i++) {
+        if (ad.getComponent(i) != 0) {
+            adc = adc * 10 + i + 1 + (ad.getComponent(i) < 0 ? 3 : 0);
+        }
+    }
+    return adc;
+}
+
+function parseADC(adc) {
+    let anchorDir;
+    switch (Math.abs(adc)) {
+        // Generic sliding move
+        case 0:  anchorDir = new THREE.Vector3( 0.0,  0.0,  0.0 ); break; // generic slide
+
+        // Cube pivots
+        case 1:  anchorDir = new THREE.Vector3( 1.0,  0.0,  0.0 ); break; // +x
+        case 2:  anchorDir = new THREE.Vector3( 0.0,  1.0,  0.0 ); break; // +y
+        case 3:  anchorDir = new THREE.Vector3( 0.0,  0.0,  1.0 ); break; // +z
+        case 4:  anchorDir = new THREE.Vector3(-1.0,  0.0,  0.0 ); break; // -x
+        case 5:  anchorDir = new THREE.Vector3( 0.0, -1.0,  0.0 ); break; // -y
+        case 6:  anchorDir = new THREE.Vector3( 0.0,  0.0, -1.0 ); break; // -z
+
+        // Rhombic dodecahedron: faces with normals in xy plane
+        case 12: anchorDir = new THREE.Vector3( 1.0,  1.0,  0.0 ); break; // +x +y
+        case 15: anchorDir = new THREE.Vector3( 1.0, -1.0,  0.0 ); break; // +x -y
+        case 42: anchorDir = new THREE.Vector3(-1.0,  1.0,  0.0 ); break; // -x +y
+        case 45: anchorDir = new THREE.Vector3(-1.0, -1.0,  0.0 ); break; // -x -y
+
+        // Rhombic dodecahedron: faces with normals in xz plane
+        case 13: anchorDir = new THREE.Vector3( 1.0,  0.0,  1.0 ); break; // +x +z
+        case 16: anchorDir = new THREE.Vector3( 1.0,  0.0, -1.0 ); break; // +x -z
+        case 43: anchorDir = new THREE.Vector3(-1.0,  0.0,  1.0 ); break; // -x +z
+        case 46: anchorDir = new THREE.Vector3(-1.0,  0.0, -1.0 ); break; // -x -z
+
+        // Rhombic dodecahedron: faces with normals in yz plane
+        case 23: anchorDir = new THREE.Vector3( 0.0,  1.0,  1.0 ); break; // +y +z
+        case 26: anchorDir = new THREE.Vector3( 0.0,  1.0, -1.0 ); break; // +y -z
+        case 53: anchorDir = new THREE.Vector3( 0.0, -1.0,  1.0 ); break; // -y +z
+        case 56: anchorDir = new THREE.Vector3( 0.0, -1.0, -1.0 ); break; // -y -z
+
+        default: anchorDir = new THREE.Vector3( 0.0,  0.0,  0.0 ); console.log("Unknown rotation code ", adc, " -- treating as sliding move"); break;
+    }
+    anchorDir.normalize();
+
+    return anchorDir;
+}
+
+
 export class Move {
-    constructor(id, anchorDir, deltaPos, moveType, moduleType) { 
+    constructor(id, adc, deltaPos, moveType, moduleType) { 
         this.id = id;
-        this.anchorDir = anchorDir;
+        this.adc = adc;
+        this.anchorDir = parseADC(adc);
         this.deltaPos = deltaPos;
         this.moveType = moveType;
-
         this.moduleType = moduleType;
+
         // TODO refactor this out to someplace it belongs
         switch (moduleType) {
             case ModuleType.CUBE: 
                 this.dihedralAngle = 90.0;
-                this.inscsphere = 0.5;
+                //this.inscsphere = 0.5;
                 this.midsphere = 0.7071;
                 this.doubleMove = deltaPos.abs().sum() > 1 ? true : false;
                 break;
             case ModuleType.RHOMBIC_DODECAHEDRON: 
                 this.dihedralAngle = 60.0;
-                this.inscsphere = 0.7071;
+                //this.inscsphere = 0.7071;
                 this.midsphere = 0.8165;
+                this.doubleMove = false;
+                break;
+            case ModuleType.CATOM: 
+                this.dihedralAngle = 45.0;
+                //this.inscsphere = 0.5;
+                this.midsphere = 0.5795;
                 this.doubleMove = false;
                 break;
         }
@@ -57,7 +117,7 @@ export class Move {
 
                 // Determine our start position in the coordinate system centered at the origin of the "anchor" shape
                 //  (This happens to be neatly encoded in anchorDir; we just need to re-scale it to appropriate length)
-                let _startPos = this.anchorDir.clone().multiplyScalar(this.inscsphere * 2);
+                let _startPos = this.anchorDir.clone().divide(this.anchorDir.abs()).setNaN(0.0);
 
                 // Determine the midpoint of our start and end positions
                 let _linearTranslation = _startPos.clone().add(this.deltaPos);
@@ -84,6 +144,36 @@ export class Move {
         }
     }
 
+    reverse() {
+        let newDeltaPos = this.deltaPos.clone().negate();
+        let newAdc;
+
+        // Generic sliding moves
+        if (this.adc == 0) {
+            newAdc = this.adc;
+        // Corner sliding moves; little bit of math to extract new adc
+        } else if (this.moveType == MoveType.SLIDING && this.deltaPos.abs().sum() > 1) {
+            let testVec = new THREE.Vector3(1.0, 1.0, 1.0);
+            let scaleVec = new THREE.Vector3(1.0, 2.0, 3.0);
+            newAdc = -testVec.sub(this.anchorDir.abs())
+                .multiply(newDeltaPos)
+                .multiply(scaleVec)
+                .abs()
+                .sum();
+        } else if (this.moduleType == ModuleType.RHOMBIC_DODECAHEDRON) {
+        // RD pivots
+            let _startPos = this.anchorDir.clone().divide(this.anchorDir.abs()).setNaN(0.0);
+            let _endPos = _startPos.add(newDeltaPos);
+            newAdc = constructAdc(_endPos);
+        } else {
+        // All others
+            newAdc = this.adc;
+        }
+
+        return new Move(this.id, newAdc, newDeltaPos, this.moveType, this.moduleType);
+    }
+
+    /*
     reverse() {
         let newDeltaPos = this.deltaPos.clone().negate();
 
@@ -113,4 +203,5 @@ export class Move {
 
         return new Move(this.id, newAnchorDir, newDeltaPos, this.moveType, this.moduleType);
     }
+    */
 }
