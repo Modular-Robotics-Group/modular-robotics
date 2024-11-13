@@ -21,6 +21,7 @@ int main(int argc, char* argv[]) {
     std::string exportFile;
     std::string analysisFile;
     std::string searchMethod;
+    std::string heuristic;
 
     // Define the long options
     static option long_options[] = {
@@ -30,12 +31,13 @@ int main(int argc, char* argv[]) {
         {"export-file", required_argument, nullptr, 'e'},
         {"analysis-file", required_argument, nullptr, 'a'},
         {"search-method", required_argument, nullptr, 's'},
+        {"heuristic", required_argument, nullptr, 'h'},
         {nullptr, 0, nullptr, 0}
     };
 
     int option_index = 0;
     int c;
-    while ((c = getopt_long(argc, argv, "iI:F:e:a:s:", long_options, &option_index)) != -1) {
+    while ((c = getopt_long(argc, argv, "iI:F:e:a:s:h:", long_options, &option_index)) != -1) {
         switch (c) {
             case 'i':
                 ignoreColors = true;
@@ -54,6 +56,8 @@ int main(int argc, char* argv[]) {
                 break;
             case 's':
                 searchMethod = optarg;
+            case 'h':
+                heuristic = optarg;
             case '?':
                 break;
             default:
@@ -140,7 +144,7 @@ int main(int argc, char* argv[]) {
     try {
         const auto timeBegin = std::chrono::high_resolution_clock::now();
         if (searchMethod.empty() || searchMethod == "A*" || searchMethod == "a*") {
-            path = ConfigurationSpace::AStar(&start, &end);
+            path = ConfigurationSpace::AStar(&start, &end, heuristic);
         } else if (searchMethod == "BFS" || searchMethod == "bfs") {
             path = ConfigurationSpace::BFS(&start, &end);
         }
