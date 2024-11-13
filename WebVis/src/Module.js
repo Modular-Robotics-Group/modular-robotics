@@ -30,7 +30,8 @@ function _createModuleMesh(moduleType, color = 0x808080, scale = 1.0) {
     let texture = moduleType == ModuleType.CUBE ? cubeTexture : rdTexture;
     switch (moduleType) {
         case ModuleType.CUBE: /* fallthrough */
-        case ModuleType.RHOMBIC_DODECAHEDRON: material = materialConstructor(texture, color); break;
+        case ModuleType.RHOMBIC_DODECAHEDRON: /* fallthrough */
+        case ModuleType.CATOM: material = materialConstructor(texture, color); break;
     }
 
     let mesh = new THREE.Mesh(geometry, material);
@@ -83,44 +84,47 @@ export class Module {
 
     animateMove(move, pct) {
         let iPct = _animInterp(pct);
-        switch (move.moveType) {
-            case MoveType.PIVOT: this._pivotAnimate(move, iPct); break;
-            case MoveType.SLIDING: this._slidingAnimate(move, iPct); break;
-            case MoveType.MONKEY: this._monkeyAnimate(move, iPct); break;
+        let maxPct = 0;
+        let transform = new THREE.Matrix4();
+        let i;
+        for (i = 0; i < move.steps.length; i++) {
+            let step = move.steps[i];
+            let prevStepMaxPct = i > 0 ? move.steps[i-1].maxPct : 0.0;
+            let stepPct = (Math.min(iPct, step.maxPct) - prevStepMaxPct) / (step.maxPct - prevStepMaxPct);
+            switch (move.moveType) {
+                case MoveType.PIVOT: transform.multiply(this._pivotAnimate(step, stepPct)); break;
+                case MoveType.SLIDING: transform.multiply(this._slidingAnimate(step, stepPct)); break;
+                case MoveType.MONKEY: transform.multiply(this._monkeyAnimate(step, stepPct)); break;
+            }
+            if (iPct < step.maxPct) { break; }
         }
+        this._setMeshMatrix(transform);
     }
 
     finishMove(move) {
+        let i;
         if (move.moveType !== MoveType.SLIDING) {
-            let rotate = new THREE.Matrix4().makeRotationAxis(move.rotAxis, move.maxAngle);
-            this.cumulativeRotationMatrix = this.cumulativeRotationMatrix.premultiply(rotate);
+            for (i = 0; i < move.steps.length; i++) {
+                let step = move.steps[i];
+                let rotate = new THREE.Matrix4().makeRotationAxis(step.rotAxis, step.maxAngle);
+                this.cumulativeRotationMatrix = this.cumulativeRotationMatrix.premultiply(rotate);
+            }
         }
         this._setMeshMatrix(this.cumulativeRotationMatrix);
         this.parentMesh.position.add(move.deltaPos);
     }
 
-    _pivotAnimate(move, pct) {
-        let trans1 = new THREE.Matrix4().makeTranslation(move.preTrans);
-        let rotate = new THREE.Matrix4().makeRotationAxis(move.rotAxis, move.maxAngle * pct);
-        let trans2 = new THREE.Matrix4().makeTranslation(move.postTrans);
+    _pivotAnimate(step, pct) {
+        let trans1 = new THREE.Matrix4().makeTranslation(step.preTrans);
+        let rotate = new THREE.Matrix4().makeRotationAxis(step.rotAxis, step.maxAngle * pct);
+        let trans2 = new THREE.Matrix4().makeTranslation(step.postTrans);
         let transform = new THREE.Matrix4().premultiply(trans1).premultiply(rotate).premultiply(trans2);
-        this._setMeshMatrix(transform.multiply(this.cumulativeRotationMatrix));
+        return transform;
     }
 
-    _slidingAnimate(move, pct) {
-        let translate = new THREE.Vector3(0.0, 0.0, 0.0);
-        if ((move.deltaPos.abs().sum() > 1.0) && (move.anchorDir.abs().sum() > 0.1)) {
-            let _pct1, _pct2;
-            let testVec = new THREE.Vector3(1.0, 1.0, 1.0);
-            _pct1 = Math.min(pct * 2.0, 1.0);
-            _pct2 = 1.0 - Math.min(2.0 * (1.0 - pct), 1.0);
-            translate.add(move.deltaPos.clone().multiply(move.anchorDir).multiplyScalar(_pct1));
-            translate.add(move.deltaPos.clone().multiply(testVec.sub(move.anchorDir)).multiplyScalar(_pct2));
-        } else {
-            translate = move.deltaPos.clone().multiplyScalar(pct);
-        }
-
+    _slidingAnimate(step, pct) {
+        let translate = step.deltaPos.clone().multiplyScalar(pct);
         let transform = new THREE.Matrix4().makeTranslation(translate);
-        this._setMeshMatrix(transform);
+        return transform;
     }
 }

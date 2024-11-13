@@ -286,7 +286,7 @@ class twoDScreen {
         for (let i = 0; i < this.cubes.length; i++) {
             switch(this.cubes[i].z) {
                 case this.layer:
-                    sketch.fill(60);
+                    sketch.fill(this.cubes[i].color[0], this.cubes[i].color[1], this.cubes[i].color[2]);
                     sketch.rect(
                         this.cubes[i].x*this.tileSize, 
                         this.cubes[i].y*this.tileSize, 
@@ -350,7 +350,7 @@ class twoDScreen {
         for (let i = 0; i < this.rhomdod.length; i++) {
             switch(this.rhomdod[i].z) {
                 case this.layer:
-                    sketch.fill(0);
+                    sketch.fill(this.rhomdod[i].color[0], this.rhomdod[i].color[1], this.rhomdod[i].color[2]);
                     sketch.rect(
                         this.rhomdod[i].x * this.tileSize, 
                         this.rhomdod[i].y * this.tileSize, 

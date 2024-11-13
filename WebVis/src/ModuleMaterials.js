@@ -65,4 +65,5 @@ export const ModuleMaterialConstructors = new Map([
     //[ModuleType.RHOMBIC_DODECAHEDRON, _constructBasicMaterial],
     [ModuleType.CUBE, _constructGenericMaterial],
     [ModuleType.RHOMBIC_DODECAHEDRON, _constructGenericMaterial],
+    [ModuleType.CATOM, _constructGenericMaterial],
 ]);

@@ -9,6 +9,7 @@ export function Vec3(x = 0.0, y = 0.0, z = 0.0) {
 export const ModuleType = Object.freeze({
     CUBE: 0,
     RHOMBIC_DODECAHEDRON: 1,
+    CATOM: 2,
 });
 
 export const MoveType = Object.freeze({
