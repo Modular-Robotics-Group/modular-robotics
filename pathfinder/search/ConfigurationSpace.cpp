@@ -346,7 +346,7 @@ float Configuration::CacheMoveOffsetPropertyDistance(const Configuration *final)
 }
 
 
-std::vector<Configuration*> ConfigurationSpace::AStar(Configuration* start, const Configuration* final) {
+std::vector<Configuration*> ConfigurationSpace::AStar(Configuration* start, const Configuration* final, const std::string& heuristic) {
 #if CONFIG_OUTPUT_JSON
     SearchAnalysis::EnterGraph("AStarDepthOverTime");
     SearchAnalysis::LabelGraph("A* Depth over Time");
@@ -360,7 +360,19 @@ std::vector<Configuration*> ConfigurationSpace::AStar(Configuration* start, cons
 #endif
     int dupesAvoided = 0;
     int statesProcessed = 0;
-    auto compare = Configuration::CompareConfiguration(final, &Configuration::CacheMoveOffsetPropertyDistance);
+    float (Configuration::*hFunc)(const Configuration *final) const;
+    if (heuristic == "Symmetric Difference" || heuristic == "symmetric difference" || heuristic == "SymDiff" || heuristic == "symdiff") {
+        hFunc = &Configuration::SymmetricDifferenceHeuristic;
+    } else if (heuristic == "Manhattan" || heuristic == "manhattan") {
+        hFunc = &Configuration::ManhattanDistance;
+    } else if (heuristic == "Chebyshev" || heuristic == "chebyshev") {
+        hFunc = &Configuration::ChebyshevDistance;
+    } else if (heuristic == "Nearest Chebyshev" || heuristic == "nearest chebyshev") {
+        hFunc = &Configuration::CacheChebyshevDistance;
+    } else {
+        hFunc = &Configuration::CacheMoveOffsetPropertyDistance;
+    }
+    auto compare = Configuration::CompareConfiguration(final, hFunc);
     using CompareType = decltype(compare);
     std::priority_queue<Configuration*, std::vector<Configuration*>, CompareType> pq(compare);
     std::unordered_set<HashedState> visited;
