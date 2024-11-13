@@ -132,6 +132,44 @@ int main(int argc, char* argv[]) {
     // Set up moves
     MoveManager::InitMoveManager(Lattice::Order(), Lattice::AxisSize());
     MoveManager::RegisterAllMoves("../Moves");
+
+    // Print some useful information
+    std::cout << "Final State Generator: ";
+#if GENERATE_FINAL_STATE
+    std::cout << "ENABLED" << std::endl;
+#else
+    std::cout << "DISABLED" << std::endl;
+#endif
+    std::cout << "Edge Check Mode:       ";
+#if LATTICE_RD_EDGECHECK
+    std::cout << "RHOMBIC DODECAHEDRON FACE" << std::endl;
+#else
+    std::cout << "CUBE FACE" << std::endl;
+#endif
+    std::cout << "Parallel Pathfinding:  ";
+#if CONFIG_PARALLEL_MOVES
+    std::cout << "ENABLED" << std::endl;
+#else
+    std::cout << "DISABLED" << std::endl;
+#endif
+    std::cout << "Search Method:         ";
+    if (searchMethod.empty() || searchMethod == "A*" || searchMethod == "a*") {
+        std::cout << "A*" << std::endl;
+        std::cout << "Heuristic:             ";
+        if (heuristic.empty() || heuristic == "MRSH1" || heuristic == "mrsh1" || heuristic == "MRSH-1" || heuristic == "mrsh-1") {
+            std::cout << "MRSH-1" << std::endl;
+        } else if (heuristic == "Symmetric Difference" || heuristic == "symmetric difference" || heuristic == "SymDiff" || heuristic == "symdiff") {
+            std::cout << "Symmetric Difference" << std::endl;
+        } else if (heuristic == "Manhattan" || heuristic == "manhattan") {
+            std::cout << "Center of Mass Manhattan" << std::endl;
+        } else if (heuristic == "Chebyshev" || heuristic == "chebyshev") {
+            std::cout << "Center of Mass Chebyshev" << std::endl;
+        } else if (heuristic == "Nearest Chebyshev" || heuristic == "nearest chebyshev") {
+            std::cout << "Nearest Chebyshev" << std::endl;
+        }
+    } else if (searchMethod == "BFS" || searchMethod == "bfs") {
+        std::cout << "BFS" << std::endl;
+    }
     
     // Pathfinding
     Configuration start(Lattice::GetModuleInfo());
