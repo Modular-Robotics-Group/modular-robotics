@@ -256,7 +256,7 @@ float Configuration::ManhattanDistance(const Configuration* final) const {
     return h / 2;
 }
 
-int Configuration::SymmetricDifferenceHeuristic(const Configuration* final) const {
+float Configuration::SymmetricDifferenceHeuristic(const Configuration* final) const {
     auto& currentData = this->GetModData();
     auto& finalData = final->GetModData();
     auto currentIt = currentData.begin();
@@ -274,7 +274,7 @@ int Configuration::SymmetricDifferenceHeuristic(const Configuration* final) cons
     return symDifference / 2;
 }
 
-int Configuration::ChebyshevDistance(const Configuration* final) const {
+float Configuration::ChebyshevDistance(const Configuration* final) const {
     auto& currentData = this->GetModData();
     auto& finalData = final->GetModData();
     auto currentIt = currentData.begin();

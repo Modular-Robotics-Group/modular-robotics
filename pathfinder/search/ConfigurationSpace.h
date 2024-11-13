@@ -112,9 +112,9 @@ public:
 
     float ManhattanDistance(const Configuration* final) const;
 
-    int SymmetricDifferenceHeuristic(const Configuration* final) const;
+    float SymmetricDifferenceHeuristic(const Configuration* final) const;
 
-    int ChebyshevDistance(const Configuration* final) const;
+    float ChebyshevDistance(const Configuration* final) const;
 
     float TrueChebyshevDistance(const Configuration* final) const;
 
