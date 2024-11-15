@@ -10,6 +10,7 @@
 #include "lattice/LatticeSetup.h"
 #include "moves/Scenario.h"
 #include "search/SearchAnalysis.h"
+#include "search/HeuristicCache.h"
 
 #define GENERATE_FINAL_STATE false
 #define PRINT_PATH false
@@ -169,9 +170,27 @@ int main(int argc, char* argv[]) {
     std::cout << "Search Method:         ";
     if (searchMethod.empty() || searchMethod == "A*" || searchMethod == "a*") {
         std::cout << "A*" << std::endl;
-        std::cout << "Heuristic:             ";
+        std::cout << "└Heuristic:            ";
         if (heuristic.empty() || heuristic == "MRSH1" || heuristic == "mrsh1" || heuristic == "MRSH-1" || heuristic == "mrsh-1") {
             std::cout << "MRSH-1" << std::endl;
+            std::cout << " ├L1 Distance Limits:  ";
+#if CONFIG_HEURISTIC_CACHE_OPTIMIZATION
+            std::cout << "ENABLED" << std::endl;
+#else
+            std::cout << "DISABLED" << std::endl;
+#endif
+            std::cout << " ├L2 Distance Limits:  ";
+#if CONFIG_HEURISTIC_CACHE_DIST_LIMITATIONS
+            std::cout << "ENABLED" << std::endl;
+#else
+            std::cout << "DISABLED" << std::endl;
+#endif
+            std::cout << " └Help Limits:         ";
+#if CONFIG_HEURISTIC_CACHE_HELP_LIMITATIONS
+            std::cout << "ENABLED" << std::endl;
+#else
+            std::cout << "DISABLED" << std::endl;
+#endif
         } else if (heuristic == "Symmetric Difference" || heuristic == "symmetric difference" || heuristic == "SymDiff" || heuristic == "symdiff") {
             std::cout << "Symmetric Difference" << std::endl;
         } else if (heuristic == "Manhattan" || heuristic == "manhattan") {
