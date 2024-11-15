@@ -124,6 +124,12 @@ int main(int argc, char* argv[]) {
     // Dynamically Link Properties
     ModuleProperties::LinkProperties();
 
+#if CONFIG_MOD_DATA_STORAGE == MM_DATA_INT64
+    if (ModuleProperties::PropertyCount() > 1) {
+        std::cerr << "Modules cannot be represented as integer with more than 1 property loaded." << std::endl;
+    }
+#endif
+
     // Set up Lattice
     Lattice::setFlags(ignoreColors);
     LatticeSetup::setupFromJson(initialFile);
