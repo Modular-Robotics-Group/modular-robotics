@@ -140,6 +140,14 @@ int main(int argc, char* argv[]) {
     MoveManager::RegisterAllMoves("../Moves");
 
     // Print some useful information
+    std::cout << "Module Representation: ";
+#if CONFIG_MOD_DATA_STORAGE == MM_DATA_FULL
+    std::cout << "FULL" << std::endl;
+#elif CONFIG_MOD_DATA_STORAGE == MM_DATA_INT64
+    std::cout << "INT64" << std::endl;
+#else
+    std::cout << "INVALID" << std::endl;
+#endif
     std::cout << "Final State Generator: ";
 #if GENERATE_FINAL_STATE
     std::cout << "ENABLED" << std::endl;
