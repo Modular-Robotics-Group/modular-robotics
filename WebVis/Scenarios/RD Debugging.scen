@@ -10,7 +10,7 @@ RHOMBIC_DODECAHEDRON
 
 *2, 56,   1,  0, -1 		// Block 4: Move definitions
 
- 2, 45,  -1,  0, -1		// Module ID #2 moves by <-1, 0, -1> using anchor code 45 (-y, -z)
+*2, 45,  -1,  0, -1		// Module ID #2 moves by <-1, 0, -1> using anchor code 45 (-y, -z)
 
  2, 53,  -1,  0,  1
 

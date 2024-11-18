@@ -54,6 +54,26 @@ jobs:
       run: |
         echo "build-output-dir=${{ github.workspace }}/build" >> "$GITHUB_OUTPUT"
 
+    - name: Install Boost (Windows)
+      run: vcpkg install boost
+      shell: pwsh
+      if: matrix.os == 'windows-latest'
+
+    - name: Install Boost (Ubuntu)
+      run: sudo apt install libboost-all-dev
+      shell: bash
+      if: matrix.os == 'ubuntu-latest'
+
+    - name: Install Nlohmann-JSON (Windows)
+      run: vcpkg install nlohmann-json
+      shell: pwsh
+      if: matrix.os == 'windows-latest'
+
+    - name: Install Nlohmann-JSON (Ubuntu)
+      run: sudo apt install nlohmann-json3-dev
+      shell: bash
+      if: matrix.os == 'ubuntu-latest'
+
     - name: Configure CMake
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
       # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
