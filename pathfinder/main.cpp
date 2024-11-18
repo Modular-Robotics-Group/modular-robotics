@@ -10,6 +10,7 @@
 #include "lattice/LatticeSetup.h"
 #include "moves/Scenario.h"
 #include "search/SearchAnalysis.h"
+#include "search/HeuristicCache.h"
 
 #define GENERATE_FINAL_STATE false
 #define PRINT_PATH false
@@ -21,6 +22,7 @@ int main(int argc, char* argv[]) {
     std::string exportFile;
     std::string analysisFile;
     std::string searchMethod;
+    std::string heuristic;
 
     // Define the long options
     static option long_options[] = {
@@ -30,12 +32,13 @@ int main(int argc, char* argv[]) {
         {"export-file", required_argument, nullptr, 'e'},
         {"analysis-file", required_argument, nullptr, 'a'},
         {"search-method", required_argument, nullptr, 's'},
+        {"heuristic", required_argument, nullptr, 'h'},
         {nullptr, 0, nullptr, 0}
     };
 
     int option_index = 0;
     int c;
-    while ((c = getopt_long(argc, argv, "iI:F:e:a:s:", long_options, &option_index)) != -1) {
+    while ((c = getopt_long(argc, argv, "iI:F:e:a:s:h:", long_options, &option_index)) != -1) {
         switch (c) {
             case 'i':
                 ignoreColors = true;
@@ -54,6 +57,8 @@ int main(int argc, char* argv[]) {
                 break;
             case 's':
                 searchMethod = optarg;
+            case 'h':
+                heuristic = optarg;
             case '?':
                 break;
             default:
@@ -120,6 +125,12 @@ int main(int argc, char* argv[]) {
     // Dynamically Link Properties
     ModuleProperties::LinkProperties();
 
+#if CONFIG_MOD_DATA_STORAGE == MM_DATA_INT64
+    if (ModuleProperties::PropertyCount() > 1) {
+        std::cerr << "Modules cannot be represented as integer with more than 1 property loaded." << std::endl;
+    }
+#endif
+
     // Set up Lattice
     Lattice::setFlags(ignoreColors);
     LatticeSetup::setupFromJson(initialFile);
@@ -128,6 +139,70 @@ int main(int argc, char* argv[]) {
     // Set up moves
     MoveManager::InitMoveManager(Lattice::Order(), Lattice::AxisSize());
     MoveManager::RegisterAllMoves("../Moves");
+
+    // Print some useful information
+    std::cout << "Module Representation: ";
+#if CONFIG_MOD_DATA_STORAGE == MM_DATA_FULL
+    std::cout << "FULL" << std::endl;
+#elif CONFIG_MOD_DATA_STORAGE == MM_DATA_INT64
+    std::cout << "INT64" << std::endl;
+#else
+    std::cout << "INVALID" << std::endl;
+#endif
+    std::cout << "Final State Generator: ";
+#if GENERATE_FINAL_STATE
+    std::cout << "ENABLED" << std::endl;
+#else
+    std::cout << "DISABLED" << std::endl;
+#endif
+    std::cout << "Edge Check Mode:       ";
+#if LATTICE_RD_EDGECHECK
+    std::cout << "RHOMBIC DODECAHEDRON FACE" << std::endl;
+#else
+    std::cout << "CUBE FACE" << std::endl;
+#endif
+    std::cout << "Parallel Pathfinding:  ";
+#if CONFIG_PARALLEL_MOVES
+    std::cout << "ENABLED" << std::endl;
+#else
+    std::cout << "DISABLED" << std::endl;
+#endif
+    std::cout << "Search Method:         ";
+    if (searchMethod.empty() || searchMethod == "A*" || searchMethod == "a*") {
+        std::cout << "A*" << std::endl;
+        std::cout << "└Heuristic:            ";
+        if (heuristic.empty() || heuristic == "MRSH1" || heuristic == "mrsh1" || heuristic == "MRSH-1" || heuristic == "mrsh-1") {
+            std::cout << "MRSH-1" << std::endl;
+            std::cout << " ├L1 Distance Limits:  ";
+#if CONFIG_HEURISTIC_CACHE_OPTIMIZATION
+            std::cout << "ENABLED" << std::endl;
+#else
+            std::cout << "DISABLED" << std::endl;
+#endif
+            std::cout << " ├L2 Distance Limits:  ";
+#if CONFIG_HEURISTIC_CACHE_DIST_LIMITATIONS
+            std::cout << "ENABLED" << std::endl;
+#else
+            std::cout << "DISABLED" << std::endl;
+#endif
+            std::cout << " └Help Limits:         ";
+#if CONFIG_HEURISTIC_CACHE_HELP_LIMITATIONS
+            std::cout << "ENABLED" << std::endl;
+#else
+            std::cout << "DISABLED" << std::endl;
+#endif
+        } else if (heuristic == "Symmetric Difference" || heuristic == "symmetric difference" || heuristic == "SymDiff" || heuristic == "symdiff") {
+            std::cout << "Symmetric Difference" << std::endl;
+        } else if (heuristic == "Manhattan" || heuristic == "manhattan") {
+            std::cout << "Center of Mass Manhattan" << std::endl;
+        } else if (heuristic == "Chebyshev" || heuristic == "chebyshev") {
+            std::cout << "Center of Mass Chebyshev" << std::endl;
+        } else if (heuristic == "Nearest Chebyshev" || heuristic == "nearest chebyshev") {
+            std::cout << "Nearest Chebyshev" << std::endl;
+        }
+    } else if (searchMethod == "BFS" || searchMethod == "bfs") {
+        std::cout << "BFS" << std::endl;
+    }
     
     // Pathfinding
     Configuration start(Lattice::GetModuleInfo());
@@ -140,7 +215,7 @@ int main(int argc, char* argv[]) {
     try {
         const auto timeBegin = std::chrono::high_resolution_clock::now();
         if (searchMethod.empty() || searchMethod == "A*" || searchMethod == "a*") {
-            path = ConfigurationSpace::AStar(&start, &end);
+            path = ConfigurationSpace::AStar(&start, &end, heuristic);
         } else if (searchMethod == "BFS" || searchMethod == "bfs") {
             path = ConfigurationSpace::BFS(&start, &end);
         }

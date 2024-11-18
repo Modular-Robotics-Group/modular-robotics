@@ -30,10 +30,8 @@ ColorProperty::ColorProperty(const nlohmann::basic_json<>& propertyDef) {
         if (std::all_of(propertyDef[COLOR].begin(), propertyDef[COLOR].end(),
                         [](const nlohmann::basic_json<>& i){return i.is_number_integer();})) {
             color = 0;
-            int chShift = 0;
             for (int channel : propertyDef[COLOR]) {
-                channel <<= chShift;
-                chShift += 8;
+                color <<= 8;
                 color += channel;
             }
         }

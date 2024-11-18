@@ -43,6 +43,14 @@ or just make stuff out of cubes (or rhombic dodecahedra).
 
 Pathfinder will find the shortest path between two configurations, if such a path exists.
 
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/58b9d604-ab7a-44ec-afe0-310fc28a0582" width="640">
+
+  <p align="center">
+    <em>An example run of Pathfinder</em>
+  </p>
+</p>
+
 [Documentation](https://github.com/Modular-Robotics-Group/modular-robotics/wiki/Pathfinder)
 
 [How to compile](https://github.com/Modular-Robotics-Group/modular-robotics/wiki/Pathfinder#compiling)

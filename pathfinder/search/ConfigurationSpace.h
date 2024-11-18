@@ -112,9 +112,9 @@ public:
 
     float ManhattanDistance(const Configuration* final) const;
 
-    int SymmetricDifferenceHeuristic(const Configuration* final) const;
+    float SymmetricDifferenceHeuristic(const Configuration* final) const;
 
-    int ChebyshevDistance(const Configuration* final) const;
+    float ChebyshevDistance(const Configuration* final) const;
 
     float TrueChebyshevDistance(const Configuration* final) const;
 
@@ -130,7 +130,7 @@ namespace ConfigurationSpace {
 
     std::vector<Configuration*> BFS(Configuration* start, const Configuration* final);
 
-    std::vector<Configuration*> AStar(Configuration* start, const Configuration* final);
+    std::vector<Configuration*> AStar(Configuration* start, const Configuration* final, const std::string& heuristic);
 
     std::vector<Configuration*> FindPath(Configuration* start, Configuration* final);
 
