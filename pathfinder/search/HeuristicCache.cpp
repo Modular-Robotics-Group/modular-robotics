@@ -453,7 +453,7 @@ MoveOffsetPropertyHeuristicCache::MoveOffsetPropertyHeuristicCache(const std::se
     std::cout << std::endl;
 }
 
-float MoveOffsetPropertyHeuristicCache::operator[](const std::valarray<int> &coords, std::uint_fast64_t propInt) const {
+float MoveOffsetPropertyHeuristicCache::operator()(const std::valarray<int> &coords, std::uint_fast64_t propInt) const {
     static std::valarray<int> coordProps(0, Lattice::Order() + 1);
     for (int i = 0; i < Lattice::Order(); i++) {
         coordProps[i] = coords[i];

@@ -75,7 +75,7 @@ private:
 public:
     explicit MoveOffsetPropertyHeuristicCache(const std::set<ModuleData>& desiredState);
 
-    float operator[](const std::valarray<int>& coords, std::uint_fast64_t propInt) const;
+    float operator()(const std::valarray<int>& coords, std::uint_fast64_t propInt) const;
 };
 
 #endif //HEURISTICCACHE_H

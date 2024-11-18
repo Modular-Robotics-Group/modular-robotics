@@ -340,7 +340,7 @@ float Configuration::CacheMoveOffsetPropertyDistance(const Configuration *final)
     static MoveOffsetPropertyHeuristicCache cache(final->GetModData());
     float h = 0;
     for (const auto& modData : hash.GetState()) {
-        h += cache[modData.Coords(), modData.Properties().AsInt()];
+        h += cache(modData.Coords(), modData.Properties().AsInt());
     }
     return h;
 }
