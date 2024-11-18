@@ -82,7 +82,7 @@ bool MoveBase::FreeSpaceCheck(const CoordTensor<int>& tensor, const std::valarra
 }
 
 int GetChebyshevDistance(const std::valarray<int>& a, const std::valarray<int>& b) {
-    std::valarray dist = a + b;
+    std::valarray<int> dist = a + b;
     return *std::ranges::max_element(dist);
 }
 
@@ -158,7 +158,7 @@ const std::vector<std::pair<Move::AnimType, std::valarray<int>>>& MoveBase::Anim
 }
 
 bool MoveBase::operator==(const MoveBase &rhs) const {
-    std::valarray valArrComparison = finalPos == rhs.finalPos;
+    std::valarray<bool> valArrComparison = finalPos == rhs.finalPos;
     for (const auto result : valArrComparison) {
         if (!result) {
             return false;
