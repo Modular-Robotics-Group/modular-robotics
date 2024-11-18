@@ -23,7 +23,7 @@ jobs:
       #
       # To add more build types (Release, Debug, RelWithDebInfo, etc.) customize the build_type list.
       matrix:
-        os: [ubuntu-latest, windows-latest]
+        os: [ubuntu-latest, windows-latest, macos-latest]
         build_type: [Release]
         c_compiler: [gcc, clang, cl]
         include:
@@ -36,12 +36,19 @@ jobs:
           - os: ubuntu-latest
             c_compiler: clang
             cpp_compiler: clang++
+          - os: macos-latest
+            c_compiler: clang
+            cpp_compiler: clang++
         exclude:
           - os: windows-latest
             c_compiler: gcc
           - os: windows-latest
             c_compiler: clang
           - os: ubuntu-latest
+            c_compiler: cl
+          - os: macos-latest
+            c_compiler: gcc
+          - os: macos-latest
             c_compiler: cl
 
     steps:
@@ -64,6 +71,11 @@ jobs:
       shell: bash
       if: matrix.os == 'ubuntu-latest'
 
+    - name: Install Boost (MacOS)
+      run: brew install boost
+      shell: bash
+      if: matrix.os == 'macos-latest'
+
     - name: Install Nlohmann-JSON (Windows)
       run: vcpkg install nlohmann-json
       shell: pwsh
@@ -73,6 +85,11 @@ jobs:
       run: sudo apt install nlohmann-json3-dev
       shell: bash
       if: matrix.os == 'ubuntu-latest'
+
+    - name: Install Nlohmann-JSON (MacOS)
+      run: brew install nlohmann-json
+      shell: bash
+      if: matrix.os == 'macos-latest'
 
     - name: Configure CMake
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
