@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <vector>
+#include <span>
 #include <unordered_set>
 #include <boost/functional/hash.hpp>
 #include <valarray>
