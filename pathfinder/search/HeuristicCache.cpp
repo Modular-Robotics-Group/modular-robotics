@@ -172,7 +172,7 @@ void MoveOffsetHeuristicCache::MoveOffsetEnqueueAdjacent(std::queue<SearchCoord>
             if (internalDistanceCache[adj + offset] > ModuleIdManager::MinStaticID()) continue;
 #endif
 #endif
-            if (std::any_of(std::execution::par_unseq ,MoveManager::_movesByOffset[offset].begin(), MoveManager::_movesByOffset[offset].end(), [&](MoveBase* move) {
+            if (std::any_of(MoveManager::_movesByOffset[offset].begin(), MoveManager::_movesByOffset[offset].end(), [&](MoveBase* move) {
 #if CONFIG_HEURISTIC_CACHE_HELP_LIMITATIONS
                 return move->FreeSpaceCheckHelpLimit(Lattice::coordTensor, adj, internalDistanceCache, currentHelp);
 #else
@@ -220,7 +220,7 @@ MoveOffsetHeuristicCache::MoveOffsetHeuristicCache(const std::set<ModuleData> &d
                 continue;
             }
             internalVisitTensor[coordQueue.front().coords] = true;
-            if (std::any_of(std::execution::par_unseq, desiredPositions.begin(), desiredPositions.end(), [&](std::valarray<int>& coord) {
+            if (std::any_of(desiredPositions.begin(), desiredPositions.end(), [&](std::valarray<int>& coord) {
                 std::valarray valArrComparison = coord == coordQueue.front().coords;
                 for (const auto result : valArrComparison) {
                     if (!result) {
@@ -308,7 +308,7 @@ void MoveOffsetPropertyHeuristicCache::MoveOffsetPropertyEnqueueAdjacent(std::qu
             if (internalDistanceCache[adj + offset] > ModuleIdManager::MinStaticID()) continue;
 #endif
 #endif
-            if (std::any_of(std::execution::par_unseq,MoveManager::_movesByOffset[offset].begin(), MoveManager::_movesByOffset[offset].end(), [&](MoveBase* move) {
+            if (std::any_of(MoveManager::_movesByOffset[offset].begin(), MoveManager::_movesByOffset[offset].end(), [&](MoveBase* move) {
 #if CONFIG_HEURISTIC_CACHE_HELP_LIMITATIONS
                 return move->FreeSpaceCheckHelpLimit(Lattice::coordTensor, adj, internalDistanceCache, currentHelp);
 #else
@@ -367,7 +367,7 @@ MoveOffsetPropertyHeuristicCache::MoveOffsetPropertyHeuristicCache(const std::se
                 continue;
             }
             internalVisitTensor[coordQueue.front().coords] = true;
-            if (std::any_of(std::execution::par_unseq, desiredPositions.begin(), desiredPositions.end(), [&](std::valarray<int>& coord) {
+            if (std::any_of(desiredPositions.begin(), desiredPositions.end(), [&](std::valarray<int>& coord) {
                 std::valarray valArrComparison = coord == coordQueue.front().coords;
                 for (const auto result : valArrComparison) {
                     if (!result) {

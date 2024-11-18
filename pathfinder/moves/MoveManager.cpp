@@ -70,7 +70,7 @@ void Move::RotateAnim(Move::AnimType& anim, const int a, const int b) {
 }
 
 bool MoveBase::FreeSpaceCheck(const CoordTensor<int>& tensor, const std::valarray<int> &coords) {
-    return std::all_of(std::execution::par_unseq, moves.begin(), moves.end(), [&coords = std::as_const(coords), &tensor = std::as_const(tensor)](auto& move) {
+    return std::all_of(moves.begin(), moves.end(), [&coords = std::as_const(coords), &tensor = std::as_const(tensor)](auto& move) {
         if (!move.second && (tensor[coords + move.first] > FREE_SPACE)) {
             return false;
         }
@@ -97,7 +97,7 @@ int GetManhattanDistance(const std::valarray<int>& a, const std::valarray<int>& 
 bool MoveBase::FreeSpaceCheckHelpLimit(const CoordTensor<int>& tensor, const std::valarray<int>& coords, const CoordTensor<int>& helpTensor, int help) {
     int helpUsed = 0;
     std::vector<std::valarray<int>*> helperPositions;
-    return std::all_of(std::execution::seq, moves.begin(), moves.end(), [&](auto& move) {
+    return std::all_of(moves.begin(), moves.end(), [&](auto& move) {
         if (!move.second && (tensor[coords + move.first] > FREE_SPACE)) {
             return false;
         }
@@ -265,7 +265,7 @@ bool Move2d::MoveCheck(const CoordTensor<int>& tensor, const Module& mod) {
     }
 #endif
     // Move Check
-    return std::all_of(std::execution::par_unseq, moves.begin(), moves.end(), [&mod = std::as_const(mod), &tensor = std::as_const(tensor)](auto& move) {
+    return std::all_of(moves.begin(), moves.end(), [&mod = std::as_const(mod), &tensor = std::as_const(tensor)](auto& move) {
         if ((tensor[mod.coords + move.first] < 0) == move.second) {
             return false;
         }
@@ -368,7 +368,7 @@ bool Move3d::MoveCheck(const CoordTensor<int> &tensor, const Module &mod) {
     }
 #endif
     // Move Check
-    return std::all_of(std::execution::par_unseq, moves.begin(), moves.end(), [&mod = std::as_const(mod), &tensor = std::as_const(tensor)](auto& move) {
+    return std::all_of(moves.begin(), moves.end(), [&mod = std::as_const(mod), &tensor = std::as_const(tensor)](auto& move) {
         if ((tensor[mod.coords + move.first] < 0) == move.second) {
             return false;
         }
@@ -500,7 +500,7 @@ std::vector<std::vector<Module*>> GenerateFreeModulePowerSet() {
 
 bool ParallelMoveCheck(CoordTensor<int>& freeSpace, const Module& mod, const MoveBase* move) {
     if (freeSpace[mod.coords + move->MoveOffset()] == OUT_OF_BOUNDS) return false;
-    bool result = std::all_of(std::execution::par_unseq, move->moves.begin(), move->moves.end(), [&move = std::as_const(move), &mod = std::as_const(mod), &freeSpace](auto& moveCheck) {
+    bool result = std::all_of(move->moves.begin(), move->moves.end(), [&move = std::as_const(move), &mod = std::as_const(mod), &freeSpace](auto& moveCheck) {
         if (freeSpace[mod.coords + moveCheck.first] < 0) {
             // Space is not occupied
             if (moveCheck.second) {
