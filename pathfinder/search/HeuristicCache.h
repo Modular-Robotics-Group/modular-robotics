@@ -20,7 +20,7 @@
  * When set to true, additional restrictions are placed on the free space checks used to build move offset caches,
  * taking into account the amount of non-static modules that a module may interact with
  */
-#define CONFIG_HEURISTIC_CACHE_HELP_LIMITATIONS true
+#define CONFIG_HEURISTIC_CACHE_HELP_LIMITATIONS false
 #if CONFIG_HEURISTIC_CACHE_HELP_LIMITATIONS && !CONFIG_HEURISTIC_CACHE_DIST_LIMITATIONS
 #warning "Help limitations disabled due to lack of distance limitations!"
 #define CONFIG_HEURISTIC_CACHE_HELP_LIMITATIONS false
