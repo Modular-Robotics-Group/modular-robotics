@@ -42,6 +42,8 @@ add_library(PropertyLib SHARED pathfinder/modules/ModuleProperties.cpp)
 
 target_compile_features(PropertyLib PUBLIC cxx_std_23)
 
+target_link_libraries(PropertyLib ${Boost_LIBRARIES})
+
 set_target_properties(PropertyLib PROPERTIES PREFIX "")
 
 add_library(ColorPropertyLib MODULE pathfinder/properties/Colors.cpp pathfinder/utility/color_util.cpp)
