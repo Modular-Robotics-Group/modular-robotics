@@ -20,12 +20,6 @@ const _rhombicDodecahedronGeometryVertices = [
     //  2.0,  0.0,  0.0, // 10 | L
     //  0.0, -2.0,  0.0, // 11 | M
 
-    // Edge length: sqrt(3)/2
-    // Midsphere: sqrt(6)/3 (2*sqrt(2)/3 * edge_length)
-    // Distance from polyhedra-center to face-center: sqrt(2)/2 (sqrt(6) * edge_length / 3)
-    // Distance from face-center to edge-center: sqrt(3)/2 (edge_length)
-    // Dihedral angle: 120 degrees
-
     { pos: [ 0.0,  2.0,  0.0], uv: [0.0, 0.0] }, // 0  | N
     { pos: [-1.0,  1.0, -1.0], uv: [0.0, 1.0] }, // 1  | E
     { pos: [-1.0,  1.0,  1.0], uv: [1.0, 0.0] }, // 2  | F
@@ -113,12 +107,6 @@ const _rhombicDodecahedronGeometryVertices = [
 
 const opr = 2.414213; // One plus sqrt2
 const _catomGeometryVertices = [
-    // Edge length
-    // Midsphere
-    // Distance from polyhedra-center to face-center
-    // Distance from face-center to edge-center
-    // Dihedral angle
-
     // -1.0,  1.0,  opr, // A // Front face
     //  1.0,  1.0,  opr, // B
     //  1.0, -1.0,  opr, // C
@@ -331,22 +319,34 @@ _catomGeometry.setAttribute('position', new THREE.BufferAttribute(new Float32Arr
 _catomGeometry.setAttribute('uv', new THREE.BufferAttribute(new Float32Array(_catomVertexUvs), 2));
 _catomGeometry.computeVertexNormals();
 
-/* -------------------- */
-
-export const ModuleGeometries = new Map([
-    [ModuleType.CUBE, _cubeGeometry],
-    [ModuleType.RHOMBIC_DODECAHEDRON, _rhombicDodecahedronGeometry],
-    [ModuleType.CATOM, _catomGeometry]
+// facedist = distance from module origin to face centroid
+// edgedist = distance from face centroid to edge center
+export const ModuleData = new Map([
+    [ModuleType.CUBE, {
+        'midsphere': 0.7071,
+        'edgelength': 1.0,
+        'dihedral': THREE.MathUtils.degToRad(90.0),
+        'geometry': _cubeGeometry
+    }],
+    [ModuleType.RHOMBIC_DODECAHEDRON, {
+        'midsphere': 0.8165,    // sqrt(6)/3 == 2*sqrt(2)/3 * edgelength
+        'edgelength': 0.866,    // sqrt(3)/2
+        'facedist': 0.7071,     // sqrt(2) == sqrt(6) * edgelength / 3
+        'dihedral': THREE.MathUtils.degToRad(60.0),
+        'geometry': _rhombicDodecahedronGeometry
+    }],
+    [ModuleType.CATOM, {
+        'midsphere': 0.76537,   // sqrt(2 - sqrt(2))
+        'edgelength': 0.585787, // 2 / (2 + sqrt(2))
+        'facedist': 0.7071,     // sqrt(2) / 2
+        'edgedist': 0.29289,    // 1 - sqrt(2) / 2
+        'dihedral': THREE.MathUtils.degToRad(90.0),
+        'geometry': _catomGeometry
+    }]
 ]);
+    // Edge length: 2 / (2 + sqrt(2)) ~= 0.585787
+    // Midsphere: sqrt(2 - sqrt(2)) ~= 0.76537
+    // Distance from polyhedra-center to face-center: sqrt(2) / 2 ~= 0.7071
+    // Distance from face-center to edge-center: 1 - sqrt(2) / 2 ~= 0.29289
+    // Dihedral angle
 
-export const ModuleDihedralAngles = new Map([
-    [ModuleType.CUBE, 90.0],
-    [ModuleType.RHOMBIC_DODECAHEDRON, 60.0],
-    [ModuleType.CATOM, 45.0],
-]);
-
-export const ModuleMidspheres = new Map([
-    [ModuleType.CUBE, 0.7071],
-    [ModuleType.RHOMBIC_DODECAHEDRON, 0.8165],
-    [ModuleType.CATOM, .5795],
-]);

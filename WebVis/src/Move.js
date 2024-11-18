@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { ModuleType, MoveType } from './utils.js';
-import { ModuleDihedralAngles, ModuleMidspheres } from './ModuleGeometries.js';
+import { ModuleData } from './ModuleGeometries.js';
 
 function constructAdc(ad) {
     // Given a THREE.Vector3 'ad' (anchor direction),
@@ -8,7 +8,7 @@ function constructAdc(ad) {
     let i;
     let adc = 0;
     for (i = 0; i < 3; i++) {
-        if (ad.getComponent(i) != 0) {
+        if (Math.abs(ad.getComponent(i)) > 0.000001) {
             adc = adc * 10 + i + 1 + (ad.getComponent(i) < 0 ? 3 : 0);
         }
     }
@@ -78,6 +78,9 @@ export class Move {
 
     constructStandardStep() {
         let step = {};
+        let midsphere = ModuleData.get(this.moduleType)['midsphere'];
+        let dihedral = ModuleData.get(this.moduleType)['dihedral'];
+
         step.anchorDir = parseAdc(this.adc);
         step.deltaPos = this.deltaPos;
         step.maxPct = 1.0;
@@ -87,7 +90,7 @@ export class Move {
 
             // Determine our start position in the coordinate system centered at the origin of the "anchor" shape
             //  (This happens to be neatly encoded in anchorDir; we just need to re-scale it to appropriate length)
-            let _startPos = step.anchorDir.clone().divide(step.anchorDir.abs()).setNaN(0.0);
+            let _startPos = step.anchorDir.sgn();
 
             // Determine the midpoint of our start and end positions
             let _linearTranslation = _startPos.clone().add(step.deltaPos);
@@ -99,9 +102,9 @@ export class Move {
             let _translationDir = _linearTranslation.clone().normalize();
 
             // Scale to midsphere length
-            step.postTrans = _translationDir.clone().multiplyScalar(ModuleMidspheres.get(this.moduleType));
+            step.postTrans = _translationDir.clone().multiplyScalar(midsphere);
             step.preTrans = step.postTrans.clone().negate();
-            step.maxAngle = THREE.MathUtils.degToRad(step.deltaPos.abs().sum() * ModuleDihedralAngles.get(this.moduleType));
+            step.maxAngle = step.deltaPos.abs().sum() * dihedral;
         } 
         this.steps.push(step);
     }
@@ -123,6 +126,51 @@ export class Move {
         this.steps.push(step2);
     }
 
+    constructCatomSteps() {
+        let dihedral = ModuleData.get(this.moduleType)['dihedral'];
+        let faceDist = ModuleData.get(this.moduleType)['facedist'];
+        let edgeDist = ModuleData.get(this.moduleType)['edgedist'];
+
+        let anchorDir = parseAdc(this.adc);
+        let step1 = {}, step2 = {};
+
+        step1.maxAngle = dihedral;
+        step1.maxPct = 0.5;
+        step2.maxAngle = dihedral;
+        step2.maxPct = 1.0;
+
+        // Delta positions for each step
+        let dp1 = this.deltaPos.clone().multiply(anchorDir.abs()).normalize();
+        let dp2 = this.deltaPos.clone().sub(dp1);
+
+        // Catom movement will take place in a plane
+        // "Bump axis" is the normal to this plane
+        let bumpAxis = anchorDir.sgn().sub(dp1.sgn());
+        this.bumpAxis = bumpAxis;
+
+        // Rotation axes for each step
+        let ra1 = dp1.clone().cross(anchorDir).normalize();
+        let ra2 = dp2.clone().cross(bumpAxis).normalize().negate();
+
+        step1.deltaPos = dp1;
+        step1.rotAxis = ra1;
+        step2.deltaPos = dp2.clone().applyAxisAngle(ra1, dihedral);
+        step2.rotAxis = dp1.equals(dp2) ? ra1 : ra2.clone().applyAxisAngle(ra1, dihedral);
+
+        // Translations: along the deltaPos direction by faceDist,
+        //  and along the bumpAxis direction by edgeDist
+        step1.postTrans = dp1.clone().setLength(faceDist).add(bumpAxis.clone().setLength(edgeDist));
+        step1.preTrans = step1.postTrans.clone().negate();
+
+        step2.postTrans = dp1.equals(dp2) ? 
+            dp2.clone().setLength(edgeDist).add(bumpAxis.clone().setLength(faceDist)).applyAxisAngle(ra1.clone().negate(), dihedral)
+            : dp2.clone().setLength(edgeDist).add(bumpAxis.clone().setLength(faceDist).negate()).applyAxisAngle(ra1, dihedral);
+        step2.preTrans = step2.postTrans.clone().negate();
+
+        this.steps.push(step1);
+        this.steps.push(step2);
+    }
+
     reverse() {
         let newDeltaPos = this.deltaPos.clone().negate();
         let newAdc;
@@ -137,9 +185,13 @@ export class Move {
             newAdc = -constructAdc(this.steps[1].deltaPos.abs());
         } else if (this.moduleType == ModuleType.RHOMBIC_DODECAHEDRON) {
         // RD pivots
-            let _startPos = this.steps[0].anchorDir.clone().divide(this.steps[0].anchorDir.abs()).setNaN(0.0);
+            let _startPos = this.steps[0].anchorDir.sgn();
             let _endPos = _startPos.add(newDeltaPos);
             newAdc = constructAdc(_endPos);
+        } else if (this.moduleType == ModuleType.CATOM) {
+        // Catom pivots
+            let reverseStepTwo = this.steps[1].deltaPos.clone().applyAxisAngle(this.steps[0].rotAxis, -ModuleData.get(this.moduleType)['dihedral']).negate().add(this.bumpAxis);
+            newAdc = constructAdc(reverseStepTwo);
         } else {
         // All others
             newAdc = this.adc;

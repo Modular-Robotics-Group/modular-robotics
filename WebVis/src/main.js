@@ -21,6 +21,11 @@ THREE.Vector3.prototype.setNaN = function(newVal) {
                              isNaN(this.y) ? newVal : this.y,
                              isNaN(this.z) ? newVal : this.z);
 }
+THREE.Vector3.prototype.sgn = function() {
+    const precision = 0.000001;
+    let rounded = this.clone().multiplyScalar(1/precision).roundToZero().multiplyScalar(precision);
+    return rounded.divide(rounded.abs()).setNaN(0);
+}
 
 // Following are global attributes set directly to the window object
 //  This allows them to (more easily) be added to the GUI,

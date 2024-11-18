@@ -6,7 +6,7 @@
 
 import * as THREE from 'three';
 import { ModuleType, MoveType } from "./utils.js";
-import { ModuleGeometries } from "./ModuleGeometries.js";
+import { ModuleData } from "./ModuleGeometries.js";
 import { ModuleMaterialConstructors } from "./ModuleMaterials.js";
 import { gScene, gModules, gRenderer } from "./main.js";
 import { Move } from "./Move.js"
@@ -24,7 +24,7 @@ function _animInterp(pct) {
 }
 
 function _createModuleMesh(moduleType, color = 0x808080, scale = 1.0) {
-    let geometry = ModuleGeometries.get(moduleType);
+    let geometry = ModuleData.get(moduleType)['geometry'];
     let material;
     let materialConstructor = ModuleMaterialConstructors.get(moduleType);
     let texture = moduleType == ModuleType.CUBE ? cubeTexture : rdTexture;
@@ -66,7 +66,7 @@ export class Module {
         this.parentMesh.position.set(...pos);
         this.parentMesh.add(this.mesh);
         //let axesHelper = new THREE.AxesHelper(1.2);
-        //this.parentMesh.add(axesHelper);
+        //this.mesh.add(axesHelper);
         gScene.add(this.parentMesh);
         gModules[id] = this;
     }
