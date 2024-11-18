@@ -1,17 +1,19 @@
 cmake_minimum_required(VERSION 3.28)
 project(Pathfinder)
 
+if(POLICY CMP0167)
+    cmake_policy(SET CMP0167 NEW)
+endif()
+
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lboost_filesystem -lboost_system")
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/Module Properties")
 
 find_package(Boost REQUIRED COMPONENTS filesystem system)
-if(Boost_FOUND)
-    include_directories(${Boost_INCLUDE_DIR})
-    add_definitions("-DHAS_BOOST")
-endif()
 
-if(NOT "${CMAKE_CURRENT_BINARY_DIR}" STREQUAL "${CMAKE_CURRENT_LIST_DIR}")
+find_package(nlohmann_json REQUIRED)
+
+if(NOT "${CMAKE_CURRENT_BINARY_DIR}" STREQUAL "${CMAKE_CURRENT_LIST_DIRS}")
     if(EXISTS ${CMAKE_CURRENT_BINARY_DIR}/Moves)
         add_custom_target(clear_moves
                 COMMAND rm -r "${CMAKE_CURRENT_BINARY_DIR}/Moves"
