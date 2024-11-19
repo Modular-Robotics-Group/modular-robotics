@@ -92,7 +92,7 @@ jobs:
       if: matrix.os == 'macos-latest'
 
     - name: VCPKG CMake Fix (Windows)
-      run: cmake -DCMAKE_TOOLCHAIN_FILE="C:/vcpkg/scripts/buildsystems/vcpkg.cmake"
+      run: cmake ${{ github.workspace }} -DCMAKE_TOOLCHAIN_FILE="C:/vcpkg/scripts/buildsystems/vcpkg.cmake"
       shell: pwsh
       if: matrix.os == 'windows-latest'
 
