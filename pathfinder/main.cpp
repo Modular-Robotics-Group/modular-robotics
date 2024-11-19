@@ -109,7 +109,7 @@ int main(int argc, char* argv[]) {
     // Generate names for export and analysis files if they are not specified
     std::size_t trimPos;
     if (exportFile.empty()) {
-        exportFile = std::filesystem::path(initialFile).replace_extension(".scen");
+        exportFile = std::filesystem::path(initialFile).replace_extension(".scen").string();
         if ((trimPos = exportFile.find("_initial")) != std::string::npos) {
             exportFile.erase(trimPos, 8);
         }
