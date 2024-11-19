@@ -62,7 +62,7 @@ jobs:
         echo "build-output-dir=${{ github.workspace }}/build" >> "$GITHUB_OUTPUT"
 
     - name: Install Boost (Windows)
-      run: vcpkg install boost-system boost-filesystem boost-dll boost-any boost-container-hash
+      run: vcpkg install boost-system boost-filesystem boost-dll boost-any boost-container-hash boost-format
       shell: pwsh
       if: matrix.os == 'windows-latest'
 
