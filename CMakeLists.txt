@@ -8,7 +8,7 @@ endif()
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_VERBOSE_MAKEFILE ON)
-set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lboost_filesystem -lboost_system")
+#set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lboost_filesystem -lboost_system")
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/Module Properties")
 
 find_package(Boost REQUIRED COMPONENTS filesystem system)
@@ -43,6 +43,10 @@ add_library(PropertyLib SHARED pathfinder/modules/ModuleProperties.cpp)
 target_compile_features(PropertyLib PUBLIC cxx_std_23)
 
 target_link_libraries(PropertyLib ${Boost_LIBRARIES})
+
+target_link_libraries(PropertyLib Boost::system)
+
+target_link_libraries(PropertyLib Boost::filesystem)
 
 set_target_properties(PropertyLib PROPERTIES PREFIX "")
 
@@ -82,8 +86,8 @@ add_executable(Pathfinder
         pathfinder/utility/color_util.h)
 
 target_link_libraries(Pathfinder PropertyLib)
-target_link_libraries(Pathfinder Boost::system)
-target_link_libraries(Pathfinder Boost::filesystem)
+#target_link_libraries(Pathfinder Boost::system)
+#target_link_libraries(Pathfinder Boost::filesystem)
 
 if(NOT "${CMAKE_CURRENT_BINARY_DIR}" STREQUAL "${CMAKE_CURRENT_LIST_DIR}")
     add_dependencies(Pathfinder copy_moves copy_examples copy_properties)
