@@ -60,7 +60,6 @@ jobs:
       shell: bash
       run: |
         echo "build-output-dir=${{ github.workspace }}/build" >> "$GITHUB_OUTPUT"
-        echo "test: ${{ env.VCPKG_INSTALLATION_ROOT }}"
 
     - name: Install Boost (Windows)
       run: vcpkg install boost-system boost-filesystem boost-container-hash
@@ -93,7 +92,7 @@ jobs:
       if: matrix.os == 'macos-latest'
 
     - name: VCPKG CMake Fix (Windows)
-      run: cmake -DCMAKE_TOOLCHAIN_FILE="${{ env.VCPKG_INSTALLATION_ROOT }}scripts/buildsystems/vcpkg.cmake"
+      run: cmake -DCMAKE_TOOLCHAIN_FILE="C:/vcpkg/scripts/buildsystems/vcpkg.cmake"
       shell: pwsh
       if: matrix.os == 'windows-latest'
 
