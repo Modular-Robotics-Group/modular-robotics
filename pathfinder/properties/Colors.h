@@ -34,10 +34,6 @@ public:
     static const std::unordered_set<int>& Palette();
 };
 
-extern boost::any Palette() __asm ("Palette");
-
-extern boost::any GetColorInt(IModuleProperty* prop) __asm ("GetColorInt");
-
 void Dummy();
 
 #endif //MODULAR_ROBOTICS_COLORS_H
