@@ -8,7 +8,6 @@ endif()
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_VERBOSE_MAKEFILE ON)
-#set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lboost_filesystem -lboost_system")
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/Module Properties")
 
 find_package(Boost REQUIRED COMPONENTS filesystem system)
@@ -39,8 +38,6 @@ if(NOT "${CMAKE_CURRENT_BINARY_DIR}" STREQUAL "${CMAKE_CURRENT_LIST_DIR}")
 endif()
 
 add_library(PropertyLib SHARED pathfinder/modules/ModuleProperties.cpp)
-
-target_compile_features(PropertyLib PUBLIC cxx_std_23)
 
 target_link_libraries(PropertyLib ${Boost_LIBRARIES})
 
