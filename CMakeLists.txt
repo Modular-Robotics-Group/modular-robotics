@@ -91,7 +91,7 @@ target_link_libraries(Pathfinder PropertyLib)
 
 if(NOT "${CMAKE_CURRENT_BINARY_DIR}" STREQUAL "${CMAKE_CURRENT_LIST_DIR}")
     add_dependencies(Pathfinder copy_moves copy_examples copy_properties)
-    add_dependencies(ColorPropertyLib copy_properties)
+    add_dependencies(ColorPropertyLib PropertyLib copy_properties)
     if(EXISTS "${CMAKE_CURRENT_BINARY_DIR}/Moves")
         add_dependencies(copy_moves clear_moves)
     endif()
