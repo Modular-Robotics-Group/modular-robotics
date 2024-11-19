@@ -111,12 +111,12 @@ bool ModuleData::operator<(const IModuleBasic& right) const {
     return *module < *reinterpret_cast<const ModuleData&>(right).module;
 }
 
-ModuleData& ModuleData::operator=(const IModuleBasic &right) {
+ModuleData& ModuleData::operator=(const ModuleData &modData) {
     module.reset();
 #if CONFIG_MOD_DATA_STORAGE == MM_DATA_FULL
     module = std::make_unique<ModuleBasic>(modData.Coords(), modData.Properties());
 #else
-    module = std::make_unique<ModuleInt64>(right.Coords(), right.Properties());
+    module = std::make_unique<ModuleInt64>(modData.Coords(), modData.Properties());
 #endif
     return *this;
 }
