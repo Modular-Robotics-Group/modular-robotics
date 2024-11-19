@@ -34,9 +34,9 @@ public:
     static const std::unordered_set<int>& Palette();
 };
 
-boost::any Palette() asm ("Palette");
+boost::any Palette() __asm ("Palette");
 
-boost::any GetColorInt(IModuleProperty* prop) asm ("GetColorInt");
+boost::any GetColorInt(IModuleProperty* prop) __asm ("GetColorInt");
 
 void Dummy();
 
