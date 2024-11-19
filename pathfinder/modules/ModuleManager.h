@@ -58,6 +58,8 @@ public:
 
     bool operator<(const IModuleBasic& right) const override;
 
+    ModuleData& operator=(const IModuleBasic& right);
+
     friend class std::hash<ModuleData>;
 };
 
