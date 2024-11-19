@@ -62,7 +62,7 @@ jobs:
         echo "build-output-dir=${{ github.workspace }}/build" >> "$GITHUB_OUTPUT"
 
     - name: Install Boost (Windows)
-      run: dotnet add package boost --version 1.86.0
+      run: choco install boost-msvc-14.1
       shell: pwsh
       if: matrix.os == 'windows-latest'
 
