@@ -34,15 +34,15 @@ public:
     static const std::unordered_set<int>& Palette();
 };
 
-extern "C" BOOST_SYMBOL_EXPORT boost::any Palette();
+boost::any Palette();
 inline boost::any(*Palette_Ptr)() = &Palette;
 BOOST_DLL_ALIAS(Palette_Ptr, colorProperty_Palette)
 
-extern "C" BOOST_SYMBOL_EXPORT boost::any GetColorInt(IModuleProperty* prop);
+boost::any GetColorInt(IModuleProperty* prop);
 inline boost::any(*GetColorInt_Ptr)(IModuleProperty*) = &GetColorInt;
 BOOST_DLL_ALIAS(GetColorInt_Ptr, colorProperty_GetColorInt)
 
-extern "C" BOOST_SYMBOL_EXPORT boost::any PropertyFuncTest();
+boost::any PropertyFuncTest();
 inline boost::any(*PropertyFuncTest_Ptr)() = &PropertyFuncTest;
 BOOST_DLL_ALIAS(PropertyFuncTest_Ptr, colorProperty_PropertyFuncTest)
 
