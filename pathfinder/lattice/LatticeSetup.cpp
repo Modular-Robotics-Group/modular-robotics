@@ -22,7 +22,6 @@ namespace LatticeSetup {
         }
         nlohmann::json j;
         file >> j;
-        ModuleProperties::CallFunction("PropertyFuncTest");
         std::cout << "\tCreating Lattice...   ";
         if (j.contains("tensorPadding")) {
             Lattice::InitLattice(j["order"], j["axisSize"], j["tensorPadding"]);
