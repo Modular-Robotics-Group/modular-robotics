@@ -116,7 +116,9 @@ void ModuleProperties::CallFunction(const std::string &funcKey) {
 void ModuleProperties::InitProperties(const nlohmann::basic_json<>& propertyDefs) {
     for (const auto& key : PropertyKeys()) {
         if (propertyDefs.contains(key)) {
+            std::cout << "\t\t\tLoading property " << key << "..." << std::endl;
             auto property = Constructors()[key](propertyDefs[key]);
+            std::cout << "\t\t\tDone." << std::endl;
             _properties.insert(property);
             if (propertyDefs[key].contains("static") && propertyDefs[key]["static"] == false) {
                 if (auto dynamicProperty = dynamic_cast<IModuleDynamicProperty*>(property); dynamicProperty == nullptr) {
