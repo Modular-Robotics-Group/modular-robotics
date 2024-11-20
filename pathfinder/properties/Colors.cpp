@@ -62,7 +62,7 @@ boost::any GetColorInt(IModuleProperty* prop) {
 }
 
 boost::any PropertyFuncTest() {
-    std::cout << "Test function!" << std::endl;
+    std::cout << "Test function! Address: " << reinterpret_cast<void*>(PropertyFuncTest) << std::endl;
     return 0;
 }
 
