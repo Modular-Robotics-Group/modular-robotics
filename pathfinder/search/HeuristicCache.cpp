@@ -225,7 +225,7 @@ MoveOffsetHeuristicCache::MoveOffsetHeuristicCache(const std::set<ModuleData> &d
             }
             internalVisitTensor[coordQueue.front().coords] = true;
             if (std::any_of(desiredPositions.begin(), desiredPositions.end(), [&](std::valarray<int>& coord) {
-                std::valarray valArrComparison = coord == coordQueue.front().coords;
+                std::valarray<bool> valArrComparison = coord == coordQueue.front().coords;
                 for (const auto result : valArrComparison) {
                     if (!result) {
                         return false;
@@ -372,7 +372,7 @@ MoveOffsetPropertyHeuristicCache::MoveOffsetPropertyHeuristicCache(const std::se
             }
             internalVisitTensor[coordQueue.front().coords] = true;
             if (std::any_of(desiredPositions.begin(), desiredPositions.end(), [&](std::valarray<int>& coord) {
-                std::valarray valArrComparison = coord == coordQueue.front().coords;
+                std::valarray<bool> valArrComparison = coord == coordQueue.front().coords;
                 for (const auto result : valArrComparison) {
                     if (!result) {
                         return false;
