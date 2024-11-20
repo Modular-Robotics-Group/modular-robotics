@@ -84,6 +84,9 @@ void ModuleProperties::LinkProperties() {
                 auto ptrName = propertyName + "_" + static_cast<std::string>(functionName);
                 boost::any(*fptr)() = *boost::dll::import_alias<boost::any(*)()>(propertyLibrary, ptrName);
                 std::cout << "\t\tCaching function pointer to " << functionName << ": " << reinterpret_cast<void*>(fptr) << std::endl;
+                if (functionName == "PropertyFuncTest") {
+                    (*boost::dll::import_alias<boost::any(*)()>(propertyLibrary, ptrName))();
+                }
                 Functions()[functionName] = fptr;
             }
         }
