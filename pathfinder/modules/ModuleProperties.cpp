@@ -90,6 +90,7 @@ void ModuleProperties::LinkProperties() {
                     propertyFunctionTest = fptr;
                     propertyFunctionTest();
                     propertyFunctionTest1 = boost::dll::import_alias<boost::any(*)()>(propertyLibrary, ptrName);
+                    std::cout << "Shared ptr reference count: " << propertyFunctionTest1.use_count() << std::endl;
                     (*propertyFunctionTest1)();
                 }
                 Functions()[functionName] = fptr;

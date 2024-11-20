@@ -138,6 +138,8 @@ int main(int argc, char* argv[]) {
     std::cout << "Linking Properties..." << std::endl;
     ModuleProperties::LinkProperties();
     std::cout << "Properties successfully linked: " << ModuleProperties::PropertyCount() << std::endl;
+    std::cout << "Shared ptr reference count: " << ModuleProperties::propertyFunctionTest1.use_count() << std::endl;
+    std::cout << "Shared ptr held address: " << reinterpret_cast<void*>(*ModuleProperties::propertyFunctionTest1) << std::endl;
     std::cout << "Shared Pointer to Function Pointer Test:" << std::endl;
     (*ModuleProperties::propertyFunctionTest1)();
     std::cout << "Direct Property Function Call Test:" << std::endl;
