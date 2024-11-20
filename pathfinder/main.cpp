@@ -10,6 +10,7 @@
 #include "moves/Scenario.h"
 #include "search/SearchAnalysis.h"
 #include "search/HeuristicCache.h"
+#include "modules/ModuleProperties.h"
 
 #ifndef GENERATE_FINAL_STATE
 #define GENERATE_FINAL_STATE false
