@@ -114,8 +114,16 @@ bool ModuleProperties::AnyDynamicPropertiesLinked() {
 }
 
 void ModuleProperties::CallFunction(const std::string &funcKey) {
+    std::cout << "Attempting to call function " << funcKey << "..." << std::endl;
     if (Functions().contains(funcKey)) {
-        Functions()[funcKey]();
+        std::cout << "\tAddress found: " << reinterpret_cast<void*>(Functions()[funcKey]) << std::endl;
+        if (Functions()[funcKey]) {
+            Functions()[funcKey]();
+        } else {
+            std::cout << "\tFailed to call function " << funcKey << ", address is null" << std::endl;
+        }
+    } else {
+        std::cout << "\tFailed to call function " << funcKey << ", key not found" << std::endl;
     }
 }
 
