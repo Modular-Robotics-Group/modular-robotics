@@ -25,7 +25,7 @@
  * taking into account the amount of non-static modules that a module may interact with
  */
 #ifndef CONFIG_HEURISTIC_CACHE_HELP_LIMITATIONS
-#define CONFIG_HEURISTIC_CACHE_HELP_LIMITATIONS false
+#define CONFIG_HEURISTIC_CACHE_HELP_LIMITATIONS true
 #endif
 #if CONFIG_HEURISTIC_CACHE_HELP_LIMITATIONS && !CONFIG_HEURISTIC_CACHE_DIST_LIMITATIONS
 #warning "Help limitations disabled due to lack of distance limitations!"

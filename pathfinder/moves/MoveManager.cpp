@@ -96,24 +96,12 @@ int GetManhattanDistance(const std::valarray<int>& a, const std::valarray<int>& 
 
 bool MoveBase::FreeSpaceCheckHelpLimit(const CoordTensor<int>& tensor, const std::valarray<int>& coords, const CoordTensor<int>& helpTensor, int help) {
     int helpUsed = 0;
-    std::vector<std::valarray<int>*> helperPositions;
     return std::all_of(moves.begin(), moves.end(), [&](auto& move) {
         if (!move.second && (tensor[coords + move.first] > FREE_SPACE)) {
             return false;
         }
         if (move.second && tensor[coords + move.first] <= FREE_SPACE) {
-            int minHelpNeeded = 0;
-            if (helpUsed == 0) {
-                helpUsed = helpTensor[coords + move.first];
-            } else for (const auto pos : helperPositions) {
-#if LATTICE_RD_EDGECHECK
-                minHelpNeeded = std::min(helpTensor[coords + move.first], GetChebyshevDistance(move.first, *pos));
-#else
-                minHelpNeeded = std::min(helpTensor[coords + move.first], GetManhattanDistance(move.first, *pos));
-#endif
-            }
-            helpUsed += minHelpNeeded;
-            helperPositions.push_back(&move.first);
+            helpUsed = std::max(helpUsed, helpTensor[coords + move.first]);
             if (tensor[coords + move.first] != OUT_OF_BOUNDS && helpUsed < help) {
                 return true;
             }
