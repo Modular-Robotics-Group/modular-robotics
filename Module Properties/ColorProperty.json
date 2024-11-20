@@ -2,7 +2,8 @@
   "filename": "ColorPropertyLib",
   "name": "colorProperty",
   "staticFunctions": [
-    "Palette"
+    "Palette",
+    "PropertyFuncTest"
   ],
   "instanceFunctions": [
     "GetColorInt"
