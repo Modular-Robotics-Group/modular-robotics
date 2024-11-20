@@ -137,7 +137,7 @@ int main(int argc, char* argv[]) {
     // Dynamically Link Properties
     std::cout << "Linking Properties..." << std::endl;
     ModuleProperties::LinkProperties();
-    std::cout << "Properties successfully linked. Loaded: " << ModuleProperties::PropertyCount() << std::endl;
+    std::cout << "Properties successfully linked: " << ModuleProperties::PropertyCount() << std::endl;
 
 #if CONFIG_MOD_DATA_STORAGE == MM_DATA_INT64
     if (ModuleProperties::PropertyCount() > 1) {
@@ -242,7 +242,7 @@ int main(int argc, char* argv[]) {
 #endif
     std::vector<Configuration*> path;
     try {
-        std::cout << "Beginning search...";
+        std::cout << "Beginning search..." << std::endl;
         const auto timeBegin = std::chrono::high_resolution_clock::now();
         if (searchMethod.empty() || searchMethod == "A*" || searchMethod == "a*") {
             path = ConfigurationSpace::AStar(&start, &end, heuristic);

@@ -65,7 +65,7 @@ namespace LatticeSetup {
         Lattice::BuildMovableModules();
         std::cout << "Done." << std::endl;
         // Additional boundary setup
-        std::cout << "\tInserting Boundaries... ";
+        std::cout << "\tInserting Boundaries...   ";
         if (j.contains("boundaries")) {
             for (const auto& bound : j["boundaries"]) {
                 std::valarray<int> coords = bound;

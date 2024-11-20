@@ -78,21 +78,24 @@ void ModuleProperties::LinkProperties() {
             continue;
         }
         boost::dll::shared_library propertyLibrary(propertyLibPath);
-        std::cout << "\tLinked " << propertyLibName << '.' << std::endl;
+        std::cout << "\tLinking " << propertyLibName << "..." << std::endl;
         if (propertyClassDef.contains("staticFunctions")) {
             for (const auto& functionName : propertyClassDef["staticFunctions"]) {
                 auto ptrName = propertyName + "_" + static_cast<std::string>(functionName);
-                auto fptr = boost::dll::import_alias<boost::any(*)()>(propertyLibrary, ptrName);
-                Functions()[functionName] = *fptr;
+                boost::any(*fptr)() = *boost::dll::import_alias<boost::any(*)()>(propertyLibrary, ptrName);
+                std::cout << "\t\tCaching function pointer to " << functionName << ": " << reinterpret_cast<void*>(fptr) << std::endl;
+                Functions()[functionName] = fptr;
             }
         }
         if (propertyClassDef.contains("instanceFunctions")) {
             for (const auto& functionName : propertyClassDef["instanceFunctions"]) {
                 auto ptrName = propertyName + "_" + static_cast<std::string>(functionName);
-                auto fptr = boost::dll::import_alias<boost::any(*)(IModuleProperty*)>(propertyLibrary, ptrName);
-                InstFunctions()[functionName] = *fptr;
+                boost::any(*fptr)(IModuleProperty*) = *boost::dll::import_alias<boost::any(*)(IModuleProperty*)>(propertyLibrary, ptrName);
+                std::cout << "\t\tCaching function pointer to " << functionName << ": " << reinterpret_cast<void*>(fptr) << std::endl;
+                InstFunctions()[functionName] = fptr;
             }
         }
+        std::cout << "\tLinked " << propertyLibName << '.' << std::endl;
         _propertiesLinkedCount++;
     }
 }
