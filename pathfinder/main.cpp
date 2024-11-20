@@ -266,12 +266,14 @@ int main(int argc, char* argv[]) {
     }
 #endif
 
+    std::cout << "Exporting results..." << std::endl;
     Scenario::ScenInfo scenInfo;
     scenInfo.exportFile = exportFile;
     scenInfo.scenName = Scenario::TryGetScenName(initialFile);
     scenInfo.scenDesc = Scenario::TryGetScenDesc(initialFile);
     
     Scenario::exportToScen(path, scenInfo);
+    std::cout << "Results exported." << std::endl;
     Isometry::CleanupTransforms();
     return 0;
 }
