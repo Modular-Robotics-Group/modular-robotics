@@ -92,7 +92,7 @@ jobs:
       if: matrix.os == 'macos-latest'
 
     - name: Install getopt (Windows)
-      run: vcpkg install getopt
+      run: vcpkg install getopt-win32
       shell: pwsh
       if: matrix.os == 'windows-latest'
 

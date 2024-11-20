@@ -11,6 +11,11 @@ set(CMAKE_VERBOSE_MAKEFILE ON)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/Module Properties")
 set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 
+if(WIN32)
+    find_package(unofficial-getopt-win32 REQUIRED)
+    target_link_libraries(Pathfinder PRIVATE unofficial::getopt-win32::getopt)
+endif()
+
 find_package(Boost REQUIRED COMPONENTS filesystem system)
 if(Boost_FOUND)
     include_directories(${Boost_INCLUDE_DIRS})
