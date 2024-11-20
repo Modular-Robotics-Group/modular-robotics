@@ -22,12 +22,13 @@ namespace LatticeSetup {
         }
         nlohmann::json j;
         file >> j;
+        std::cout << "\tCreating Lattice...   ";
         if (j.contains("tensorPadding")) {
             Lattice::InitLattice(j["order"], j["axisSize"], j["tensorPadding"]);
         } else {
             Lattice::InitLattice(j["order"], j["axisSize"]);
         }
-        std::set<int> colors;
+        std::cout << "Done." << std::endl << "\tConstructing Non-Static Modules...   ";
         for (const auto& module : j["modules"]) {
             std::vector<int> position = module["position"];
             std::transform(position.begin(), position.end(), position.begin(),
@@ -43,8 +44,12 @@ namespace LatticeSetup {
                 ModuleIdManager::RegisterModule(coords, module["static"]);
             }
         }
+        std::cout << "Done." << std::endl;
         // Register static modules after non-static modules
+        std::cout << "\tConstructing Static Modules...   ";
         ModuleIdManager::DeferredRegistration();
+        std::cout << "Done." << std::endl;
+        std::cout << "\tPalette Check...   ";
         ModuleProperties::CallFunction("Palette");
         if (!Lattice::ignoreProperties) {
             if (const auto& palette = ModuleProperties::CallFunction<const std::unordered_set<int>&>("Palette"); palette.empty()) {
@@ -53,11 +58,15 @@ namespace LatticeSetup {
                 std::cout << "Only one color used, recommend rerunning with -i flag to improve performance." << std::endl;
             }
         }
+        std::cout << "Done." << std::endl << "\tInserting Modules...   ";
         for (const auto& mod : ModuleIdManager::Modules()) {
             Lattice::AddModule(mod);
         }
+        std::cout << "Done." << std::endl << "\tBuilding Movable Module Cache...   ";
         Lattice::BuildMovableModules();
+        std::cout << "Done." << std::endl;
         // Additional boundary setup
+        std::cout << "\tInserting Boundaries... ";
         if (j.contains("boundaries")) {
             for (const auto& bound : j["boundaries"]) {
                 std::valarray<int> coords = bound;
@@ -72,6 +81,7 @@ namespace LatticeSetup {
                 }
             }
         }
+        std::cout << "Done." << std::endl;
     }
 
     Configuration setupFinalFromJson(const std::string& filename) {
