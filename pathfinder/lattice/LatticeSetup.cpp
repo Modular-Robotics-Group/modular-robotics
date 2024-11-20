@@ -50,7 +50,6 @@ namespace LatticeSetup {
         ModuleIdManager::DeferredRegistration();
         std::cout << "Done." << std::endl;
         std::cout << "\tPalette Check...   ";
-        ModuleProperties::CallFunction("Palette");
         if (!Lattice::ignoreProperties) {
             if (const auto& palette = ModuleProperties::CallFunction<const std::unordered_set<int>&>("Palette"); palette.empty()) {
                 Lattice::ignoreProperties = true;
