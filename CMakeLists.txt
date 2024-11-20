@@ -13,6 +13,8 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/Module Properties")
 set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 # Cache entries
 set(INCLUDE_TESTS OFF CACHE BOOL "Whether or not unit tests should be built alongside the Pathfinder.")
+# Environment variables
+set(ENV{CTEST_OUTPUT_ON_FAILURE} ON)
 
 find_package(Boost REQUIRED COMPONENTS filesystem system)
 if(Boost_FOUND)
