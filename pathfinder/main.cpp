@@ -137,18 +137,6 @@ int main(int argc, char* argv[]) {
     std::cout << "Linking Properties..." << std::endl;
     ModuleProperties::LinkProperties();
     std::cout << "Properties successfully linked: " << ModuleProperties::PropertyCount() << std::endl;
-    // std::cout << "Shared ptr reference count: " << ModuleProperties::propertyFunctionTest1.use_count() << std::endl;
-    // std::cout << "Shared ptr address: " << &ModuleProperties::propertyFunctionTest1 << std::endl;
-    // std::cout << "Shared ptr held address: " << reinterpret_cast<void*>(*ModuleProperties::propertyFunctionTest1) << std::endl;
-    // std::cout << "Shared Pointer to Function Pointer Test:" << std::endl;
-    // (*ModuleProperties::propertyFunctionTest1)();
-    // std::cout << "Direct Property Function Call Test:" << std::endl;
-    // ModuleProperties::propertyFunctionTest();
-    // std::cout << "Extra Property Function Test:" << std::endl;
-    // ModuleProperties::CallFunction("PropertyFuncTest");
-    // std::cout << "Palette Property Function Test:" << std::endl;
-    // auto paletteResult = ModuleProperties::CallFunction<const std::unordered_set<int>&>("Palette");
-    // std::cout << "Palette Size: " << paletteResult.size() << std::endl;
 
 #if CONFIG_MOD_DATA_STORAGE == MM_DATA_INT64
     if (ModuleProperties::PropertyCount() > 1) {

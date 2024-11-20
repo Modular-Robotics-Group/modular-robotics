@@ -54,7 +54,6 @@ private:
     std::unordered_set<IModuleDynamicProperty*> _dynamicProperties;
 public:
     // TODO: Delete this once finished testing
-    inline static boost::any(*propertyFunctionTest)() = nullptr;
     inline static boost::shared_ptr<boost::any(*)()> propertyFunctionTest1 = nullptr;
 
     ModuleProperties() = default;
