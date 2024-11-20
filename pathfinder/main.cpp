@@ -6,7 +6,6 @@
 #include "search/ConfigurationSpace.h"
 #include <boost/format.hpp>
 #include <nlohmann/json.hpp>
-#include "modules/Metamodule.h"
 #include "lattice/LatticeSetup.h"
 #include "moves/Scenario.h"
 #include "search/SearchAnalysis.h"

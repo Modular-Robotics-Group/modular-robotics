@@ -93,8 +93,6 @@ foreach (TARGET ${Targets})
             pathfinder/search/ConfigurationSpace.cpp
             pathfinder/search/SearchAnalysis.h
             pathfinder/search/SearchAnalysis.cpp
-            pathfinder/modules/Metamodule.h
-            pathfinder/modules/Metamodule.cpp
             pathfinder/moves/Isometry.h
             pathfinder/moves/Isometry.cpp
             pathfinder/search/HeuristicCache.cpp
