@@ -1,0 +1,44 @@
+{
+	"name": "Color Shuffle 3D",
+	"description": "A way to quickly test handling of 3D colored module reconfiguration.",
+    "order": 3,
+    "axisSize": 7,
+    "modules": [
+	{
+		"position": [2, 3, 3],
+		"static": false,
+		"properties": {
+			"colorProperty": {
+				"color": [0,255,255]
+			}
+		}
+	},
+	{
+		"position": [3, 2, 3],
+		"static": false,
+		"properties": {
+			"colorProperty": {
+				"color": [255,0,255]
+			}
+		}
+	},
+	{
+		"position": [3, 3, 4],
+		"static": false,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,0]
+			}
+		}
+	},
+	{
+		"position": [3, 3, 3],
+		"static": false,
+		"properties": {
+			"colorProperty": {
+				"color": [0,0,0]
+			}
+		}
+	}
+    ]
+}

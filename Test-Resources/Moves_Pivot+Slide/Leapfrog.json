@@ -1,0 +1,32 @@
+{
+  "moves": [
+    {
+      "name": "Leapfrog",
+      "note": "Some changes were made to free space to prevent this move from occurring in place of slides",
+      "order": 2,
+      "def": [[
+        "xx",
+        "?!#",
+        "#x"
+      ]],
+      "permGen": true,
+      "animSeq": [
+        ["pivot+y", [1, 0, 0]]
+      ]
+    },
+    {
+      "name": "Reversed Leapfrog",
+      "note": "Some changes were made to free space to prevent this move from occurring in place of slides",
+      "order": 2,
+      "def": [[
+        " xx",
+        "#?!",
+        " x#"
+      ]],
+      "permGen": true,
+      "animSeq": [
+        ["pivot+y", [1, 0, 0]]
+      ]
+    }
+  ]
+}

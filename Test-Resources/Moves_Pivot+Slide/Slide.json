@@ -1,0 +1,28 @@
+{
+  "moves": [
+    {
+      "name": "Corner Slide",
+      "order": 2,
+      "def": [[
+        "?x",
+        "#!"
+      ]],
+      "permGen": true,
+      "animSeq": [
+        ["x-slide", [1, 1, 0]]
+      ]
+    },
+    {
+      "name": "Slide",
+      "order": 2,
+      "def": [[
+        "?!",
+        "##"
+      ]],
+      "permGen": true,
+      "animSeq": [
+        ["slide", [1, 0, 0]]
+      ]
+    }
+  ]
+}
