@@ -137,6 +137,8 @@ int main(int argc, char* argv[]) {
     std::cout << "Linking Properties..." << std::endl;
     ModuleProperties::LinkProperties();
     std::cout << "Properties successfully linked: " << ModuleProperties::PropertyCount() << std::endl;
+    std::cout << "Direct Property Function Call Test:" << std::endl;
+    ModuleProperties::propertyFunctionTest();
     std::cout << "Extra Property Function Test:" << std::endl;
     ModuleProperties::CallFunction("PropertyFuncTest");
     std::cout << "Palette Property Function Test:" << std::endl;

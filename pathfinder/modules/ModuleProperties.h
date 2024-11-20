@@ -53,6 +53,9 @@ private:
     // Dynamic properties
     std::unordered_set<IModuleDynamicProperty*> _dynamicProperties;
 public:
+    // TODO: Delete this once finished testing
+    static boost::any(*propertyFunctionTest)();
+
     ModuleProperties() = default;
 
     ModuleProperties(const ModuleProperties& other);

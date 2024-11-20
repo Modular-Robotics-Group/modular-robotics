@@ -59,6 +59,9 @@ ModuleProperties::ModuleProperties(const ModuleProperties& other) {
     }
 }
 
+// TODO: Delete when finished testing
+boost::any(*ModuleProperties::propertyFunctionTest)() = nullptr;
+
 void ModuleProperties::LinkProperties() {
     for (const auto& propertyFile : std::filesystem::directory_iterator("Module Properties/")) {
         if (propertyFile.path().extension() != ".json") continue;
@@ -86,6 +89,9 @@ void ModuleProperties::LinkProperties() {
                 std::cout << "\t\tCaching function pointer to " << functionName << ": " << reinterpret_cast<void*>(fptr) << std::endl;
                 if (functionName == "PropertyFuncTest") {
                     (*boost::dll::import_alias<boost::any(*)()>(propertyLibrary, ptrName))();
+                    fptr();
+                    propertyFunctionTest = fptr;
+                    propertyFunctionTest();
                 }
                 Functions()[functionName] = fptr;
             }
