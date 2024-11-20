@@ -15,7 +15,7 @@ std::string Scenario::TryGetScenName(const std::string& initialFile) {
     if (stateJson.contains("name")) {
         return stateJson["name"];
     }
-    std::string name = std::filesystem::path(initialFile).filename().stem();
+    std::string name = std::filesystem::path(initialFile).filename().stem().string();
     if (std::size_t trimPos = name.find("_initial"); trimPos != std::string::npos) {
         name.erase(trimPos, 8);
     }
