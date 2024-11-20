@@ -137,6 +137,10 @@ int main(int argc, char* argv[]) {
     std::cout << "Linking Properties..." << std::endl;
     ModuleProperties::LinkProperties();
     std::cout << "Properties successfully linked: " << ModuleProperties::PropertyCount() << std::endl;
+    std::cout << "Extra Property Function Test: ";
+    ModuleProperties::CallFunction("PropertyFuncTest");
+    auto paletteResult = ModuleProperties::CallFunction<const std::unordered_set<int>&>("Palette");
+    std::cout << "Palette Size: " << paletteResult.size() << std::endl;
 
 #if CONFIG_MOD_DATA_STORAGE == MM_DATA_INT64
     if (ModuleProperties::PropertyCount() > 1) {
