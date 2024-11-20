@@ -34,11 +34,11 @@ public:
     static const std::unordered_set<int>& Palette();
 };
 
-boost::any Palette();
+BOOST_SYMBOL_EXPORT boost::any Palette();
 inline boost::any(*Palette_Ptr)() = &Palette;
 BOOST_DLL_ALIAS(Palette_Ptr, colorProperty_Palette)
 
-boost::any GetColorInt(IModuleProperty* prop);
+BOOST_SYMBOL_EXPORT boost::any GetColorInt(IModuleProperty* prop);
 inline boost::any(*GetColorInt_Ptr)(IModuleProperty*) = &GetColorInt;
 BOOST_DLL_ALIAS(GetColorInt_Ptr, colorProperty_GetColorInt)
 
