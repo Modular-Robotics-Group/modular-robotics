@@ -140,6 +140,12 @@ int main(int argc, char* argv[]) {
     Lattice::setFlags(ignoreColors);
     LatticeSetup::setupFromJson(initialFile);
     std::cout << Lattice::ToString();
+
+#if CONFIG_PARALLEL_MOVES
+    if (ModuleIdManager::MinStaticID() > 64) {
+        std::cerr << "Parallel moves currently only support up to 64 non-static modules." << std::endl;
+    }
+#endif
     
     // Set up moves
     MoveManager::InitMoveManager(Lattice::Order(), Lattice::AxisSize());
