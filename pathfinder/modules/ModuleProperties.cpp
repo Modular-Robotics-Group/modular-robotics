@@ -5,7 +5,7 @@
 
 void IModuleProperty::CallFunction(const std::string &funcKey) {
     if (ModuleProperties::InstFunctions().contains(funcKey)) {
-        ModuleProperties::InstFunctions()[funcKey](this);
+        (*ModuleProperties::InstFunctions()[funcKey])(this);
     }
 }
 
@@ -23,23 +23,23 @@ std::unordered_map<std::string, IModuleProperty* (*)(const nlohmann::basic_json<
     return _constructors;
 }
 
-std::unordered_map<std::string, boost::any (*)()>& ModuleProperties::Functions() {
-    static std::unordered_map<std::string, boost::any (*)()> _functions;
+std::unordered_map<std::string, boost::shared_ptr<boost::any (*)()>>& ModuleProperties::Functions() {
+    static std::unordered_map<std::string, boost::shared_ptr<boost::any (*)()>> _functions;
     return _functions;
 }
 
-std::unordered_map<std::string, boost::any (*)(IModuleProperty*)>& ModuleProperties::InstFunctions() {
-    static std::unordered_map<std::string, boost::any (*)(IModuleProperty*)> _functions;
+std::unordered_map<std::string, boost::shared_ptr<boost::any (*)(IModuleProperty*)>>& ModuleProperties::InstFunctions() {
+    static std::unordered_map<std::string, boost::shared_ptr<boost::any (*)(IModuleProperty*)>> _functions;
     return _functions;
 }
 
-std::unordered_map<std::string, boost::any(*)(boost::any...)>& ModuleProperties::ArgFunctions() {
-    static std::unordered_map<std::string, boost::any(*)(boost::any...)> _functions;
+std::unordered_map<std::string, boost::shared_ptr<boost::any (*)(boost::any...)>>& ModuleProperties::ArgFunctions() {
+    static std::unordered_map<std::string, boost::shared_ptr<boost::any (*)(boost::any...)>> _functions;
     return _functions;
 }
 
-std::unordered_map<std::string, boost::any(*)(IModuleProperty*, boost::any...)>& ModuleProperties::ArgInstFunctions() {
-    static std::unordered_map<std::string, boost::any(*)(IModuleProperty*, boost::any...)> _functions;
+std::unordered_map<std::string, boost::shared_ptr<boost::any (*)(IModuleProperty*, boost::any...)>>& ModuleProperties::ArgInstFunctions() {
+    static std::unordered_map<std::string, boost::shared_ptr<boost::any (*)(IModuleProperty*, boost::any...)>> _functions;
     return _functions;
 }
 
@@ -82,20 +82,13 @@ void ModuleProperties::LinkProperties() {
         if (propertyClassDef.contains("staticFunctions")) {
             for (const auto& functionName : propertyClassDef["staticFunctions"]) {
                 auto ptrName = propertyName + "_" + static_cast<std::string>(functionName);
-                boost::any(*fptr)() = *boost::dll::import_alias<boost::any(*)()>(propertyLibrary, ptrName);
-                std::cout << "\t\tCaching function pointer to " << functionName << ": " << reinterpret_cast<void*>(fptr) << std::endl;
-                if (functionName == "PropertyFuncTest") {
-                    propertyFunctionTest1 = boost::dll::import_alias<boost::any(*)()>(propertyLibrary, ptrName);
-                }
-                Functions()[functionName] = fptr;
+                Functions()[functionName] = boost::dll::import_alias<boost::any(*)()>(propertyLibrary, ptrName);
             }
         }
         if (propertyClassDef.contains("instanceFunctions")) {
             for (const auto& functionName : propertyClassDef["instanceFunctions"]) {
                 auto ptrName = propertyName + "_" + static_cast<std::string>(functionName);
-                boost::any(*fptr)(IModuleProperty*) = *boost::dll::import_alias<boost::any(*)(IModuleProperty*)>(propertyLibrary, ptrName);
-                std::cout << "\t\tCaching function pointer to " << functionName << ": " << reinterpret_cast<void*>(fptr) << std::endl;
-                InstFunctions()[functionName] = fptr;
+                InstFunctions()[functionName] = boost::dll::import_alias<boost::any(*)(IModuleProperty*)>(propertyLibrary, ptrName);
             }
         }
         std::cout << "\tLinked " << propertyLibName << '.' << std::endl;
@@ -116,9 +109,9 @@ bool ModuleProperties::AnyDynamicPropertiesLinked() {
 void ModuleProperties::CallFunction(const std::string &funcKey) {
     std::cout << "Attempting to call function " << funcKey << "..." << std::endl;
     if (Functions().contains(funcKey)) {
-        std::cout << "\tAddress found: " << reinterpret_cast<void*>(Functions()[funcKey]) << std::endl;
-        if (Functions()[funcKey]) {
-            Functions()[funcKey]();
+        std::cout << "\tAddress found: " << reinterpret_cast<void*>(*Functions()[funcKey]) << std::endl;
+        if (*Functions()[funcKey]) {
+            (*Functions()[funcKey])();
         } else {
             std::cout << "\tFailed to call function " << funcKey << ", address is null" << std::endl;
         }
