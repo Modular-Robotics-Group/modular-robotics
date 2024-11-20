@@ -137,8 +137,9 @@ int main(int argc, char* argv[]) {
     std::cout << "Linking Properties..." << std::endl;
     ModuleProperties::LinkProperties();
     std::cout << "Properties successfully linked: " << ModuleProperties::PropertyCount() << std::endl;
-    std::cout << "Extra Property Function Test: ";
+    std::cout << "Extra Property Function Test:" << std::endl;
     ModuleProperties::CallFunction("PropertyFuncTest");
+    std::cout << "Palette Property Function Test:" << std::endl;
     auto paletteResult = ModuleProperties::CallFunction<const std::unordered_set<int>&>("Palette");
     std::cout << "Palette Size: " << paletteResult.size() << std::endl;
 
