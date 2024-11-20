@@ -26,6 +26,7 @@ int main(int argc, char* argv[]) {
     std::string finalFile;
     std::string exportFile;
     std::string analysisFile;
+    std::string movesFolder;
     std::string searchMethod;
     std::string heuristic;
 
@@ -36,6 +37,7 @@ int main(int argc, char* argv[]) {
         {"final-file", required_argument, nullptr, 'F'},
         {"export-file", required_argument, nullptr, 'e'},
         {"analysis-file", required_argument, nullptr, 'a'},
+        {"moves-folder", required_argument, nullptr, 'm'},
         {"search-method", required_argument, nullptr, 's'},
         {"heuristic", required_argument, nullptr, 'h'},
         {nullptr, 0, nullptr, 0}
@@ -43,7 +45,7 @@ int main(int argc, char* argv[]) {
 
     int option_index = 0;
     int c;
-    while ((c = getopt_long(argc, argv, "iI:F:e:a:s:h:", long_options, &option_index)) != -1) {
+    while ((c = getopt_long(argc, argv, "iI:F:e:a:m:s:h:", long_options, &option_index)) != -1) {
         switch (c) {
             case 'i':
                 ignoreColors = true;
@@ -60,10 +62,15 @@ int main(int argc, char* argv[]) {
             case 'a':
                 analysisFile = optarg;
                 break;
+            case 'm':
+                movesFolder = optarg;
+                break;
             case 's':
                 searchMethod = optarg;
+                break;
             case 'h':
                 heuristic = optarg;
+                break;
             case '?':
                 break;
             default:
@@ -149,7 +156,11 @@ int main(int argc, char* argv[]) {
     
     // Set up moves
     MoveManager::InitMoveManager(Lattice::Order(), Lattice::AxisSize());
-    MoveManager::RegisterAllMoves("../Moves");
+    if(movesFolder.empty()) {
+        MoveManager::RegisterAllMoves();
+    } else {
+        MoveManager::RegisterAllMoves(movesFolder);
+    }
 
     // Print some useful information
     std::cout << "Module Representation: ";
