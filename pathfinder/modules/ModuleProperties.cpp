@@ -66,7 +66,9 @@ void ModuleProperties::LinkProperties() {
         nlohmann::json propertyClassDef = nlohmann::json::parse(file);
         std::string propertyLibPath, propertyLibName = propertyClassDef["filename"];
         std::string propertyName = propertyClassDef["name"];
+        std::cout << "\tSearching..." << std::endl;
         for (const auto& libraryFile : std::filesystem::directory_iterator("Module Properties/")) {
+            std::cout << "\t\tFile: " << libraryFile.path() << std::endl << "\t\tStem: " << libraryFile.path().stem() << std::endl;
             if (libraryFile.path().stem().string() == propertyLibName) {
                 propertyLibPath = libraryFile.path().string();
             }
