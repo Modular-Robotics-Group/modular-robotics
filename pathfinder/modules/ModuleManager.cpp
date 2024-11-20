@@ -107,6 +107,10 @@ bool ModuleData::operator==(const IModuleBasic& right) const {
     return *module == *reinterpret_cast<const ModuleData&>(right).module;
 }
 
+bool ModuleData::operator==(const ModuleData& right) const {
+    return *module == *right.module;
+}
+
 bool ModuleData::operator<(const IModuleBasic& right) const {
     return *module < *reinterpret_cast<const ModuleData&>(right).module;
 }

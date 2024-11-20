@@ -56,6 +56,8 @@ public:
 
     bool operator==(const IModuleBasic& right) const override;
 
+    bool operator==(const ModuleData& right) const;
+
     bool operator<(const IModuleBasic& right) const override;
 
     ModuleData& operator=(const ModuleData& modData);
