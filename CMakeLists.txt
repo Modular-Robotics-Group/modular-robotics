@@ -89,7 +89,7 @@ target_link_libraries(Pathfinder PropertyLib)
 
 if(WIN32)
     find_package(unofficial-getopt-win32 REQUIRED)
-    target_link_libraries(Pathfinder PRIVATE unofficial::getopt-win32::getopt)
+    target_link_libraries(Pathfinder unofficial::getopt-win32::getopt)
 endif()
 
 if(NOT "${CMAKE_CURRENT_BINARY_DIR}" STREQUAL "${CMAKE_CURRENT_LIST_DIR}")
