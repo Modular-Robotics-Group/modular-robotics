@@ -369,6 +369,10 @@ std::vector<Configuration*> ConfigurationSpace::AStar(Configuration* start, cons
         hFunc = &Configuration::ChebyshevDistance;
     } else if (heuristic == "Nearest Chebyshev" || heuristic == "nearest chebyshev") {
         hFunc = &Configuration::CacheChebyshevDistance;
+    } else if (Lattice::ignoreProperties || ModuleProperties::AnyDynamicPropertiesLinked()) {
+        // If properties are ignored it doesn't make sense to use the property-based cache
+        // The property-based cache also doesn't work with dynamic properties
+        hFunc = &Configuration::CacheMoveOffsetDistance;
     } else {
         hFunc = &Configuration::CacheMoveOffsetPropertyDistance;
     }

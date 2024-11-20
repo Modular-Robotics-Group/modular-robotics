@@ -92,6 +92,12 @@ int ModuleProperties::PropertyCount() {
     return _propertiesLinkedCount;
 }
 
+bool ModuleProperties::_anyDynamicProperties = false;
+
+bool ModuleProperties::AnyDynamicPropertiesLinked() {
+    return _anyDynamicProperties;
+}
+
 void ModuleProperties::CallFunction(const std::string &funcKey) {
     if (Functions().contains(funcKey)) {
         Functions()[funcKey]();
@@ -109,6 +115,7 @@ void ModuleProperties::InitProperties(const nlohmann::basic_json<>& propertyDefs
                     << " is marked as non-static but implementation class does not inherit from IModuleDynamicProperty."
                     << std::endl;
                 } else {
+                    _anyDynamicProperties = true;
                     _dynamicProperties.insert(dynamicProperty);
                 }
             }

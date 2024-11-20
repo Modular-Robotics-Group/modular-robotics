@@ -44,6 +44,9 @@ private:
     // # of properties linked
     static int _propertiesLinkedCount;
 
+    // True if any linked properties are dynamic
+    static bool _anyDynamicProperties;
+
     // Properties of a module
     std::unordered_set<IModuleProperty*> _properties;
 
@@ -57,6 +60,8 @@ public:
     static void LinkProperties();
 
     static int PropertyCount();
+
+    static bool AnyDynamicPropertiesLinked();
 
     static void CallFunction(const std::string& funcKey);
 
