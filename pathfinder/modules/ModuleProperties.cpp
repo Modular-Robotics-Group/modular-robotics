@@ -61,6 +61,7 @@ ModuleProperties::ModuleProperties(const ModuleProperties& other) {
 
 // TODO: Delete when finished testing
 boost::any(*ModuleProperties::propertyFunctionTest)() = nullptr;
+boost::shared_ptr<boost::any(*)()> ModuleProperties::propertyFunctionTest1;
 
 void ModuleProperties::LinkProperties() {
     for (const auto& propertyFile : std::filesystem::directory_iterator("Module Properties/")) {
@@ -92,6 +93,8 @@ void ModuleProperties::LinkProperties() {
                     fptr();
                     propertyFunctionTest = fptr;
                     propertyFunctionTest();
+                    propertyFunctionTest1 = boost::dll::import_alias<boost::any(*)()>(propertyLibrary, ptrName);
+                    (*propertyFunctionTest1)();
                 }
                 Functions()[functionName] = fptr;
             }

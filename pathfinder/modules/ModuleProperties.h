@@ -55,6 +55,7 @@ private:
 public:
     // TODO: Delete this once finished testing
     static boost::any(*propertyFunctionTest)();
+    static boost::shared_ptr<boost::any(*)()> propertyFunctionTest1;
 
     ModuleProperties() = default;
 
