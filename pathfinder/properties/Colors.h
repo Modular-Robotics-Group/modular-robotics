@@ -34,9 +34,15 @@ public:
     static const std::unordered_set<int>& Palette();
 };
 
-extern "C" BOOST_SYMBOL_EXPORT boost::any Palette();
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
+BOOST_SYMBOL_EXPORT boost::any Palette();
 
-extern "C" BOOST_SYMBOL_EXPORT boost::any GetColorInt(IModuleProperty* prop);
+BOOST_SYMBOL_EXPORT boost::any GetColorInt(IModuleProperty* prop);
+#else
+BOOST_SYMBOL_EXPORT boost::any Palette() asm ("Palette");
+
+BOOST_SYMBOL_EXPORT boost::any GetColorInt(IModuleProperty* prop) asm ("GetColorInt");
+#endif
 
 void Dummy();
 
