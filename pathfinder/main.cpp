@@ -135,7 +135,9 @@ int main(int argc, char* argv[]) {
     }
 
     // Dynamically Link Properties
+    std::cout << "Linking Properties..." << std::endl;
     ModuleProperties::LinkProperties();
+    std::cout << ModuleProperties::PropertyCount << " properties successfully linked." << std::endl;
 
 #if CONFIG_MOD_DATA_STORAGE == MM_DATA_INT64
     if (ModuleProperties::PropertyCount() > 1) {
@@ -144,9 +146,10 @@ int main(int argc, char* argv[]) {
 #endif
 
     // Set up Lattice
+    std::cout << "Initializing Lattice..." << std::endl;
     Lattice::setFlags(ignoreColors);
     LatticeSetup::setupFromJson(initialFile);
-    std::cout << Lattice::ToString();
+    std::cout << "Lattice initialized." << std::endl;
 
 #if CONFIG_PARALLEL_MOVES
     if (ModuleIdManager::MinStaticID() > 64) {
@@ -155,15 +158,18 @@ int main(int argc, char* argv[]) {
 #endif
     
     // Set up moves
+    std::cout << "Initializing Move Manager..." << std::endl;
     MoveManager::InitMoveManager(Lattice::Order(), Lattice::AxisSize());
+    std::cout << "Move Manager initialized." << std::endl << "Loading Moves..." << std::endl;
     if(movesFolder.empty()) {
         MoveManager::RegisterAllMoves();
     } else {
         MoveManager::RegisterAllMoves(movesFolder);
     }
+    std::cout << "Moves loaded." << std::endl;
 
     // Print some useful information
-    std::cout << "Module Representation: ";
+    std::cout << std::endl << "Module Representation: ";
 #if CONFIG_MOD_DATA_STORAGE == MM_DATA_FULL
     std::cout << "FULL" << std::endl;
 #elif CONFIG_MOD_DATA_STORAGE == MM_DATA_INT64
@@ -225,6 +231,7 @@ int main(int argc, char* argv[]) {
     } else if (searchMethod == "BFS" || searchMethod == "bfs") {
         std::cout << "BFS" << std::endl;
     }
+    std::cout << std::endl;
     
     // Pathfinding
     Configuration start(Lattice::GetModuleInfo());
@@ -235,6 +242,7 @@ int main(int argc, char* argv[]) {
 #endif
     std::vector<Configuration*> path;
     try {
+        std::cout << "Beginning search...";
         const auto timeBegin = std::chrono::high_resolution_clock::now();
         if (searchMethod.empty() || searchMethod == "A*" || searchMethod == "a*") {
             path = ConfigurationSpace::AStar(&start, &end, heuristic);
@@ -243,7 +251,7 @@ int main(int argc, char* argv[]) {
         }
         const auto timeEnd = std::chrono::high_resolution_clock::now();
         const auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(timeEnd - timeBegin);
-        std::cout << "Search completed in " << duration.count() << " ms" << std::endl;
+        std::cout << "Search completed in " << duration.count() << " ms." << std::endl;
 #if CONFIG_OUTPUT_JSON
         SearchAnalysis::ExportData(analysisFile);
 #endif
