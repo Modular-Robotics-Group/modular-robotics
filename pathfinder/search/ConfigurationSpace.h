@@ -13,15 +13,21 @@
  * FINAL_DEPTH: Output final depth and configuration upon BFS completion
  * EVERY_DEPTH: Output current depth and configuration every time BFS depth increases
  */
+#ifndef CONFIG_VERBOSE
 #define CONFIG_VERBOSE CS_LOG_EVERY_DEPTH
+#endif
 /* Parallel Move Configuration
  * This is for permitting multiple moves in one step, not threading the search!
  */
+#ifndef CONFIG_PARALLEL_MOVES
 #define CONFIG_PARALLEL_MOVES false
+#endif
 /* JSON Output Configuration
  * In order to output JSON successfully logging must be enabled for every depth
  */
+#ifndef CONFIG_OUTPUT_JSON
 #define CONFIG_OUTPUT_JSON false
+#endif
 #if CONFIG_VERBOSE != CS_LOG_EVERY_DEPTH && CONFIG_OUTPUT_JSON
 #warning "JSON output disabled due to insufficient logging!"
 #define CONFIG_OUTPUT_JSON false

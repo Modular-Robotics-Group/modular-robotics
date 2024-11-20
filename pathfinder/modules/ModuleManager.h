@@ -19,7 +19,9 @@
  *  - Module coordinates must fall within inclusive range of (0, 0, 0) to (255, 255, 255)
  *  - Modules may only have up to one property.
  */
+#ifndef CONFIG_MOD_DATA_STORAGE
 #define CONFIG_MOD_DATA_STORAGE MM_DATA_INT64
+#endif
 
 
 

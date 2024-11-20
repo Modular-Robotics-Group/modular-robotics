@@ -12,8 +12,13 @@
 #include "search/SearchAnalysis.h"
 #include "search/HeuristicCache.h"
 
+#ifndef GENERATE_FINAL_STATE
 #define GENERATE_FINAL_STATE false
+#endif
+
+#ifndef PRINT_PATH
 #define PRINT_PATH false
+#endif
 
 int main(int argc, char* argv[]) {
     bool ignoreColors = false;

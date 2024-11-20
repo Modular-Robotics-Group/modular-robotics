@@ -16,12 +16,16 @@
  * CUT: Output cut vertex information
  * ALL: Output both adjacency and cut vertex information
  */
+#ifndef LATTICE_VERBOSE
 #define LATTICE_VERBOSE LAT_LOG_NONE
+#endif
 
 /* Edge Check Configuration
  * Set this to true to check for all edges of a rhombic dodecahedron instead of a cube
  */
+#ifndef LATTICE_RD_EDGECHECK
 #define LATTICE_RD_EDGECHECK false
+#endif
 
 enum TensorContents {
     OUT_OF_BOUNDS = -2,
