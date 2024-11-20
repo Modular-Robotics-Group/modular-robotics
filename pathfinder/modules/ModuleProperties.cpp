@@ -65,6 +65,7 @@ void ModuleProperties::LinkProperties() {
         std::ifstream file(propertyFile.path());
         nlohmann::json propertyClassDef = nlohmann::json::parse(file);
         std::string propertyLibPath, propertyLibName = propertyClassDef["filename"];
+        std::string propertyName = propertyClassDef["name"];
         for (const auto& libraryFile : std::filesystem::directory_iterator("Module Properties/")) {
             if (libraryFile.path().stem().string() == propertyLibName) {
                 propertyLibPath = libraryFile.path().string();
@@ -74,14 +75,16 @@ void ModuleProperties::LinkProperties() {
         boost::dll::shared_library propertyLibrary(propertyLibPath);
         if (propertyClassDef.contains("staticFunctions")) {
             for (const auto& functionName : propertyClassDef["staticFunctions"]) {
-                auto function = propertyLibrary.get<boost::any ()>(functionName);
-                Functions()[functionName] = function;
+                auto ptrName = propertyName + "_" + static_cast<std::string>(functionName);
+                auto fptr = boost::dll::import_alias<boost::any(*)()>(propertyLibrary, ptrName);
+                Functions()[functionName] = *fptr;
             }
         }
         if (propertyClassDef.contains("instanceFunctions")) {
             for (const auto& functionName : propertyClassDef["instanceFunctions"]) {
-                auto function = propertyLibrary.get<boost::any (IModuleProperty*)>(functionName);
-                InstFunctions()[functionName] = function;
+                auto ptrName = propertyName + "_" + static_cast<std::string>(functionName);
+                auto fptr = boost::dll::import_alias<boost::any(*)(IModuleProperty*)>(propertyLibrary, ptrName);
+                InstFunctions()[functionName] = *fptr;
             }
         }
         _propertiesLinkedCount++;
