@@ -71,8 +71,12 @@ void ModuleProperties::LinkProperties() {
                 propertyLibPath = libraryFile.path().string();
             }
         }
-        if (propertyLibPath.empty()) continue;
+        if (propertyLibPath.empty()) {
+            std::cout << "\tFailed to link " << propertyLibName << '.' << std::endl;
+            continue;
+        }
         boost::dll::shared_library propertyLibrary(propertyLibPath);
+        std::cout << "\tLinked " << propertyLibName << '.' << std::endl;
         if (propertyClassDef.contains("staticFunctions")) {
             for (const auto& functionName : propertyClassDef["staticFunctions"]) {
                 auto ptrName = propertyName + "_" + static_cast<std::string>(functionName);
