@@ -232,7 +232,7 @@ int main(int argc, char* argv[]) {
         std::cout << "BFS" << std::endl;
     }
     std::cout << std::endl;
-    
+
     // Pathfinding
     Configuration start(Lattice::GetModuleInfo());
 #if GENERATE_FINAL_STATE
