@@ -100,6 +100,10 @@ void ChebyshevEnqueueAdjacentInternal(std::queue<SearchCoord>& coordQueue, const
 }
 
 CoordTensor<int> BuildInternalDistanceCache() {
+    if (ModuleIdManager::StaticModules().empty()) {
+        // No static modules to use in distance cache
+        return { Lattice::Order(), Lattice::AxisSize(), 0 };
+    }
     CoordTensor<int> cache(Lattice::Order(), Lattice::AxisSize(), INVALID_WEIGHT);
     for (const auto& staticModule : ModuleIdManager::StaticModules()) {
         std::queue<SearchCoord> coordQueue;
