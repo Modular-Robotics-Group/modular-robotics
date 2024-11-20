@@ -148,6 +148,7 @@ if(${INCLUDE_TESTS})
     set_property(TEST Test2DSolo PROPERTY PASS_REGULAR_EXPRESSION "A* Final Depth: 36")
 
     add_test(NAME Test2D COMMAND Pathfinder_Standard
+            -i
             -I ./Test-Resources/Z-Pentomino_initial.json
             -F ./Test-Resources/Z-Pentomino_final.json
             -e ./Test-Resources/Output/2D.scen
