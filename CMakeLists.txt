@@ -97,7 +97,6 @@ foreach (TARGET ${Targets})
             pathfinder/moves/Isometry.cpp
             pathfinder/search/HeuristicCache.cpp
             pathfinder/search/HeuristicCache.h
-            pathfinder/modules/ModuleProperties.h
             pathfinder/utility/color_util.cpp
             pathfinder/utility/color_util.h)
 

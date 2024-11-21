@@ -48,16 +48,21 @@ void Scenario::exportToScen(const std::vector<Configuration *> &path, const Scen
         file << "0, 244, 244, 0, 95\n";
         file << "1, 255, 255, 255, 85\n\n";
     } else {
+        std::cout << "\tBuilding color palette...   ";
         for (auto color: ModuleProperties::CallFunction<const std::unordered_set<int>&>("Palette")) {
             Colors::ColorsRGB rgb(color);
             file << color << ", " << rgb.red << ", " << rgb.green << ", " << rgb.blue << ", 85\n";
         }
         file << "\n";
+        std::cout << "Done." << std::endl;
     }
+    std::cout << "\tSetting up formatting...   ";
     auto idLen = std::to_string(ModuleIdManager::Modules().size()).size();
     boost::format padding("%s%%0%dd, %s");
     boost::format modDef((padding % "%s" % idLen % "%d, %d, %d, %d").str());
+    std::cout << "Done." << std::endl << "\tResetting lattice to initial state...   ";
     Lattice::UpdateFromModuleInfo(path[0]->GetModData());
+    std::cout << "Done." << std::endl << "\tExporting initial state...   ";
     for (size_t id = 0; id < ModuleIdManager::Modules().size(); id++) {
         auto &mod = ModuleIdManager::Modules()[id];
         if (Lattice::ignoreProperties) {
@@ -71,6 +76,7 @@ void Scenario::exportToScen(const std::vector<Configuration *> &path, const Scen
         file << modDef.str() << std::endl;
     }
     file << std::endl;
+    std::cout << "Done." << std::endl << "\tExporting moves...   ";
 #if CONFIG_PARALLEL_MOVES
     std::vector<std::queue<std::pair<Move::AnimType, std::valarray<int>>>> parallelAnimQueues(ModuleIdManager::MinStaticID());
 #endif
@@ -119,5 +125,6 @@ void Scenario::exportToScen(const std::vector<Configuration *> &path, const Scen
         Lattice::MoveModule(*modToMove, move->MoveOffset());
 #endif
     }
+    std::cout << "Done." << std::endl;
     file.close();
 }

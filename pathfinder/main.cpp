@@ -137,10 +137,6 @@ int main(int argc, char* argv[]) {
     std::cout << "Linking Properties..." << std::endl;
     ModuleProperties::LinkProperties();
     std::cout << "Properties successfully linked: " << ModuleProperties::PropertyCount() << std::endl;
-    std::cout << "Extra Property Function Test: ";
-    ModuleProperties::CallFunction("PropertyFuncTest");
-    auto paletteResult = ModuleProperties::CallFunction<const std::unordered_set<int>&>("Palette");
-    std::cout << "Palette Size: " << paletteResult.size() << std::endl;
 
 #if CONFIG_MOD_DATA_STORAGE == MM_DATA_INT64
     if (ModuleProperties::PropertyCount() > 1) {
@@ -270,12 +266,17 @@ int main(int argc, char* argv[]) {
     }
 #endif
 
+    std::cout << "Exporting results..." << std::endl;
     Scenario::ScenInfo scenInfo;
     scenInfo.exportFile = exportFile;
     scenInfo.scenName = Scenario::TryGetScenName(initialFile);
     scenInfo.scenDesc = Scenario::TryGetScenDesc(initialFile);
     
     Scenario::exportToScen(path, scenInfo);
+    std::cout << "Results exported." << std::endl << "Cleaning Modules..." << std::endl;
+    ModuleIdManager::CleanupModules();
+    std::cout << "Modules cleaned." << std::endl << "Cleaning Moves..." << std::endl;
     Isometry::CleanupTransforms();
+    std::cout << "Moves cleaned.";
     return 0;
 }
