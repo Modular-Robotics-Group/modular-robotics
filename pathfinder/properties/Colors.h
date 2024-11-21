@@ -46,6 +46,4 @@ boost::any PropertyFuncTest();
 inline boost::any(*PropertyFuncTest_Ptr)() = &PropertyFuncTest;
 BOOST_DLL_ALIAS(PropertyFuncTest_Ptr, colorProperty_PropertyFuncTest)
 
-void Dummy();
-
 #endif //MODULAR_ROBOTICS_COLORS_H

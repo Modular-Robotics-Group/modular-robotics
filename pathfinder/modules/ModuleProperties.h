@@ -153,12 +153,6 @@ protected:
     IModuleDynamicProperty* MakeCopy() const override = 0;
 };
 
-template<typename T>
-T& ResultHolder() {
-    static T result;
-    return result;
-}
-
 // Used by property classes to add their constructor to the constructor map
 struct PropertyInitializer {
     template<class Prop>
