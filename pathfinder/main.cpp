@@ -97,7 +97,16 @@ int main(int argc, char* argv[]) {
         }
     }
 #if !GENERATE_FINAL_STATE
+    std::size_t trimPos;
     if (finalFile.empty()) {
+        if ((trimPos = initialFile.find("_initial")) != std::string::npos) {
+            finalFile = initialFile;
+            finalFile.erase(trimPos, 8);
+            finalFile.insert(trimPos, "_final");
+        }
+    }
+
+    if (finalFile.empty() || !std::filesystem::exists(finalFile)) {
         std::cout << "Path to final state:" << std::endl;
         int numTries = 0;
         bool invalidPath = true;
@@ -118,7 +127,6 @@ int main(int argc, char* argv[]) {
 #endif
 
     // Generate names for export and analysis files if they are not specified
-    std::size_t trimPos;
     if (exportFile.empty()) {
         exportFile = std::filesystem::path(initialFile).replace_extension(".scen").string();
         if ((trimPos = exportFile.find("_initial")) != std::string::npos) {
