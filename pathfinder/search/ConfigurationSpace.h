@@ -35,7 +35,7 @@
 #ifndef CONFIG_OUTPUT_JSON
 #define CONFIG_OUTPUT_JSON false
 #endif
-#if CONFIG_VERBOSE != CS_LOG_EVERY_DEPTH && CONFIG_OUTPUT_JSON
+#if (CONFIG_VERBOSE != CS_LOG_EVERY_DEPTH || !CONFIG_CONSISTENT_HEURISTIC_VALIDATOR) && CONFIG_OUTPUT_JSON
 #warning "JSON output disabled due to insufficient logging!"
 #define CONFIG_OUTPUT_JSON false
 #endif
