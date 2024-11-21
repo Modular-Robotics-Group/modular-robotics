@@ -171,7 +171,7 @@ void MoveOffsetHeuristicCache::MoveOffsetEnqueueAdjacent(std::queue<SearchCoord>
         for (const auto& offset : MoveManager::_offsets) {
 #if CONFIG_HEURISTIC_CACHE_DIST_LIMITATIONS
 #if CONFIG_HEURISTIC_CACHE_HELP_LIMITATIONS
-            if (internalDistanceCache[adj + offset] > currentHelp + 1) continue;
+            if (internalDistanceCache[adj + offset] > currentHelp) continue;
 #else
             if (internalDistanceCache[adj + offset] > ModuleIdManager::MinStaticID()) continue;
 #endif
@@ -307,7 +307,7 @@ void MoveOffsetPropertyHeuristicCache::MoveOffsetPropertyEnqueueAdjacent(std::qu
         for (const auto& offset : MoveManager::_offsets) {
 #if CONFIG_HEURISTIC_CACHE_DIST_LIMITATIONS
 #if CONFIG_HEURISTIC_CACHE_HELP_LIMITATIONS
-            if (internalDistanceCache[adj + offset] > currentHelp + 1) continue;
+            if (internalDistanceCache[adj + offset] > currentHelp) continue;
 #else
             if (internalDistanceCache[adj + offset] > ModuleIdManager::MinStaticID()) continue;
 #endif
