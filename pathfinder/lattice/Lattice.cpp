@@ -83,13 +83,13 @@ void Lattice::MoveModule(Module &mod, const std::valarray<int>& offset) {
     }
 }
 
-bool Lattice::checkConnected() {
+bool Lattice::CheckConnected(int permitMissing) {
     if (moduleCount == 0) return true;
     std::vector<bool> visited(moduleCount, false);
     std::stack<int> stack;
     int visitedCount = 0;
-    stack.push(ModuleIdManager::MinStaticID());
-    visited[ModuleIdManager::MinStaticID()] = true;
+    stack.push(0);
+    visited[0] = true;
     while (!stack.empty()) {
         int node = stack.top();
         stack.pop();
@@ -101,7 +101,7 @@ bool Lattice::checkConnected() {
             }
         }
     }
-    return visitedCount == moduleCount;
+    return visitedCount >= moduleCount - permitMissing;
 }
 
 void Lattice::EdgeCheck(const Module& mod) {

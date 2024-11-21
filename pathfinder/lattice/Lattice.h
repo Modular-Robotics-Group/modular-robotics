@@ -79,7 +79,7 @@ public:
     // Move a module
     static void MoveModule(Module& mod, const std::valarray<int>& offset);
 
-    static bool checkConnected();
+    static bool CheckConnected(int permitMissing = 0);
 
     // Adjacency Check
     static void EdgeCheck(const Module& mod);

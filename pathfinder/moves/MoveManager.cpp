@@ -548,9 +548,16 @@ std::vector<std::set<ModuleData>> MoveManager::MakeAllParallelMoves(std::unorder
         if (mods.empty()) continue;
         for (const auto& mod : mods) {
             Lattice::ClearAdjacencies(mod->id);
-            Lattice::AddEdge(mod->id, ModuleIdManager::MinStaticID());
+            if (!ModuleIdManager::StaticModules().empty()) {
+                Lattice::AddEdge(mod->id, ModuleIdManager::MinStaticID());
+            }
         }
-        bool connected = Lattice::checkConnected();
+        bool connected;
+        if (!ModuleIdManager::StaticModules().empty()) {
+            connected = Lattice::CheckConnected();
+        } else {
+            connected = Lattice::CheckConnected(mods.size());
+        }
         for (const auto& mod : mods) {
             Lattice::ClearAdjacencies(mod->id);
 #if LATTICE_RD_EDGECHECK
