@@ -225,6 +225,10 @@ int ModuleIdManager::MinStaticID() {
     return _staticStart;
 }
 
+void ModuleIdManager::CleanupModules() {
+    _modules.clear();
+}
+
 std::ostream& operator<<(std::ostream& out, const Module& mod) {
     out << "Module with ID " << mod.id << " at ";
     std::string sep = "(";

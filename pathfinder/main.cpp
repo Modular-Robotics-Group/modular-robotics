@@ -273,7 +273,10 @@ int main(int argc, char* argv[]) {
     scenInfo.scenDesc = Scenario::TryGetScenDesc(initialFile);
     
     Scenario::exportToScen(path, scenInfo);
-    std::cout << "Results exported." << std::endl;
+    std::cout << "Results exported." << std::endl << "Cleaning Modules..." << std::endl;
+    ModuleIdManager::CleanupModules();
+    std::cout << "Modules cleaned." << std::endl << "Cleaning Moves..." << std::endl;
     Isometry::CleanupTransforms();
+    std::cout << "Moves cleaned.";
     return 0;
 }

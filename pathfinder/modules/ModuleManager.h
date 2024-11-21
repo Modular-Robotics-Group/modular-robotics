@@ -204,6 +204,9 @@ public:
 
     // Get index of first static module
     static int MinStaticID();
+
+    // Destroy all modules
+    static void CleanupModules();
 };
 
 // Stream insertion operator overloaded for easy printing of module info
