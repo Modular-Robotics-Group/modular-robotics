@@ -20,7 +20,7 @@
  *  - Modules may only have up to one property.
  */
 #ifndef CONFIG_MOD_DATA_STORAGE
-#define CONFIG_MOD_DATA_STORAGE MM_DATA_INT64
+#define CONFIG_MOD_DATA_STORAGE MM_DATA_FULL
 #endif
 
 
