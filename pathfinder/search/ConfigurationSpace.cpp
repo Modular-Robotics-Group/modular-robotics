@@ -9,9 +9,14 @@
 #include "HeuristicCache.h"
 #include "SearchAnalysis.h"
 
-const char * SearchExcept::what() const noexcept {
+const char* SearchExcept::what() const noexcept {
     return "Search exhausted without finding a path!";
 }
+
+const char *HeuristicExcept::what() const noexcept {
+    return "Heuristic exhibited non-consistent behavior!";
+}
+
 
 HashedState::HashedState(const std::set<ModuleData>& modData) {
     seed = boost::hash_range(modData.begin(), modData.end());
@@ -360,6 +365,10 @@ std::vector<Configuration*> ConfigurationSpace::AStar(Configuration* start, cons
 #endif
     int dupesAvoided = 0;
     int statesProcessed = 0;
+    int estimatedFinalDepth = 0;
+#if CONFIG_CONSISTENT_HEURISTIC_VALIDATOR
+    int previousEstimate = 0;
+#endif
     float (Configuration::*hFunc)(const Configuration *final) const;
     if (heuristic == "Symmetric Difference" || heuristic == "symmetric difference" || heuristic == "SymDiff" || heuristic == "symdiff") {
         hFunc = &Configuration::SymmetricDifferenceHeuristic;
@@ -391,10 +400,31 @@ std::vector<Configuration*> ConfigurationSpace::AStar(Configuration* start, cons
 #if CONFIG_OUTPUT_JSON
         SearchAnalysis::PauseClock();
 #endif
+#if CONFIG_CONSISTENT_HEURISTIC_VALIDATOR
+#if CONFIG_PARALLEL_MOVES
+        estimatedFinalDepth = current->depth + static_cast<int>((current->*hFunc)(final)) / ModuleIdManager::MinStaticID();
+#else
+        estimatedFinalDepth = current->depth + static_cast<int>((current->*hFunc)(final));
+#endif
+        if (estimatedFinalDepth < previousEstimate) {
+            throw HeuristicExcept();
+        }
+        if (estimatedFinalDepth > previousEstimate) {
+            previousEstimate = estimatedFinalDepth;
+        }
+#endif
         if (current->depth != depth) {
             depth = current->depth;
+#if !CONFIG_CONSISTENT_HEURISTIC_VALIDATOR
+#if CONFIG_PARALLEL_MOVES
+            estimatedFinalDepth = current->depth + static_cast<int>((current->*hFunc)(final)) / ModuleIdManager::MinStaticID();
+#else
+            estimatedFinalDepth = current->depth + static_cast<int>((current->*hFunc)(final));
+#endif
+#endif
 #if CONFIG_VERBOSE > CS_LOG_FINAL_DEPTH
             std::cout << "A* Depth: " << current->depth << std::endl
+                    << "Estimated Final Depth: " << estimatedFinalDepth << std::endl
                     << "Duplicate states Avoided: " << dupesAvoided << std::endl
                     << "States Discovered: " << visited.size() << std::endl
                     << "States Processed: " << statesProcessed << std::endl
@@ -417,7 +447,13 @@ std::vector<Configuration*> ConfigurationSpace::AStar(Configuration* start, cons
 #if CONFIG_OUTPUT_JSON
             SearchAnalysis::PauseClock();
 #endif
+#if CONFIG_PARALLEL_MOVES
+            estimatedFinalDepth = current->depth + static_cast<int>((current->*hFunc)(final)) / ModuleIdManager::MinStaticID();
+#else
+            estimatedFinalDepth = current->depth + static_cast<int>((current->*hFunc)(final));
+#endif
             std::cout << "A* Final Depth: " << current->depth << std::endl
+                    << "Estimated Final Depth: " << estimatedFinalDepth << std::endl
                     << "Duplicate states Avoided: " << dupesAvoided << std::endl
                     << "States Discovered: " << visited.size() << std::endl
                     << "States Processed: " << statesProcessed << std::endl
