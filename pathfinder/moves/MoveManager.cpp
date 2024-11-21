@@ -682,7 +682,7 @@ std::vector<MoveBase*> MoveManager::CheckAllMovesAndConnectivity(CoordTensor<int
 #if MOVEMANAGER_CHECK_BY_OFFSET
     for (const auto& moveOffset : _offsets) {
         for (auto move : _movesByOffset[moveOffset]) {
-            if (move->MoveCheck(tensor, mod) && checkConnected(tensor, mod, move)) {
+            if (move->MoveCheck(tensor, mod) && Lattice::CheckConnected()) {
 #if MOVEMANAGER_VERBOSE == MM_LOG_MOVE_CHECKS
                 DEBUG("passed!\n");
 #endif
@@ -710,10 +710,6 @@ std::vector<MoveBase*> MoveManager::CheckAllMovesAndConnectivity(CoordTensor<int
     }
 #endif
     return legalMoves;
-}
-
-bool MoveManager::checkConnected(const CoordTensor<int>& tensor, const Module& mod, const MoveBase* move) {
-    return false;
 }
 
 std::pair<Module*, MoveBase*> MoveManager::FindMoveToState(const std::set<ModuleData>& modData) {
