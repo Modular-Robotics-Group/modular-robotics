@@ -139,6 +139,7 @@ if(${INCLUDE_TESTS})
             -I ./Test-Resources/Heuristic-Checker_initial.json
             -F ./Test-Resources/Heuristic-Checker_final.json
             -e ./Test-Resources/Output/2DSolo.scen
+            -a ./Test-Resources/Output/2DSolo_analysis.json
             -m ./Test-Resources/Moves_Pivot)
 
     set_property(TEST Test2DSolo PROPERTY PASS_REGULAR_EXPRESSION "States Processed: 9999")
@@ -149,6 +150,7 @@ if(${INCLUDE_TESTS})
             -I ./Test-Resources/Z-Pentomino_initial.json
             -F ./Test-Resources/Z-Pentomino_final.json
             -e ./Test-Resources/Output/2D.scen
+            -a ./Test-Resources/Output/2D_analysis.json
             -m ./Test-Resources/Moves_Pivot)
 
     set_property(TEST Test2D PROPERTY PASS_REGULAR_EXPRESSION "A* Final Depth: 14")
@@ -157,6 +159,7 @@ if(${INCLUDE_TESTS})
             -I ./Test-Resources/Color-Shuffle_initial.json
             -F ./Test-Resources/Color-Shuffle_final.json
             -e ./Test-Resources/Output/Color2D.scen
+            -a ./Test-Resources/Output/Color2D_analysis.json
             -m ./Test-Resources/Moves_Pivot)
 
     set_property(TEST TestColor2D PROPERTY PASS_REGULAR_EXPRESSION "A* Final Depth: 10")
@@ -165,6 +168,7 @@ if(${INCLUDE_TESTS})
             -I ./Test-Resources/Color-Shuffle-3D_initial.json
             -F ./Test-Resources/Color-Shuffle-3D_final.json
             -e ./Test-Resources/Output/Color3D.scen
+            -a ./Test-Resources/Output/Color3D_analysis.json
             -m ./Test-Resources/Moves_Pivot)
 
     set_property(TEST TestColor3D PROPERTY PASS_REGULAR_EXPRESSION "A* Final Depth: 8")
@@ -173,6 +177,7 @@ if(${INCLUDE_TESTS})
             -I ./Test-Resources/Rhombic-Color_initial.json
             -F ./Test-Resources/Rhombic-Color_final.json
             -e ./Test-Resources/Output/RhombicDodecahedron.scen
+            -a ./Test-Resources/Output/RhombicDodecahedron_analysis.json
             -m ./Test-Resources/Moves_Rhombic)
 
     set_property(TEST TestRhombicDodecahedron PROPERTY PASS_REGULAR_EXPRESSION "A* Final Depth: 16")
@@ -181,6 +186,7 @@ if(${INCLUDE_TESTS})
             -I ./Test-Resources/Heuristic-Checker_initial.json
             -F ./Test-Resources/Heuristic-Checker_final.json
             -e ./Test-Resources/Output/ParallelSolo.scen
+            -a ./Test-Resources/Output/ParallelSolo_analysis.json
             -m ./Test-Resources/Moves_Pivot)
 
     set_property(TEST TestParallelSolo PROPERTY PASS_REGULAR_EXPRESSION "States Processed: 9")
@@ -190,6 +196,7 @@ if(${INCLUDE_TESTS})
             -I ./Test-Resources/Color-Shuffle_initial.json
             -F ./Test-Resources/Color-Shuffle_final.json
             -e ./Test-Resources/Output/ParallelCoop.scen
+            -a ./Test-Resources/Output/ParallelCoop_analysis.json
             -m ./Test-Resources/Moves_Pivot)
 
     set_property(TEST TestParallelCoop PROPERTY PASS_REGULAR_EXPRESSION "A* Final Depth: 5")
