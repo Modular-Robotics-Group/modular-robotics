@@ -174,9 +174,15 @@ bool ModuleProperties::operator!=(const ModuleProperties& right) const {
 }
 
 ModuleProperties& ModuleProperties::operator=(const ModuleProperties& right) {
+    for (const auto property : _properties) {
+        delete property;
+    }
     _properties.clear();
     for (const auto property : right._properties) {
         _properties.insert(property->MakeCopy());
+    }
+    for (const auto property : _dynamicProperties) {
+        delete property;
     }
     _dynamicProperties.clear();
     if (right._dynamicProperties.empty()) {
