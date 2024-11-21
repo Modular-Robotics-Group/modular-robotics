@@ -126,9 +126,13 @@ std::vector<Configuration*> ConfigurationSpace::BFS(Configuration* start, const 
     SearchAnalysis::LabelGraph("BFS Depth over Time");
     SearchAnalysis::LabelAxes("Time (μs)", "Depth");
     SearchAnalysis::SetInterpolationOrder(0);
-    SearchAnalysis::EnterGraph("BFSStatesOverTime");
+    SearchAnalysis::EnterGraph("BFSStatesVisitedOverTime");
     SearchAnalysis::LabelGraph("BFS States visited over Time");
     SearchAnalysis::LabelAxes("Time (μs)", "States visited");
+    SearchAnalysis::SetInterpolationOrder(1);
+    SearchAnalysis::EnterGraph("BFSStatesDiscoveredOverTime");
+    SearchAnalysis::LabelGraph("BFS States discovered over Time");
+    SearchAnalysis::LabelAxes("Time (μs)", "States discovered");
     SearchAnalysis::SetInterpolationOrder(1);
     SearchAnalysis::StartClock();
 #endif
@@ -156,7 +160,9 @@ std::vector<Configuration*> ConfigurationSpace::BFS(Configuration* start, const 
 #if CONFIG_OUTPUT_JSON
             SearchAnalysis::EnterGraph("BFSDepthOverTime");
             SearchAnalysis::InsertTimePoint(depth);
-            SearchAnalysis::EnterGraph("BFSStatesOverTime");
+            SearchAnalysis::EnterGraph("BFSStatesVisitedOverTime");
+            SearchAnalysis::InsertTimePoint(statesProcessed);
+            SearchAnalysis::EnterGraph("BFSStatesDiscoveredOverTime");
             SearchAnalysis::InsertTimePoint(visited.size());
 #endif
 #endif
@@ -179,7 +185,9 @@ std::vector<Configuration*> ConfigurationSpace::BFS(Configuration* start, const 
 #if CONFIG_OUTPUT_JSON
             SearchAnalysis::EnterGraph("BFSDepthOverTime");
             SearchAnalysis::InsertTimePoint(depth);
-            SearchAnalysis::EnterGraph("BFSStatesOverTime");
+            SearchAnalysis::EnterGraph("BFSStatesVisitedOverTime");
+            SearchAnalysis::InsertTimePoint(statesProcessed);
+            SearchAnalysis::EnterGraph("BFSStatesDiscoveredOverTime");
             SearchAnalysis::InsertTimePoint(visited.size());
 #endif
 #endif
@@ -357,9 +365,21 @@ std::vector<Configuration*> ConfigurationSpace::AStar(Configuration* start, cons
     SearchAnalysis::LabelGraph("A* Depth over Time");
     SearchAnalysis::LabelAxes("Time (μs)", "Depth");
     SearchAnalysis::SetInterpolationOrder(0);
-    SearchAnalysis::EnterGraph("AStarStatesOverTime");
+    SearchAnalysis::EnterGraph("AStarEstimatedDepthOverTime");
+    SearchAnalysis::LabelGraph("A* Estimated Final Depth over Time");
+    SearchAnalysis::LabelAxes("Time (μs)", "Estimated Final Depth");
+    SearchAnalysis::SetInterpolationOrder(0);
+    SearchAnalysis::EnterGraph("AStarEstimatedProgressOverTime");
+    SearchAnalysis::LabelGraph("A* Estimated Progress over Time");
+    SearchAnalysis::LabelAxes("Time (μs)", "Estimated Search Progress (%)");
+    SearchAnalysis::SetInterpolationOrder(0);
+    SearchAnalysis::EnterGraph("AStarStatesVisitedOverTime");
     SearchAnalysis::LabelGraph("A* States visited over Time");
     SearchAnalysis::LabelAxes("Time (μs)", "States visited");
+    SearchAnalysis::SetInterpolationOrder(1);
+    SearchAnalysis::EnterGraph("AStarStatesDiscoveredOverTime");
+    SearchAnalysis::LabelGraph("A* States discovered over Time");
+    SearchAnalysis::LabelAxes("Time (μs)", "States discovered");
     SearchAnalysis::SetInterpolationOrder(1);
     SearchAnalysis::StartClock();
 #endif
@@ -432,7 +452,13 @@ std::vector<Configuration*> ConfigurationSpace::AStar(Configuration* start, cons
 #if CONFIG_OUTPUT_JSON
             SearchAnalysis::EnterGraph("AStarDepthOverTime");
             SearchAnalysis::InsertTimePoint(depth);
-            SearchAnalysis::EnterGraph("AStarStatesOverTime");
+            SearchAnalysis::EnterGraph("AStarEstimatedDepthOverTime");
+            SearchAnalysis::InsertTimePoint(estimatedFinalDepth);
+            SearchAnalysis::EnterGraph("AStarEstimatedProgressOverTime");
+            SearchAnalysis::InsertTimePoint(static_cast<float>(depth) / static_cast<float>(estimatedFinalDepth) * 100);
+            SearchAnalysis::EnterGraph("AStarStatesVisitedOverTime");
+            SearchAnalysis::InsertTimePoint(statesProcessed);
+            SearchAnalysis::EnterGraph("AStarStatesDiscoveredOverTime");
             SearchAnalysis::InsertTimePoint(visited.size());
 #endif
 #endif
@@ -461,7 +487,11 @@ std::vector<Configuration*> ConfigurationSpace::AStar(Configuration* start, cons
 #if CONFIG_OUTPUT_JSON
             SearchAnalysis::EnterGraph("AStarDepthOverTime");
             SearchAnalysis::InsertTimePoint(depth);
-            SearchAnalysis::EnterGraph("AStarStatesOverTime");
+            SearchAnalysis::EnterGraph("AStarEstimatedDepthOverTime");
+            SearchAnalysis::InsertTimePoint(estimatedFinalDepth);
+            SearchAnalysis::EnterGraph("AStarStatesVisitedOverTime");
+            SearchAnalysis::InsertTimePoint(statesProcessed);
+            SearchAnalysis::EnterGraph("AStarStatesDiscoveredOverTime");
             SearchAnalysis::InsertTimePoint(visited.size());
 #endif
 #endif
