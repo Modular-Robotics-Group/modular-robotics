@@ -96,12 +96,17 @@ int GetManhattanDistance(const std::valarray<int>& a, const std::valarray<int>& 
 
 bool MoveBase::FreeSpaceCheckHelpLimit(const CoordTensor<int>& tensor, const std::valarray<int>& coords, const CoordTensor<int>& helpTensor, int help) {
     int helpUsed = 0;
+    int helpersRequested = 0;
     return std::all_of(moves.begin(), moves.end(), [&](auto& move) {
         if (!move.second && (tensor[coords + move.first] > FREE_SPACE)) {
             return false;
         }
         if (move.second && tensor[coords + move.first] <= FREE_SPACE) {
             helpUsed = std::max(helpUsed, helpTensor[coords + move.first]);
+            if (!ModuleIdManager::StaticModules().empty()) {
+                helpersRequested++;
+                helpUsed = std::max(helpUsed, helpersRequested);
+            }
             if (tensor[coords + move.first] != OUT_OF_BOUNDS && helpUsed < help) {
                 return true;
             }
