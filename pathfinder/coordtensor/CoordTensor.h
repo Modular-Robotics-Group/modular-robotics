@@ -315,7 +315,7 @@ typename std::vector<T>::const_reference CoordTensor<T>::ElemAtNthOrderConst (co
 }
 
 template <typename T>
-typename std::vector<T>::reference CoordTensor<T>::operator[](const std::valarray<int> &coords) {
+typename std::vector<T>::reference CoordTensor<T>::operator[](const std::valarray<int>& coords) {
     return (this->*IdAtInternal)(coords);
 }
 
@@ -340,12 +340,12 @@ inline typename std::vector<T>::const_reference CoordTensor<T>::ElemAtNthOrderOf
 }
 
 template<typename T>
-void CoordTensor<T>::Fill(const typename std::vector<T>::value_type &value) {
+void CoordTensor<T>::Fill(const typename std::vector<T>::value_type& value) {
     std::memset(_arrayInternal.data(), value, sizeof(_arrayInternal));
 }
 
 template<typename T>
-void CoordTensor<T>::FillFromVector(const std::vector<T> &vec) {
+void CoordTensor<T>::FillFromVector(const std::vector<T>& vec) {
     _arrayInternal = vec;
 }
 

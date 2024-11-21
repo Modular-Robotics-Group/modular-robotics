@@ -40,7 +40,7 @@ std::unordered_map<std::uint_fast64_t, ModuleProperties> ModuleInt64::propertyMa
 
 std::unordered_map<std::uint_fast64_t, std::valarray<int>> ModuleInt64::coordMap;
 
-ModuleInt64::ModuleInt64(const std::valarray<int> &coords, const ModuleProperties &properties) {
+ModuleInt64::ModuleInt64(const std::valarray<int>& coords, const ModuleProperties& properties) {
     constexpr std::uint_fast64_t propertyMask = 0xFFFFFFFFFF000000;
     modInt = 0;
     for (int i = 0; i < coords.size(); i++) {
@@ -78,7 +78,7 @@ bool ModuleInt64::operator<(const IModuleBasic& right) const {
     return modInt < r.modInt;
 }
 
-ModuleData::ModuleData(const ModuleData &modData) {
+ModuleData::ModuleData(const ModuleData& modData) {
 #if CONFIG_MOD_DATA_STORAGE == MM_DATA_FULL
     module = std::make_unique<ModuleBasic>(modData.Coords(), modData.Properties());
 #else
@@ -87,7 +87,7 @@ ModuleData::ModuleData(const ModuleData &modData) {
 }
 
 
-ModuleData::ModuleData(const std::valarray<int> &coords, const ModuleProperties &properties) {
+ModuleData::ModuleData(const std::valarray<int>& coords, const ModuleProperties& properties) {
 #if CONFIG_MOD_DATA_STORAGE == MM_DATA_FULL
     module = std::make_unique<ModuleBasic>(coords, properties);
 #else
@@ -115,7 +115,7 @@ bool ModuleData::operator<(const IModuleBasic& right) const {
     return *module < *reinterpret_cast<const ModuleData&>(right).module;
 }
 
-ModuleData& ModuleData::operator=(const ModuleData &modData) {
+ModuleData& ModuleData::operator=(const ModuleData& modData) {
     module.reset();
 #if CONFIG_MOD_DATA_STORAGE == MM_DATA_FULL
     module = std::make_unique<ModuleBasic>(modData.Coords(), modData.Properties());
@@ -137,7 +137,7 @@ std::size_t std::hash<ModuleData>::operator()(const ModuleData& modData) const n
 #endif
 }
 
-std::size_t boost::hash<ModuleData>::operator()(const ModuleData &modData) const noexcept {
+std::size_t boost::hash<ModuleData>::operator()(const ModuleData& modData) const noexcept {
     constexpr std::hash<ModuleData> hasher;
     return hasher(modData);
 }
@@ -212,7 +212,7 @@ std::span<Module>& ModuleIdManager::FreeModules() {
     return freeModules;
 }
 
-std::span<Module> &ModuleIdManager::StaticModules() {
+std::span<Module>& ModuleIdManager::StaticModules() {
     static std::span<Module> staticModules = std::span(_modules).subspan(_staticStart, _modules.size() - _staticStart);
     return staticModules;
 }

@@ -68,7 +68,7 @@ public:
     //Lattice(int order, int axisSize);
     static void InitLattice(int _order, int _axisSize, int _boundarySize = 5);
 
-    static void setFlags(bool _ignoreColors);
+    static void SetFlags(bool _ignoreColors);
 
     // Add a new module
     static void AddModule(const Module& mod);

@@ -154,8 +154,8 @@ int main(int argc, char* argv[]) {
 
     // Set up Lattice
     std::cout << "Initializing Lattice..." << std::endl;
-    Lattice::setFlags(ignoreColors);
-    LatticeSetup::setupFromJson(initialFile);
+    Lattice::SetFlags(ignoreColors);
+    LatticeSetup::SetupFromJson(initialFile);
     std::cout << "Lattice initialized." << std::endl;
 
 #if CONFIG_PARALLEL_MOVES
@@ -245,7 +245,7 @@ int main(int argc, char* argv[]) {
 #if GENERATE_FINAL_STATE
     Configuration end = ConfigurationSpace::GenerateRandomFinal();
 #else
-    Configuration end = LatticeSetup::setupFinalFromJson(finalFile);
+    Configuration end = LatticeSetup::SetupFinalFromJson(finalFile);
 #endif
     std::vector<Configuration*> path;
     try {
@@ -280,7 +280,7 @@ int main(int argc, char* argv[]) {
     scenInfo.scenName = Scenario::TryGetScenName(initialFile);
     scenInfo.scenDesc = Scenario::TryGetScenDesc(initialFile);
     
-    Scenario::exportToScen(path, scenInfo);
+    Scenario::ExportToScen(path, scenInfo);
     std::cout << "Results exported." << std::endl << "Cleaning Modules..." << std::endl;
     ModuleIdManager::CleanupModules();
     std::cout << "Modules cleaned." << std::endl << "Cleaning Moves..." << std::endl;

@@ -8,7 +8,7 @@ constexpr float INVALID_WEIGHT = 999;
 
 IHeuristicCache::IHeuristicCache(): weightCache(Lattice::Order(), Lattice::AxisSize(), INVALID_WEIGHT) {}
 
-float IHeuristicCache::operator[](const std::valarray<int> &coords) const {
+float IHeuristicCache::operator[](const std::valarray<int>& coords) const {
     return weightCache[coords];
 }
 
@@ -196,7 +196,7 @@ void MoveOffsetHeuristicCache::MoveOffsetEnqueueAdjacent(std::queue<SearchCoord>
     }
 }
 
-MoveOffsetHeuristicCache::MoveOffsetHeuristicCache(const std::set<ModuleData> &desiredState) {
+MoveOffsetHeuristicCache::MoveOffsetHeuristicCache(const std::set<ModuleData>& desiredState) {
 #if CONFIG_HEURISTIC_CACHE_HELP_LIMITATIONS
     currentHelp = ModuleIdManager::MinStaticID();
 #endif
@@ -332,7 +332,7 @@ void MoveOffsetPropertyHeuristicCache::MoveOffsetPropertyEnqueueAdjacent(std::qu
     }
 }
 
-MoveOffsetPropertyHeuristicCache::MoveOffsetPropertyHeuristicCache(const std::set<ModuleData> &desiredState) {
+MoveOffsetPropertyHeuristicCache::MoveOffsetPropertyHeuristicCache(const std::set<ModuleData>& desiredState) {
     // Determine # of unique properties and map potentially large int representations to small values
     int propIndex = 0;
     for (const auto& desiredModuleData : desiredState) {
@@ -457,7 +457,7 @@ MoveOffsetPropertyHeuristicCache::MoveOffsetPropertyHeuristicCache(const std::se
     std::cout << std::endl;
 }
 
-float MoveOffsetPropertyHeuristicCache::operator()(const std::valarray<int> &coords, std::uint_fast64_t propInt) const {
+float MoveOffsetPropertyHeuristicCache::operator()(const std::valarray<int>& coords, std::uint_fast64_t propInt) const {
     static std::valarray<int> coordProps(0, Lattice::Order() + 1);
     for (int i = 0; i < Lattice::Order(); i++) {
         coordProps[i] = coords[i];

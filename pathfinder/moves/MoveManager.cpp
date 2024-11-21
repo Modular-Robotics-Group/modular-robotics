@@ -69,7 +69,7 @@ void Move::RotateAnim(Move::AnimType& anim, const int a, const int b) {
     }
 }
 
-bool MoveBase::FreeSpaceCheck(const CoordTensor<int>& tensor, const std::valarray<int> &coords) {
+bool MoveBase::FreeSpaceCheck(const CoordTensor<int>& tensor, const std::valarray<int>& coords) {
     return std::all_of(moves.begin(), moves.end(), [&coords = std::as_const(coords), &tensor = std::as_const(tensor)](auto& move) {
         if (!move.second && (tensor[coords + move.first] > FREE_SPACE)) {
             return false;
@@ -150,7 +150,7 @@ const std::vector<std::pair<Move::AnimType, std::valarray<int>>>& MoveBase::Anim
     return animSequence;
 }
 
-bool MoveBase::operator==(const MoveBase &rhs) const {
+bool MoveBase::operator==(const MoveBase& rhs) const {
     std::valarray<bool> valArrComparison = finalPos == rhs.finalPos;
     for (const auto result : valArrComparison) {
         if (!result) {
@@ -351,7 +351,7 @@ void Move3d::InitMove(const nlohmann::basic_json<>& moveDef) {
     }
 }
 
-bool Move3d::MoveCheck(const CoordTensor<int> &tensor, const Module &mod) {
+bool Move3d::MoveCheck(const CoordTensor<int>& tensor, const Module& mod) {
     // Bounds checking
 #if MOVEMANAGER_BOUNDS_CHECKS
     for (int i = 0; i < order; i++) {
@@ -443,7 +443,7 @@ void MoveManager::RegisterAllMoves(const std::string& movePath) {
 }
 
 #define MOVEMANAGER_CHECK_BY_OFFSET true
-std::vector<MoveBase*> MoveManager::CheckAllMoves(CoordTensor<int> &tensor, Module &mod) {
+std::vector<MoveBase*> MoveManager::CheckAllMoves(CoordTensor<int>& tensor, Module& mod) {
     std::vector<MoveBase*> legalMoves = {};
 #if MOVEMANAGER_CHECK_BY_OFFSET
     for (const auto& moveOffset : _offsets) {
@@ -677,7 +677,7 @@ std::vector<std::set<ModuleData>> MoveManager::MakeAllParallelMoves(std::unorder
 }
 
 #define MOVEMANAGER_CHECK_BY_OFFSET true
-std::vector<MoveBase*> MoveManager::CheckAllMovesAndConnectivity(CoordTensor<int> &tensor, Module &mod) {
+std::vector<MoveBase*> MoveManager::CheckAllMovesAndConnectivity(CoordTensor<int>& tensor, Module& mod) {
     std::vector<MoveBase*> legalMoves = {};
 #if MOVEMANAGER_CHECK_BY_OFFSET
     for (const auto& moveOffset : _offsets) {

@@ -22,7 +22,7 @@ std::string Scenario::TryGetScenName(const std::string& initialFile) {
     return name;
 }
 
-std::string Scenario::TryGetScenDesc(const std::string &initialFile) {
+std::string Scenario::TryGetScenDesc(const std::string& initialFile) {
     std::ifstream stateFile(initialFile);
     nlohmann::json stateJson = nlohmann::json::parse(stateFile);
     if (stateJson.contains("description")) {
@@ -32,7 +32,7 @@ std::string Scenario::TryGetScenDesc(const std::string &initialFile) {
 }
 
 
-void Scenario::exportToScen(const std::vector<Configuration *> &path, const ScenInfo &scenInfo) {
+void Scenario::ExportToScen(const std::vector<Configuration *>& path, const ScenInfo& scenInfo) {
     if (path.empty()) {
         std::cerr << "Tried to export empty path, no good!" << std::endl;
         return;
@@ -64,7 +64,7 @@ void Scenario::exportToScen(const std::vector<Configuration *> &path, const Scen
     Lattice::UpdateFromModuleInfo(path[0]->GetModData());
     std::cout << "Done." << std::endl << "\tExporting initial state...   ";
     for (size_t id = 0; id < ModuleIdManager::Modules().size(); id++) {
-        auto &mod = ModuleIdManager::Modules()[id];
+        auto& mod = ModuleIdManager::Modules()[id];
         if (Lattice::ignoreProperties) {
             modDef % "" % id % (mod.moduleStatic ? 1 : 0) % mod.coords[0] % mod.coords[1] % (mod.coords.size() > 2
                     ? mod.coords[2]
@@ -117,7 +117,7 @@ void Scenario::exportToScen(const std::vector<Configuration *> &path, const Scen
             return;
         }
         auto modToMove = movingModule;
-        for (const auto &[type, offset]: move->AnimSequence()) {
+        for (const auto& [type, offset]: move->AnimSequence()) {
             modDef % (checkpoint ? '*' : ' ') % modToMove->id % type % offset[0] % offset[1] % offset[2];
             file << modDef.str() << std::endl << std::endl;
             checkpoint = false;

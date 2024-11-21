@@ -3,13 +3,13 @@
 #include "ModuleProperties.h"
 #include "../utility/debug_util.h"
 
-void IModuleProperty::CallFunction(const std::string &funcKey) {
+void IModuleProperty::CallFunction(const std::string& funcKey) {
     if (ModuleProperties::InstFunctions().contains(funcKey)) {
         (*ModuleProperties::InstFunctions()[funcKey])(this);
     }
 }
 
-IModuleProperty* PropertyInitializer::GetProperty(const nlohmann::basic_json<> &propertyDef) {
+IModuleProperty* PropertyInitializer::GetProperty(const nlohmann::basic_json<>& propertyDef) {
     return ModuleProperties::Constructors()[propertyDef["name"]](propertyDef);
 }
 
@@ -106,7 +106,7 @@ bool ModuleProperties::AnyDynamicPropertiesLinked() {
     return _anyDynamicProperties;
 }
 
-void ModuleProperties::CallFunction(const std::string &funcKey) {
+void ModuleProperties::CallFunction(const std::string& funcKey) {
     std::cout << "Attempting to call function " << funcKey << "..." << std::endl;
     if (Functions().contains(funcKey)) {
         std::cout << "\tAddress found: " << reinterpret_cast<void*>(*Functions()[funcKey]) << std::endl;

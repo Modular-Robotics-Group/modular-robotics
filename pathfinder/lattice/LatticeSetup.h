@@ -6,9 +6,9 @@
 #include <nlohmann/json.hpp>
 
 namespace LatticeSetup {
-    void setupFromJson(const std::string& filename);
+    void SetupFromJson(const std::string& filename);
 
-    Configuration setupFinalFromJson(const std::string& filename);
+    Configuration SetupFinalFromJson(const std::string& filename);
 }
 
 #endif
