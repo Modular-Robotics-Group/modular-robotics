@@ -3,7 +3,7 @@
 import * as THREE from 'three';
 import { ModuleType } from "./utils.js";
 
-function _constructGenericMaterial(texture, color) {
+function _constructBorderedMaterial(texture, color) {
     return new THREE.MeshPhongMaterial({
         map: texture,
         color: color,
@@ -63,7 +63,7 @@ function _constructBasicMaterial(texture, color) {
 export const ModuleMaterialConstructors = new Map([
     //[ModuleType.CUBE, _constructBasicMaterial],
     //[ModuleType.RHOMBIC_DODECAHEDRON, _constructBasicMaterial],
-    [ModuleType.CUBE, _constructGenericMaterial],
-    [ModuleType.RHOMBIC_DODECAHEDRON, _constructGenericMaterial],
-    [ModuleType.CATOM, _constructGenericMaterial],
+    [ModuleType.CUBE, _constructBorderedMaterial],
+    [ModuleType.RHOMBIC_DODECAHEDRON, _constructBorderedMaterial],
+    [ModuleType.CATOM, _constructBasicMaterial],
 ]);
