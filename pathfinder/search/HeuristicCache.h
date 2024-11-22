@@ -10,17 +10,23 @@
 /* Heuristic Cache Optimization Configuration
  * When set to true, allows heuristic cache creation to adjust coordinate tensor in order to increase move check speed
  */
+#ifndef CONFIG_HEURISTIC_CACHE_OPTIMIZATION
 #define CONFIG_HEURISTIC_CACHE_OPTIMIZATION true
+#endif
 /* Heuristic Cache Distance Limitations Configuration
  * When set to true, a second internal cache will be built and utilized to forbid heuristics from considering positions
  * that cannot be reached even if all non-static modules are assisting
  */
+#ifndef CONFIG_HEURISTIC_CACHE_DIST_LIMITATIONS
 #define CONFIG_HEURISTIC_CACHE_DIST_LIMITATIONS true
+#endif
 /* Heuristic Cache Help Limitations Configuration
  * When set to true, additional restrictions are placed on the free space checks used to build move offset caches,
  * taking into account the amount of non-static modules that a module may interact with
  */
-#define CONFIG_HEURISTIC_CACHE_HELP_LIMITATIONS false
+#ifndef CONFIG_HEURISTIC_CACHE_HELP_LIMITATIONS
+#define CONFIG_HEURISTIC_CACHE_HELP_LIMITATIONS true
+#endif
 #if CONFIG_HEURISTIC_CACHE_HELP_LIMITATIONS && !CONFIG_HEURISTIC_CACHE_DIST_LIMITATIONS
 #warning "Help limitations disabled due to lack of distance limitations!"
 #define CONFIG_HEURISTIC_CACHE_HELP_LIMITATIONS false
@@ -75,7 +81,7 @@ private:
 public:
     explicit MoveOffsetPropertyHeuristicCache(const std::set<ModuleData>& desiredState);
 
-    float operator[](const std::valarray<int>& coords, std::uint_fast64_t propInt) const;
+    float operator()(const std::valarray<int>& coords, std::uint_fast64_t propInt) const;
 };
 
 #endif //HEURISTICCACHE_H

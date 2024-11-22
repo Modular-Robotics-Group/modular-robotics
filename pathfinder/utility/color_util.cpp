@@ -27,7 +27,7 @@ namespace Colors {
             {"magenta", {255, 0, 255}}
     };
 
-    ColorsRGB convertColorNameToRGB(const std::string& colorName) {
+    ColorsRGB ConvertColorNameToRGB(const std::string& colorName) {
         if (const auto it = colorToRGB.find(colorName); it != colorToRGB.end()) {
             return it->second;
         }

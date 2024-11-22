@@ -1,0 +1,3437 @@
+{
+	"name": "Heuristic Checker",
+	"description": "A reconfiguration problem designed to test the effectiveness of heuristics in an easy setting.",
+    "order": 2,
+    "axisSize": 27,
+    "modules": [
+	{
+		"position": [0, 1],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [0, 2],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [0, 3],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [0, 4],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [0, 5],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [1, 3],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [0, 6],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [1, 6],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [2, 6],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [3, 6],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [3, 5],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [4, 6],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [5, 6],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [5, 5],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [6, 6],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [7, 6],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [7, 5],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [0, 0],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [1, 0],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [2, 0],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [3, 0],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [3, 1],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [4, 1],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [5, 1],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [4, 0],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [5, 0],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [6, 0],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [6, 1],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [7, 1],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [8, 1],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [9, 1],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [10, 1],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [11, 1],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [12, 1],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [13, 1],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [14, 1],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [15, 1],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [16, 1],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [8, 6],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [9, 6],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [9, 5],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [10, 6],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [11, 6],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [11, 5],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [12, 6],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [13, 6],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [13, 5],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [14, 6],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [15, 6],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [15, 5],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [7, 0],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [8, 0],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [9, 0],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [10, 0],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [11, 0],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [12, 0],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [13, 0],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [14, 0],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [15, 0],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [16, 0],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [17, 0],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [18, 0],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [19, 0],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [19, 6],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [18, 6],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [17, 6],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [16, 6],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [17, 5],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [20, 0],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [20, 6],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [17, 1],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [26, 6],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [26, 5],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [26, 4],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [26, 3],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [25, 3],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [26, 2],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [26, 1],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [26, 0],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [25, 0],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [24, 0],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [23, 0],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [22, 0],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [21, 0],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [20, 1],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [23, 1],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [20, 5],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [20, 4],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [20, 3],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [20, 2],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [19, 3],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [21, 3],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [20, 7],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [20, 8],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [20, 9],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [20, 10],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [21, 5],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [21, 7],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [21, 9],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [21, 11],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [21, 13],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [21, 15],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [21, 17],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [20, 18],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [20, 17],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [20, 16],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [20, 15],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [20, 14],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [20, 13],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [20, 12],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [20, 11],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [20, 19],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [20, 20],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [21, 20],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [22, 20],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [23, 20],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [23, 19],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [24, 20],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [25, 20],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [26, 20],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [26, 19],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [26, 18],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [26, 17],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [25, 17],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [25, 16],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [26, 16],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [26, 15],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [25, 15],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [25, 14],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [26, 13],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [26, 14],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [25, 13],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [25, 12],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [25, 11],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [25, 10],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [25, 9],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [25, 8],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [25, 7],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [25, 6],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [25, 5],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [25, 4],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [26, 7],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [26, 8],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [26, 9],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [26, 10],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [26, 11],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [26, 12],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [26, 21],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [26, 22],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [26, 23],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [26, 24],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [26, 25],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [26, 26],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [25, 26],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [24, 26],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [23, 26],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [22, 26],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [21, 26],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [25, 23],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [23, 21],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [21, 21],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [19, 21],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [17, 21],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [15, 21],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [13, 21],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [11, 21],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [9, 21],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [7, 20],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [8, 20],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [9, 20],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [10, 20],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [11, 20],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [12, 20],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [13, 20],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [14, 20],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [15, 20],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [16, 20],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [17, 20],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [18, 20],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [19, 20],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [20, 26],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [19, 26],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [18, 26],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [17, 26],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [16, 26],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [15, 26],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [14, 26],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [13, 26],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [12, 26],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [11, 26],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [10, 26],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [9, 26],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [8, 26],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [7, 23],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [6, 20],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [6, 21],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [6, 22],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [6, 23],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [6, 24],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [6, 25],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [6, 26],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [7, 26],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [9, 25],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [10, 25],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [11, 25],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [12, 25],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [13, 25],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [14, 25],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [15, 25],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [16, 25],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [17, 25],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [18, 25],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [19, 25],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [20, 25],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [21, 25],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [22, 25],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [23, 25],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [6, 19],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [6, 18],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [6, 17],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [6, 16],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [6, 15],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [6, 14],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [6, 13],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [6, 12],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [6, 11],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [6, 10],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [6, 9],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [6, 8],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [6, 7],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [0, 7],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [0, 8],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [0, 9],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [0, 10],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [0, 11],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [0, 12],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [0, 13],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [0, 14],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [0, 15],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [0, 16],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [0, 17],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [0, 18],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [0, 19],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [0, 20],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [0, 21],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [0, 22],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [0, 23],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [0, 24],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [0, 25],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [0, 26],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [1, 26],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [2, 26],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [3, 26],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [4, 26],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [5, 26],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [3, 25],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [1, 23],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [1, 22],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [1, 21],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [1, 20],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [1, 19],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [1, 18],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [1, 17],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [1, 16],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [1, 15],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [1, 14],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [1, 13],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [1, 12],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [1, 11],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [1, 10],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [1, 9],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [3, 7],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [5, 9],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [5, 11],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [5, 13],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [5, 15],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [5, 17],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [5, 19],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [5, 21],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [5, 23],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [2, 3],
+		"static": false,
+		"properties": {
+			"colorProperty": {
+				"color": [0,255,255]
+			}
+		}
+	},
+	{
+		"position": [23, 2],
+		"static": false,
+		"properties": {
+			"colorProperty": {
+				"color": [255,0,255]
+			}
+		}
+	},
+	{
+		"position": [24, 23],
+		"static": false,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,0]
+			}
+		}
+	},
+	{
+		"position": [3, 24],
+		"static": false,
+		"properties": {
+			"colorProperty": {
+				"color": [0,0,0]
+			}
+		}
+	},
+	{
+		"position": [13, 7],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [13, 8],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [13, 9],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [13, 10],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [13, 11],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [13, 12],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [13, 13],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [14, 13],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [15, 13],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [16, 13],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [17, 13],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [18, 13],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [19, 13],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [13, 14],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [13, 15],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [13, 16],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [13, 17],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [13, 18],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [13, 19],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [12, 13],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [11, 13],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [10, 13],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [9, 13],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [8, 13],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [7, 13],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [8, 12],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [8, 11],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [7, 11],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [9, 11],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [10, 11],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [11, 11],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [12, 11],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [11, 12],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [11, 10],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [11, 9],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [11, 8],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [11, 7],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [12, 8],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [10, 8],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [9, 8],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [8, 8],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [7, 8],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [8, 10],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [8, 9],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [8, 7],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [14, 8],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [15, 8],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [15, 9],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [16, 9],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [16, 10],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [17, 10],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [17, 11],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [18, 11],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [18, 12],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [14, 11],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [14, 12],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [15, 12],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [17, 7],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [18, 7],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [18, 8],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [19, 8],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [19, 9],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [15, 14],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [15, 15],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [15, 16],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [15, 17],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [15, 18],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [15, 19],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [18, 14],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [18, 15],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [18, 16],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [18, 17],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [18, 18],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [18, 19],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [19, 18],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [17, 18],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [16, 18],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [14, 18],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [14, 15],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [16, 15],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [17, 15],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [19, 15],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [8, 15],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [9, 15],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [10, 15],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [11, 15],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [11, 16],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [11, 17],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [11, 18],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [7, 17],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [8, 17],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [9, 17],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [9, 18],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [9, 19],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [7, 19],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [8, 14],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [12, 18],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	}
+    ]
+}

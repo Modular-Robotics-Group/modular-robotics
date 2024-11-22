@@ -27,18 +27,18 @@ void SearchAnalysis::ResumeClock() {
     clock += std::chrono::high_resolution_clock::now() - timePaused;
 }
 
-void SearchAnalysis::EnterGraph(const std::string &key) {
+void SearchAnalysis::EnterGraph(const std::string& key) {
     if (!data.contains(key)) {
         data[key] = emptyGraph;
     }
     current = &(data[key]);
 }
 
-void SearchAnalysis::LabelGraph(const std::string &title) {
+void SearchAnalysis::LabelGraph(const std::string& title) {
     (*current)["Title"] = title;
 }
 
-void SearchAnalysis::LabelAxes(const std::string &xLabel, const std::string &yLabel) {
+void SearchAnalysis::LabelAxes(const std::string& xLabel, const std::string& yLabel) {
     (*current)["XLabel"] = xLabel;
     (*current)["YLabel"] = yLabel;
 }

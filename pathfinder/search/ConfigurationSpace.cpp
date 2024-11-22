@@ -9,9 +9,14 @@
 #include "HeuristicCache.h"
 #include "SearchAnalysis.h"
 
-const char * SearchExcept::what() const noexcept {
+const char* SearchExcept::what() const noexcept {
     return "Search exhausted without finding a path!";
 }
+
+const char *HeuristicExcept::what() const noexcept {
+    return "Heuristic exhibited non-consistent behavior!";
+}
+
 
 HashedState::HashedState(const std::set<ModuleData>& modData) {
     seed = boost::hash_range(modData.begin(), modData.end());
@@ -74,7 +79,7 @@ std::vector<std::set<ModuleData>> Configuration::MakeAllMovesForAllVertices() co
         auto legalMoves = MoveManager::CheckAllMoves(Lattice::coordTensor, *module);
         for (const auto move: legalMoves) {
             Lattice::MoveModule(*module, move->MoveOffset());
-            if (Lattice::checkConnected) {
+            if (Lattice::CheckConnected()) {
                 result.emplace_back(Lattice::GetModuleInfo());
             }
             Lattice::MoveModule(*module, -move->MoveOffset());
@@ -121,9 +126,13 @@ std::vector<Configuration*> ConfigurationSpace::BFS(Configuration* start, const 
     SearchAnalysis::LabelGraph("BFS Depth over Time");
     SearchAnalysis::LabelAxes("Time (μs)", "Depth");
     SearchAnalysis::SetInterpolationOrder(0);
-    SearchAnalysis::EnterGraph("BFSStatesOverTime");
+    SearchAnalysis::EnterGraph("BFSStatesVisitedOverTime");
     SearchAnalysis::LabelGraph("BFS States visited over Time");
     SearchAnalysis::LabelAxes("Time (μs)", "States visited");
+    SearchAnalysis::SetInterpolationOrder(1);
+    SearchAnalysis::EnterGraph("BFSStatesDiscoveredOverTime");
+    SearchAnalysis::LabelGraph("BFS States discovered over Time");
+    SearchAnalysis::LabelAxes("Time (μs)", "States discovered");
     SearchAnalysis::SetInterpolationOrder(1);
     SearchAnalysis::StartClock();
 #endif
@@ -151,7 +160,9 @@ std::vector<Configuration*> ConfigurationSpace::BFS(Configuration* start, const 
 #if CONFIG_OUTPUT_JSON
             SearchAnalysis::EnterGraph("BFSDepthOverTime");
             SearchAnalysis::InsertTimePoint(depth);
-            SearchAnalysis::EnterGraph("BFSStatesOverTime");
+            SearchAnalysis::EnterGraph("BFSStatesVisitedOverTime");
+            SearchAnalysis::InsertTimePoint(statesProcessed);
+            SearchAnalysis::EnterGraph("BFSStatesDiscoveredOverTime");
             SearchAnalysis::InsertTimePoint(visited.size());
 #endif
 #endif
@@ -174,7 +185,9 @@ std::vector<Configuration*> ConfigurationSpace::BFS(Configuration* start, const 
 #if CONFIG_OUTPUT_JSON
             SearchAnalysis::EnterGraph("BFSDepthOverTime");
             SearchAnalysis::InsertTimePoint(depth);
-            SearchAnalysis::EnterGraph("BFSStatesOverTime");
+            SearchAnalysis::EnterGraph("BFSStatesVisitedOverTime");
+            SearchAnalysis::InsertTimePoint(statesProcessed);
+            SearchAnalysis::EnterGraph("BFSStatesDiscoveredOverTime");
             SearchAnalysis::InsertTimePoint(visited.size());
 #endif
 #endif
@@ -340,7 +353,7 @@ float Configuration::CacheMoveOffsetPropertyDistance(const Configuration *final)
     static MoveOffsetPropertyHeuristicCache cache(final->GetModData());
     float h = 0;
     for (const auto& modData : hash.GetState()) {
-        h += cache[modData.Coords(), modData.Properties().AsInt()];
+        h += cache(modData.Coords(), modData.Properties().AsInt());
     }
     return h;
 }
@@ -352,14 +365,30 @@ std::vector<Configuration*> ConfigurationSpace::AStar(Configuration* start, cons
     SearchAnalysis::LabelGraph("A* Depth over Time");
     SearchAnalysis::LabelAxes("Time (μs)", "Depth");
     SearchAnalysis::SetInterpolationOrder(0);
-    SearchAnalysis::EnterGraph("AStarStatesOverTime");
+    SearchAnalysis::EnterGraph("AStarEstimatedDepthOverTime");
+    SearchAnalysis::LabelGraph("A* Estimated Final Depth over Time");
+    SearchAnalysis::LabelAxes("Time (μs)", "Estimated Final Depth");
+    SearchAnalysis::SetInterpolationOrder(0);
+    SearchAnalysis::EnterGraph("AStarEstimatedProgressOverTime");
+    SearchAnalysis::LabelGraph("A* Estimated Progress over Time");
+    SearchAnalysis::LabelAxes("Time (μs)", "Estimated Search Progress (%)");
+    SearchAnalysis::SetInterpolationOrder(0);
+    SearchAnalysis::EnterGraph("AStarStatesVisitedOverTime");
     SearchAnalysis::LabelGraph("A* States visited over Time");
     SearchAnalysis::LabelAxes("Time (μs)", "States visited");
+    SearchAnalysis::SetInterpolationOrder(1);
+    SearchAnalysis::EnterGraph("AStarStatesDiscoveredOverTime");
+    SearchAnalysis::LabelGraph("A* States discovered over Time");
+    SearchAnalysis::LabelAxes("Time (μs)", "States discovered");
     SearchAnalysis::SetInterpolationOrder(1);
     SearchAnalysis::StartClock();
 #endif
     int dupesAvoided = 0;
     int statesProcessed = 0;
+    int estimatedFinalDepth = 0;
+#if CONFIG_CONSISTENT_HEURISTIC_VALIDATOR
+    int previousEstimate = 0;
+#endif
     float (Configuration::*hFunc)(const Configuration *final) const;
     if (heuristic == "Symmetric Difference" || heuristic == "symmetric difference" || heuristic == "SymDiff" || heuristic == "symdiff") {
         hFunc = &Configuration::SymmetricDifferenceHeuristic;
@@ -369,6 +398,10 @@ std::vector<Configuration*> ConfigurationSpace::AStar(Configuration* start, cons
         hFunc = &Configuration::ChebyshevDistance;
     } else if (heuristic == "Nearest Chebyshev" || heuristic == "nearest chebyshev") {
         hFunc = &Configuration::CacheChebyshevDistance;
+    } else if (Lattice::ignoreProperties || ModuleProperties::AnyDynamicPropertiesLinked()) {
+        // If properties are ignored it doesn't make sense to use the property-based cache
+        // The property-based cache also doesn't work with dynamic properties
+        hFunc = &Configuration::CacheMoveOffsetDistance;
     } else {
         hFunc = &Configuration::CacheMoveOffsetPropertyDistance;
     }
@@ -387,10 +420,31 @@ std::vector<Configuration*> ConfigurationSpace::AStar(Configuration* start, cons
 #if CONFIG_OUTPUT_JSON
         SearchAnalysis::PauseClock();
 #endif
+#if CONFIG_CONSISTENT_HEURISTIC_VALIDATOR
+#if CONFIG_PARALLEL_MOVES
+        estimatedFinalDepth = current->depth + static_cast<int>((current->*hFunc)(final)) / ModuleIdManager::MinStaticID();
+#else
+        estimatedFinalDepth = current->depth + static_cast<int>((current->*hFunc)(final));
+#endif
+        if (estimatedFinalDepth < previousEstimate) {
+            throw HeuristicExcept();
+        }
+        if (estimatedFinalDepth > previousEstimate) {
+            previousEstimate = estimatedFinalDepth;
+        }
+#endif
         if (current->depth != depth) {
             depth = current->depth;
+#if !CONFIG_CONSISTENT_HEURISTIC_VALIDATOR
+#if CONFIG_PARALLEL_MOVES
+            estimatedFinalDepth = current->depth + static_cast<int>((current->*hFunc)(final)) / ModuleIdManager::MinStaticID();
+#else
+            estimatedFinalDepth = current->depth + static_cast<int>((current->*hFunc)(final));
+#endif
+#endif
 #if CONFIG_VERBOSE > CS_LOG_FINAL_DEPTH
             std::cout << "A* Depth: " << current->depth << std::endl
+                    << "Estimated Final Depth: " << estimatedFinalDepth << std::endl
                     << "Duplicate states Avoided: " << dupesAvoided << std::endl
                     << "States Discovered: " << visited.size() << std::endl
                     << "States Processed: " << statesProcessed << std::endl
@@ -398,7 +452,13 @@ std::vector<Configuration*> ConfigurationSpace::AStar(Configuration* start, cons
 #if CONFIG_OUTPUT_JSON
             SearchAnalysis::EnterGraph("AStarDepthOverTime");
             SearchAnalysis::InsertTimePoint(depth);
-            SearchAnalysis::EnterGraph("AStarStatesOverTime");
+            SearchAnalysis::EnterGraph("AStarEstimatedDepthOverTime");
+            SearchAnalysis::InsertTimePoint(estimatedFinalDepth);
+            SearchAnalysis::EnterGraph("AStarEstimatedProgressOverTime");
+            SearchAnalysis::InsertTimePoint(static_cast<float>(depth) / static_cast<float>(estimatedFinalDepth) * 100);
+            SearchAnalysis::EnterGraph("AStarStatesVisitedOverTime");
+            SearchAnalysis::InsertTimePoint(statesProcessed);
+            SearchAnalysis::EnterGraph("AStarStatesDiscoveredOverTime");
             SearchAnalysis::InsertTimePoint(visited.size());
 #endif
 #endif
@@ -413,7 +473,13 @@ std::vector<Configuration*> ConfigurationSpace::AStar(Configuration* start, cons
 #if CONFIG_OUTPUT_JSON
             SearchAnalysis::PauseClock();
 #endif
+#if CONFIG_PARALLEL_MOVES
+            estimatedFinalDepth = current->depth + static_cast<int>((current->*hFunc)(final)) / ModuleIdManager::MinStaticID();
+#else
+            estimatedFinalDepth = current->depth + static_cast<int>((current->*hFunc)(final));
+#endif
             std::cout << "A* Final Depth: " << current->depth << std::endl
+                    << "Estimated Final Depth: " << estimatedFinalDepth << std::endl
                     << "Duplicate states Avoided: " << dupesAvoided << std::endl
                     << "States Discovered: " << visited.size() << std::endl
                     << "States Processed: " << statesProcessed << std::endl
@@ -421,7 +487,11 @@ std::vector<Configuration*> ConfigurationSpace::AStar(Configuration* start, cons
 #if CONFIG_OUTPUT_JSON
             SearchAnalysis::EnterGraph("AStarDepthOverTime");
             SearchAnalysis::InsertTimePoint(depth);
-            SearchAnalysis::EnterGraph("AStarStatesOverTime");
+            SearchAnalysis::EnterGraph("AStarEstimatedDepthOverTime");
+            SearchAnalysis::InsertTimePoint(estimatedFinalDepth);
+            SearchAnalysis::EnterGraph("AStarStatesVisitedOverTime");
+            SearchAnalysis::InsertTimePoint(statesProcessed);
+            SearchAnalysis::EnterGraph("AStarStatesDiscoveredOverTime");
             SearchAnalysis::InsertTimePoint(visited.size());
 #endif
 #endif

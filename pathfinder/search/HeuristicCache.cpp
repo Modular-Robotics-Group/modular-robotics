@@ -8,7 +8,7 @@ constexpr float INVALID_WEIGHT = 999;
 
 IHeuristicCache::IHeuristicCache(): weightCache(Lattice::Order(), Lattice::AxisSize(), INVALID_WEIGHT) {}
 
-float IHeuristicCache::operator[](const std::valarray<int> &coords) const {
+float IHeuristicCache::operator[](const std::valarray<int>& coords) const {
     return weightCache[coords];
 }
 
@@ -100,6 +100,10 @@ void ChebyshevEnqueueAdjacentInternal(std::queue<SearchCoord>& coordQueue, const
 }
 
 CoordTensor<int> BuildInternalDistanceCache() {
+    if (ModuleIdManager::StaticModules().empty()) {
+        // No static modules to use in distance cache
+        return { Lattice::Order(), Lattice::AxisSize(), 0 };
+    }
     CoordTensor<int> cache(Lattice::Order(), Lattice::AxisSize(), INVALID_WEIGHT);
     for (const auto& staticModule : ModuleIdManager::StaticModules()) {
         std::queue<SearchCoord> coordQueue;
@@ -167,12 +171,12 @@ void MoveOffsetHeuristicCache::MoveOffsetEnqueueAdjacent(std::queue<SearchCoord>
         for (const auto& offset : MoveManager::_offsets) {
 #if CONFIG_HEURISTIC_CACHE_DIST_LIMITATIONS
 #if CONFIG_HEURISTIC_CACHE_HELP_LIMITATIONS
-            if (internalDistanceCache[adj + offset] > currentHelp + 1) continue;
+            if (internalDistanceCache[adj + offset] > currentHelp) continue;
 #else
             if (internalDistanceCache[adj + offset] > ModuleIdManager::MinStaticID()) continue;
 #endif
 #endif
-            if (std::any_of(std::execution::par_unseq ,MoveManager::_movesByOffset[offset].begin(), MoveManager::_movesByOffset[offset].end(), [&](MoveBase* move) {
+            if (std::any_of(MoveManager::_movesByOffset[offset].begin(), MoveManager::_movesByOffset[offset].end(), [&](MoveBase* move) {
 #if CONFIG_HEURISTIC_CACHE_HELP_LIMITATIONS
                 return move->FreeSpaceCheckHelpLimit(Lattice::coordTensor, adj, internalDistanceCache, currentHelp);
 #else
@@ -192,7 +196,7 @@ void MoveOffsetHeuristicCache::MoveOffsetEnqueueAdjacent(std::queue<SearchCoord>
     }
 }
 
-MoveOffsetHeuristicCache::MoveOffsetHeuristicCache(const std::set<ModuleData> &desiredState) {
+MoveOffsetHeuristicCache::MoveOffsetHeuristicCache(const std::set<ModuleData>& desiredState) {
 #if CONFIG_HEURISTIC_CACHE_HELP_LIMITATIONS
     currentHelp = ModuleIdManager::MinStaticID();
 #endif
@@ -220,8 +224,8 @@ MoveOffsetHeuristicCache::MoveOffsetHeuristicCache(const std::set<ModuleData> &d
                 continue;
             }
             internalVisitTensor[coordQueue.front().coords] = true;
-            if (std::any_of(std::execution::par_unseq, desiredPositions.begin(), desiredPositions.end(), [&](std::valarray<int>& coord) {
-                std::valarray valArrComparison = coord == coordQueue.front().coords;
+            if (std::any_of(desiredPositions.begin(), desiredPositions.end(), [&](std::valarray<int>& coord) {
+                std::valarray<bool> valArrComparison = coord == coordQueue.front().coords;
                 for (const auto result : valArrComparison) {
                     if (!result) {
                         return false;
@@ -303,12 +307,12 @@ void MoveOffsetPropertyHeuristicCache::MoveOffsetPropertyEnqueueAdjacent(std::qu
         for (const auto& offset : MoveManager::_offsets) {
 #if CONFIG_HEURISTIC_CACHE_DIST_LIMITATIONS
 #if CONFIG_HEURISTIC_CACHE_HELP_LIMITATIONS
-            if (internalDistanceCache[adj + offset] > currentHelp + 1) continue;
+            if (internalDistanceCache[adj + offset] > currentHelp) continue;
 #else
             if (internalDistanceCache[adj + offset] > ModuleIdManager::MinStaticID()) continue;
 #endif
 #endif
-            if (std::any_of(std::execution::par_unseq,MoveManager::_movesByOffset[offset].begin(), MoveManager::_movesByOffset[offset].end(), [&](MoveBase* move) {
+            if (std::any_of(MoveManager::_movesByOffset[offset].begin(), MoveManager::_movesByOffset[offset].end(), [&](MoveBase* move) {
 #if CONFIG_HEURISTIC_CACHE_HELP_LIMITATIONS
                 return move->FreeSpaceCheckHelpLimit(Lattice::coordTensor, adj, internalDistanceCache, currentHelp);
 #else
@@ -328,7 +332,7 @@ void MoveOffsetPropertyHeuristicCache::MoveOffsetPropertyEnqueueAdjacent(std::qu
     }
 }
 
-MoveOffsetPropertyHeuristicCache::MoveOffsetPropertyHeuristicCache(const std::set<ModuleData> &desiredState) {
+MoveOffsetPropertyHeuristicCache::MoveOffsetPropertyHeuristicCache(const std::set<ModuleData>& desiredState) {
     // Determine # of unique properties and map potentially large int representations to small values
     int propIndex = 0;
     for (const auto& desiredModuleData : desiredState) {
@@ -367,8 +371,8 @@ MoveOffsetPropertyHeuristicCache::MoveOffsetPropertyHeuristicCache(const std::se
                 continue;
             }
             internalVisitTensor[coordQueue.front().coords] = true;
-            if (std::any_of(std::execution::par_unseq, desiredPositions.begin(), desiredPositions.end(), [&](std::valarray<int>& coord) {
-                std::valarray valArrComparison = coord == coordQueue.front().coords;
+            if (std::any_of(desiredPositions.begin(), desiredPositions.end(), [&](std::valarray<int>& coord) {
+                std::valarray<bool> valArrComparison = coord == coordQueue.front().coords;
                 for (const auto result : valArrComparison) {
                     if (!result) {
                         return false;
@@ -453,7 +457,7 @@ MoveOffsetPropertyHeuristicCache::MoveOffsetPropertyHeuristicCache(const std::se
     std::cout << std::endl;
 }
 
-float MoveOffsetPropertyHeuristicCache::operator[](const std::valarray<int> &coords, std::uint_fast64_t propInt) const {
+float MoveOffsetPropertyHeuristicCache::operator()(const std::valarray<int>& coords, std::uint_fast64_t propInt) const {
     static std::valarray<int> coordProps(0, Lattice::Order() + 1);
     for (int i = 0; i < Lattice::Order(); i++) {
         coordProps[i] = coords[i];

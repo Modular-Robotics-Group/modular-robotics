@@ -16,12 +16,16 @@
  * CUT: Output cut vertex information
  * ALL: Output both adjacency and cut vertex information
  */
+#ifndef LATTICE_VERBOSE
 #define LATTICE_VERBOSE LAT_LOG_NONE
+#endif
 
 /* Edge Check Configuration
  * Set this to true to check for all edges of a rhombic dodecahedron instead of a cube
  */
+#ifndef LATTICE_RD_EDGECHECK
 #define LATTICE_RD_EDGECHECK false
+#endif
 
 enum TensorContents {
     OUT_OF_BOUNDS = -2,
@@ -64,7 +68,7 @@ public:
     //Lattice(int order, int axisSize);
     static void InitLattice(int _order, int _axisSize, int _boundarySize = 5);
 
-    static void setFlags(bool _ignoreColors);
+    static void SetFlags(bool _ignoreColors);
 
     // Add a new module
     static void AddModule(const Module& mod);
@@ -75,7 +79,7 @@ public:
     // Move a module
     static void MoveModule(Module& mod, const std::valarray<int>& offset);
 
-    static bool checkConnected();
+    static bool CheckConnected(int permitMissing = 0);
 
     // Adjacency Check
     static void EdgeCheck(const Module& mod);

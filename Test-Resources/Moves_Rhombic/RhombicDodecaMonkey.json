@@ -1,0 +1,28 @@
+{
+  "moves": [
+    {
+      "name": "In-Layer Monkey",
+      "order": 3,
+      "def": [[
+        "",
+        " x",
+        "  x"
+      ],
+        [
+          " x",
+          "x !",
+          " ? x",
+          "  x"
+        ], [
+          "",
+          " x #",
+          "  x",
+          " #"
+        ]],
+      "permGen": true,
+      "animSeq": [
+        ["rd+x+z", [1, -1, 0]]
+      ]
+    }
+  ]
+}

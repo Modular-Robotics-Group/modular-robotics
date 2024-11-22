@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <vector>
+#include <span>
 #include <unordered_set>
 #include <boost/functional/hash.hpp>
 #include <valarray>
@@ -18,7 +19,9 @@
  *  - Module coordinates must fall within inclusive range of (0, 0, 0) to (255, 255, 255)
  *  - Modules may only have up to one property.
  */
-#define CONFIG_MOD_DATA_STORAGE MM_DATA_INT64
+#ifndef CONFIG_MOD_DATA_STORAGE
+#define CONFIG_MOD_DATA_STORAGE MM_DATA_FULL
+#endif
 
 
 
@@ -55,7 +58,11 @@ public:
 
     bool operator==(const IModuleBasic& right) const override;
 
+    bool operator==(const ModuleData& right) const;
+
     bool operator<(const IModuleBasic& right) const override;
+
+    ModuleData& operator=(const ModuleData& modData);
 
     friend class std::hash<ModuleData>;
 };
@@ -197,6 +204,9 @@ public:
 
     // Get index of first static module
     static int MinStaticID();
+
+    // Destroy all modules
+    static void CleanupModules();
 };
 
 // Stream insertion operator overloaded for easy printing of module info

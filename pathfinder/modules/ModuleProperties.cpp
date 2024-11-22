@@ -3,13 +3,13 @@
 #include "ModuleProperties.h"
 #include "../utility/debug_util.h"
 
-void IModuleProperty::CallFunction(const std::string &funcKey) {
+void IModuleProperty::CallFunction(const std::string& funcKey) {
     if (ModuleProperties::InstFunctions().contains(funcKey)) {
-        ModuleProperties::InstFunctions()[funcKey](this);
+        (*ModuleProperties::InstFunctions()[funcKey])(this);
     }
 }
 
-IModuleProperty* PropertyInitializer::GetProperty(const nlohmann::basic_json<> &propertyDef) {
+IModuleProperty* PropertyInitializer::GetProperty(const nlohmann::basic_json<>& propertyDef) {
     return ModuleProperties::Constructors()[propertyDef["name"]](propertyDef);
 }
 
@@ -23,23 +23,23 @@ std::unordered_map<std::string, IModuleProperty* (*)(const nlohmann::basic_json<
     return _constructors;
 }
 
-std::unordered_map<std::string, boost::any (*)()>& ModuleProperties::Functions() {
-    static std::unordered_map<std::string, boost::any (*)()> _functions;
+std::unordered_map<std::string, boost::shared_ptr<boost::any (*)()>>& ModuleProperties::Functions() {
+    static std::unordered_map<std::string, boost::shared_ptr<boost::any (*)()>> _functions;
     return _functions;
 }
 
-std::unordered_map<std::string, boost::any (*)(IModuleProperty*)>& ModuleProperties::InstFunctions() {
-    static std::unordered_map<std::string, boost::any (*)(IModuleProperty*)> _functions;
+std::unordered_map<std::string, boost::shared_ptr<boost::any (*)(IModuleProperty*)>>& ModuleProperties::InstFunctions() {
+    static std::unordered_map<std::string, boost::shared_ptr<boost::any (*)(IModuleProperty*)>> _functions;
     return _functions;
 }
 
-std::unordered_map<std::string, boost::any(*)(boost::any...)>& ModuleProperties::ArgFunctions() {
-    static std::unordered_map<std::string, boost::any(*)(boost::any...)> _functions;
+std::unordered_map<std::string, boost::shared_ptr<boost::any (*)(boost::any...)>>& ModuleProperties::ArgFunctions() {
+    static std::unordered_map<std::string, boost::shared_ptr<boost::any (*)(boost::any...)>> _functions;
     return _functions;
 }
 
-std::unordered_map<std::string, boost::any(*)(IModuleProperty*, boost::any...)>& ModuleProperties::ArgInstFunctions() {
-    static std::unordered_map<std::string, boost::any(*)(IModuleProperty*, boost::any...)> _functions;
+std::unordered_map<std::string, boost::shared_ptr<boost::any (*)(IModuleProperty*, boost::any...)>>& ModuleProperties::ArgInstFunctions() {
+    static std::unordered_map<std::string, boost::shared_ptr<boost::any (*)(IModuleProperty*, boost::any...)>> _functions;
     return _functions;
 }
 
@@ -65,25 +65,33 @@ void ModuleProperties::LinkProperties() {
         std::ifstream file(propertyFile.path());
         nlohmann::json propertyClassDef = nlohmann::json::parse(file);
         std::string propertyLibPath, propertyLibName = propertyClassDef["filename"];
-        for (const auto& libraryFile : std::filesystem::directory_iterator("Module Properties/")) {
+        std::string propertyName = propertyClassDef["name"];
+        std::cout << "\tSearching..." << std::endl;
+        for (const auto& libraryFile : std::filesystem::recursive_directory_iterator("Module Properties/")) {
+            std::cout << "\t\tFile: " << libraryFile.path() << std::endl << "\t\tStem: " << libraryFile.path().stem() << std::endl;
             if (libraryFile.path().stem().string() == propertyLibName) {
                 propertyLibPath = libraryFile.path().string();
             }
         }
-        if (propertyLibPath.empty()) continue;
+        if (propertyLibPath.empty()) {
+            std::cout << "\tFailed to link " << propertyLibName << '.' << std::endl;
+            continue;
+        }
         boost::dll::shared_library propertyLibrary(propertyLibPath);
+        std::cout << "\tLinking " << propertyLibName << "..." << std::endl;
         if (propertyClassDef.contains("staticFunctions")) {
             for (const auto& functionName : propertyClassDef["staticFunctions"]) {
-                auto function = propertyLibrary.get<boost::any ()>(functionName);
-                Functions()[functionName] = function;
+                auto ptrName = propertyName + "_" + static_cast<std::string>(functionName);
+                Functions()[functionName] = boost::dll::import_alias<boost::any(*)()>(propertyLibrary, ptrName);
             }
         }
         if (propertyClassDef.contains("instanceFunctions")) {
             for (const auto& functionName : propertyClassDef["instanceFunctions"]) {
-                auto function = propertyLibrary.get<boost::any (IModuleProperty*)>(functionName);
-                InstFunctions()[functionName] = function;
+                auto ptrName = propertyName + "_" + static_cast<std::string>(functionName);
+                InstFunctions()[functionName] = boost::dll::import_alias<boost::any(*)(IModuleProperty*)>(propertyLibrary, ptrName);
             }
         }
+        std::cout << "\tLinked " << propertyLibName << '.' << std::endl;
         _propertiesLinkedCount++;
     }
 }
@@ -92,9 +100,23 @@ int ModuleProperties::PropertyCount() {
     return _propertiesLinkedCount;
 }
 
-void ModuleProperties::CallFunction(const std::string &funcKey) {
+bool ModuleProperties::_anyDynamicProperties = false;
+
+bool ModuleProperties::AnyDynamicPropertiesLinked() {
+    return _anyDynamicProperties;
+}
+
+void ModuleProperties::CallFunction(const std::string& funcKey) {
+    std::cout << "Attempting to call function " << funcKey << "..." << std::endl;
     if (Functions().contains(funcKey)) {
-        Functions()[funcKey]();
+        std::cout << "\tAddress found: " << reinterpret_cast<void*>(*Functions()[funcKey]) << std::endl;
+        if (*Functions()[funcKey]) {
+            (*Functions()[funcKey])();
+        } else {
+            std::cout << "\tFailed to call function " << funcKey << ", address is null" << std::endl;
+        }
+    } else {
+        std::cout << "\tFailed to call function " << funcKey << ", key not found" << std::endl;
     }
 }
 
@@ -109,6 +131,7 @@ void ModuleProperties::InitProperties(const nlohmann::basic_json<>& propertyDefs
                     << " is marked as non-static but implementation class does not inherit from IModuleDynamicProperty."
                     << std::endl;
                 } else {
+                    _anyDynamicProperties = true;
                     _dynamicProperties.insert(dynamicProperty);
                 }
             }
@@ -151,9 +174,15 @@ bool ModuleProperties::operator!=(const ModuleProperties& right) const {
 }
 
 ModuleProperties& ModuleProperties::operator=(const ModuleProperties& right) {
+    for (const auto property : _properties) {
+        delete property;
+    }
     _properties.clear();
     for (const auto property : right._properties) {
         _properties.insert(property->MakeCopy());
+    }
+    for (const auto property : _dynamicProperties) {
+        delete property;
     }
     _dynamicProperties.clear();
     if (right._dynamicProperties.empty()) {

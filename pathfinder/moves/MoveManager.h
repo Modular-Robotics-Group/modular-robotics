@@ -18,12 +18,16 @@
  * MOVE_DEFS: Output move def information
  * MOVE_CHECK: Output move def information and move check results
  */
+#ifndef MOVEMANAGER_VERBOSE
 #define MOVEMANAGER_VERBOSE MM_LOG_MOVE_DEFS
+#endif
 /* Bounds Checking Configuration
  * true: Moves always check to ensure they won't look out-of-bounds
  * false: Padding around the coordinate tensor is assumed to prevent any out-of-bounds checks from occuring
  */
+#ifndef MOVEMANAGER_BOUNDS_CHECKS
 #define MOVEMANAGER_BOUNDS_CHECKS false
+#endif
 
 namespace Move {
     enum State {
@@ -205,8 +209,6 @@ public:
     static std::vector<std::set<ModuleData>> MakeAllParallelMoves(std::unordered_set<HashedState>& visited);
 
     static std::vector<MoveBase*> CheckAllMovesAndConnectivity(CoordTensor<int>& tensor, Module& mod);
-
-    static bool checkConnected(const CoordTensor<int>& tensor, const Module& mod, const MoveBase* move);
 
     // Get a pair containing which module has to make what move in order to reach an adjacent state
     static std::pair<Module*, MoveBase*> FindMoveToState(const std::set<ModuleData>& modData);

@@ -22,7 +22,7 @@ namespace Colors {
 
     extern std::map<std::string, ColorsRGB> colorToRGB;
 
-    ColorsRGB convertColorNameToRGB(const std::string& colorName);
+    ColorsRGB ConvertColorNameToRGB(const std::string& colorName);
 
     extern std::map<std::string, int> colorToInt;
 

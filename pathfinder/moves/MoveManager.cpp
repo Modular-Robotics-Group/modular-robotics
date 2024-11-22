@@ -69,8 +69,8 @@ void Move::RotateAnim(Move::AnimType& anim, const int a, const int b) {
     }
 }
 
-bool MoveBase::FreeSpaceCheck(const CoordTensor<int>& tensor, const std::valarray<int> &coords) {
-    return std::all_of(std::execution::par_unseq, moves.begin(), moves.end(), [&coords = std::as_const(coords), &tensor = std::as_const(tensor)](auto& move) {
+bool MoveBase::FreeSpaceCheck(const CoordTensor<int>& tensor, const std::valarray<int>& coords) {
+    return std::all_of(moves.begin(), moves.end(), [&coords = std::as_const(coords), &tensor = std::as_const(tensor)](auto& move) {
         if (!move.second && (tensor[coords + move.first] > FREE_SPACE)) {
             return false;
         }
@@ -82,7 +82,7 @@ bool MoveBase::FreeSpaceCheck(const CoordTensor<int>& tensor, const std::valarra
 }
 
 int GetChebyshevDistance(const std::valarray<int>& a, const std::valarray<int>& b) {
-    std::valarray dist = a + b;
+    std::valarray<int> dist = a + b;
     return *std::ranges::max_element(dist);
 }
 
@@ -96,24 +96,17 @@ int GetManhattanDistance(const std::valarray<int>& a, const std::valarray<int>& 
 
 bool MoveBase::FreeSpaceCheckHelpLimit(const CoordTensor<int>& tensor, const std::valarray<int>& coords, const CoordTensor<int>& helpTensor, int help) {
     int helpUsed = 0;
-    std::vector<std::valarray<int>*> helperPositions;
-    return std::all_of(std::execution::seq, moves.begin(), moves.end(), [&](auto& move) {
+    int helpersRequested = 0;
+    return std::all_of(moves.begin(), moves.end(), [&](auto& move) {
         if (!move.second && (tensor[coords + move.first] > FREE_SPACE)) {
             return false;
         }
         if (move.second && tensor[coords + move.first] <= FREE_SPACE) {
-            int minHelpNeeded = 0;
-            if (helpUsed == 0) {
-                helpUsed = helpTensor[coords + move.first];
-            } else for (const auto pos : helperPositions) {
-#if LATTICE_RD_EDGECHECK
-                minHelpNeeded = std::min(helpTensor[coords + move.first], GetChebyshevDistance(move.first, *pos));
-#else
-                minHelpNeeded = std::min(helpTensor[coords + move.first], GetManhattanDistance(move.first, *pos));
-#endif
+            helpUsed = std::max(helpUsed, helpTensor[coords + move.first]);
+            if (!ModuleIdManager::StaticModules().empty()) {
+                helpersRequested++;
+                helpUsed = std::max(helpUsed, helpersRequested);
             }
-            helpUsed += minHelpNeeded;
-            helperPositions.push_back(&move.first);
             if (tensor[coords + move.first] != OUT_OF_BOUNDS && helpUsed < help) {
                 return true;
             }
@@ -157,8 +150,8 @@ const std::vector<std::pair<Move::AnimType, std::valarray<int>>>& MoveBase::Anim
     return animSequence;
 }
 
-bool MoveBase::operator==(const MoveBase &rhs) const {
-    std::valarray valArrComparison = finalPos == rhs.finalPos;
+bool MoveBase::operator==(const MoveBase& rhs) const {
+    std::valarray<bool> valArrComparison = finalPos == rhs.finalPos;
     for (const auto result : valArrComparison) {
         if (!result) {
             return false;
@@ -265,7 +258,7 @@ bool Move2d::MoveCheck(const CoordTensor<int>& tensor, const Module& mod) {
     }
 #endif
     // Move Check
-    return std::all_of(std::execution::par_unseq, moves.begin(), moves.end(), [&mod = std::as_const(mod), &tensor = std::as_const(tensor)](auto& move) {
+    return std::all_of(moves.begin(), moves.end(), [&mod = std::as_const(mod), &tensor = std::as_const(tensor)](auto& move) {
         if ((tensor[mod.coords + move.first] < 0) == move.second) {
             return false;
         }
@@ -358,7 +351,7 @@ void Move3d::InitMove(const nlohmann::basic_json<>& moveDef) {
     }
 }
 
-bool Move3d::MoveCheck(const CoordTensor<int> &tensor, const Module &mod) {
+bool Move3d::MoveCheck(const CoordTensor<int>& tensor, const Module& mod) {
     // Bounds checking
 #if MOVEMANAGER_BOUNDS_CHECKS
     for (int i = 0; i < order; i++) {
@@ -368,7 +361,7 @@ bool Move3d::MoveCheck(const CoordTensor<int> &tensor, const Module &mod) {
     }
 #endif
     // Move Check
-    return std::all_of(std::execution::par_unseq, moves.begin(), moves.end(), [&mod = std::as_const(mod), &tensor = std::as_const(tensor)](auto& move) {
+    return std::all_of(moves.begin(), moves.end(), [&mod = std::as_const(mod), &tensor = std::as_const(tensor)](auto& move) {
         if ((tensor[mod.coords + move.first] < 0) == move.second) {
             return false;
         }
@@ -450,7 +443,7 @@ void MoveManager::RegisterAllMoves(const std::string& movePath) {
 }
 
 #define MOVEMANAGER_CHECK_BY_OFFSET true
-std::vector<MoveBase*> MoveManager::CheckAllMoves(CoordTensor<int> &tensor, Module &mod) {
+std::vector<MoveBase*> MoveManager::CheckAllMoves(CoordTensor<int>& tensor, Module& mod) {
     std::vector<MoveBase*> legalMoves = {};
 #if MOVEMANAGER_CHECK_BY_OFFSET
     for (const auto& moveOffset : _offsets) {
@@ -500,7 +493,7 @@ std::vector<std::vector<Module*>> GenerateFreeModulePowerSet() {
 
 bool ParallelMoveCheck(CoordTensor<int>& freeSpace, const Module& mod, const MoveBase* move) {
     if (freeSpace[mod.coords + move->MoveOffset()] == OUT_OF_BOUNDS) return false;
-    bool result = std::all_of(std::execution::par_unseq, move->moves.begin(), move->moves.end(), [&move = std::as_const(move), &mod = std::as_const(mod), &freeSpace](auto& moveCheck) {
+    bool result = std::all_of(move->moves.begin(), move->moves.end(), [&move = std::as_const(move), &mod = std::as_const(mod), &freeSpace](auto& moveCheck) {
         if (freeSpace[mod.coords + moveCheck.first] < 0) {
             // Space is not occupied
             if (moveCheck.second) {
@@ -555,9 +548,16 @@ std::vector<std::set<ModuleData>> MoveManager::MakeAllParallelMoves(std::unorder
         if (mods.empty()) continue;
         for (const auto& mod : mods) {
             Lattice::ClearAdjacencies(mod->id);
-            Lattice::AddEdge(mod->id, ModuleIdManager::MinStaticID());
+            if (!ModuleIdManager::StaticModules().empty()) {
+                Lattice::AddEdge(mod->id, ModuleIdManager::MinStaticID());
+            }
         }
-        bool connected = Lattice::checkConnected();
+        bool connected;
+        if (!ModuleIdManager::StaticModules().empty()) {
+            connected = Lattice::CheckConnected();
+        } else {
+            connected = Lattice::CheckConnected(mods.size());
+        }
         for (const auto& mod : mods) {
             Lattice::ClearAdjacencies(mod->id);
 #if LATTICE_RD_EDGECHECK
@@ -677,12 +677,12 @@ std::vector<std::set<ModuleData>> MoveManager::MakeAllParallelMoves(std::unorder
 }
 
 #define MOVEMANAGER_CHECK_BY_OFFSET true
-std::vector<MoveBase*> MoveManager::CheckAllMovesAndConnectivity(CoordTensor<int> &tensor, Module &mod) {
+std::vector<MoveBase*> MoveManager::CheckAllMovesAndConnectivity(CoordTensor<int>& tensor, Module& mod) {
     std::vector<MoveBase*> legalMoves = {};
 #if MOVEMANAGER_CHECK_BY_OFFSET
     for (const auto& moveOffset : _offsets) {
         for (auto move : _movesByOffset[moveOffset]) {
-            if (move->MoveCheck(tensor, mod) && checkConnected(tensor, mod, move)) {
+            if (move->MoveCheck(tensor, mod) && Lattice::CheckConnected()) {
 #if MOVEMANAGER_VERBOSE == MM_LOG_MOVE_CHECKS
                 DEBUG("passed!\n");
 #endif
@@ -710,10 +710,6 @@ std::vector<MoveBase*> MoveManager::CheckAllMovesAndConnectivity(CoordTensor<int
     }
 #endif
     return legalMoves;
-}
-
-bool MoveManager::checkConnected(const CoordTensor<int>& tensor, const Module& mod, const MoveBase* move) {
-    return false;
 }
 
 std::pair<Module*, MoveBase*> MoveManager::FindMoveToState(const std::set<ModuleData>& modData) {

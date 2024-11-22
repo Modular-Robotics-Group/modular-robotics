@@ -13,16 +13,29 @@
  * FINAL_DEPTH: Output final depth and configuration upon BFS completion
  * EVERY_DEPTH: Output current depth and configuration every time BFS depth increases
  */
+#ifndef CONFIG_VERBOSE
 #define CONFIG_VERBOSE CS_LOG_EVERY_DEPTH
+#endif
 /* Parallel Move Configuration
  * This is for permitting multiple moves in one step, not threading the search!
  */
+#ifndef CONFIG_PARALLEL_MOVES
 #define CONFIG_PARALLEL_MOVES false
+#endif
+/* Consistent Heuristic Validation Configuration
+ * Enabling this will cause an exception to be thrown if a heuristic is observed to be non-consistent.
+ * The check is done by testing to ensure that the estimated final depth never decreases.
+ */
+#ifndef CONFIG_CONSISTENT_HEURISTIC_VALIDATOR
+#define CONFIG_CONSISTENT_HEURISTIC_VALIDATOR true
+#endif
 /* JSON Output Configuration
  * In order to output JSON successfully logging must be enabled for every depth
  */
+#ifndef CONFIG_OUTPUT_JSON
 #define CONFIG_OUTPUT_JSON false
-#if CONFIG_VERBOSE != CS_LOG_EVERY_DEPTH && CONFIG_OUTPUT_JSON
+#endif
+#if (CONFIG_VERBOSE != CS_LOG_EVERY_DEPTH || !CONFIG_CONSISTENT_HEURISTIC_VALIDATOR) && CONFIG_OUTPUT_JSON
 #warning "JSON output disabled due to insufficient logging!"
 #define CONFIG_OUTPUT_JSON false
 #endif
@@ -30,7 +43,13 @@
 class SearchExcept final : std::exception {
 public:
     [[nodiscard]]
-    const char * what() const noexcept override;
+    const char* what() const noexcept override;
+};
+
+class HeuristicExcept final : public std::exception {
+    public:
+    [[nodiscard]]
+    const char* what() const noexcept override;
 };
 
 // For comparing the state of a lattice and a configuration

@@ -15,14 +15,14 @@ std::string Scenario::TryGetScenName(const std::string& initialFile) {
     if (stateJson.contains("name")) {
         return stateJson["name"];
     }
-    std::string name = std::filesystem::path(initialFile).filename().stem();
+    std::string name = std::filesystem::path(initialFile).filename().stem().string();
     if (std::size_t trimPos = name.find("_initial"); trimPos != std::string::npos) {
         name.erase(trimPos, 8);
     }
     return name;
 }
 
-std::string Scenario::TryGetScenDesc(const std::string &initialFile) {
+std::string Scenario::TryGetScenDesc(const std::string& initialFile) {
     std::ifstream stateFile(initialFile);
     nlohmann::json stateJson = nlohmann::json::parse(stateFile);
     if (stateJson.contains("description")) {
@@ -32,7 +32,7 @@ std::string Scenario::TryGetScenDesc(const std::string &initialFile) {
 }
 
 
-void Scenario::exportToScen(const std::vector<Configuration *> &path, const ScenInfo &scenInfo) {
+void Scenario::ExportToScen(const std::vector<Configuration *>& path, const ScenInfo& scenInfo) {
     if (path.empty()) {
         std::cerr << "Tried to export empty path, no good!" << std::endl;
         return;
@@ -48,18 +48,23 @@ void Scenario::exportToScen(const std::vector<Configuration *> &path, const Scen
         file << "0, 244, 244, 0, 95\n";
         file << "1, 255, 255, 255, 85\n\n";
     } else {
+        std::cout << "\tBuilding color palette...   ";
         for (auto color: ModuleProperties::CallFunction<const std::unordered_set<int>&>("Palette")) {
             Colors::ColorsRGB rgb(color);
             file << color << ", " << rgb.red << ", " << rgb.green << ", " << rgb.blue << ", 85\n";
         }
         file << "\n";
+        std::cout << "Done." << std::endl;
     }
+    std::cout << "\tSetting up formatting...   ";
     auto idLen = std::to_string(ModuleIdManager::Modules().size()).size();
     boost::format padding("%s%%0%dd, %s");
     boost::format modDef((padding % "%s" % idLen % "%d, %d, %d, %d").str());
+    std::cout << "Done." << std::endl << "\tResetting lattice to initial state...   ";
     Lattice::UpdateFromModuleInfo(path[0]->GetModData());
+    std::cout << "Done." << std::endl << "\tExporting initial state...   ";
     for (size_t id = 0; id < ModuleIdManager::Modules().size(); id++) {
-        auto &mod = ModuleIdManager::Modules()[id];
+        auto& mod = ModuleIdManager::Modules()[id];
         if (Lattice::ignoreProperties) {
             modDef % "" % id % (mod.moduleStatic ? 1 : 0) % mod.coords[0] % mod.coords[1] % (mod.coords.size() > 2
                     ? mod.coords[2]
@@ -71,6 +76,7 @@ void Scenario::exportToScen(const std::vector<Configuration *> &path, const Scen
         file << modDef.str() << std::endl;
     }
     file << std::endl;
+    std::cout << "Done." << std::endl << "\tExporting moves...   ";
 #if CONFIG_PARALLEL_MOVES
     std::vector<std::queue<std::pair<Move::AnimType, std::valarray<int>>>> parallelAnimQueues(ModuleIdManager::MinStaticID());
 #endif
@@ -111,7 +117,7 @@ void Scenario::exportToScen(const std::vector<Configuration *> &path, const Scen
             return;
         }
         auto modToMove = movingModule;
-        for (const auto &[type, offset]: move->AnimSequence()) {
+        for (const auto& [type, offset]: move->AnimSequence()) {
             modDef % (checkpoint ? '*' : ' ') % modToMove->id % type % offset[0] % offset[1] % offset[2];
             file << modDef.str() << std::endl << std::endl;
             checkpoint = false;
@@ -119,5 +125,6 @@ void Scenario::exportToScen(const std::vector<Configuration *> &path, const Scen
         Lattice::MoveModule(*modToMove, move->MoveOffset());
 #endif
     }
+    std::cout << "Done." << std::endl;
     file.close();
 }

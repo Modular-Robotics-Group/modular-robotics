@@ -1,0 +1,26 @@
+{
+  "order": 2,
+  "axisSize": 11,
+  "modules": [
+    {
+      "position": [9, 6],
+      "static": false
+    },
+    {
+      "position": [9, 5],
+      "static": false
+    },
+    {
+      "position": [8, 5],
+      "static": false
+    },
+    {
+      "position": [7, 5],
+      "static": false
+    },
+    {
+      "position": [7, 4],
+      "static": false
+    }
+  ]
+}

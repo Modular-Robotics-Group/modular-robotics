@@ -61,7 +61,7 @@ boost::any GetColorInt(IModuleProperty* prop) {
     return colorProp->GetColorInt();
 }
 
-// This function is never called but removing it causes runtime crashing on ColorProperty constructor calls
-void Dummy() {
-    ResultHolder<int>() = 4000;
+boost::any PropertyFuncTest() {
+    std::cout << "Test function! Address: " << reinterpret_cast<void*>(PropertyFuncTest) << std::endl;
+    return 0;
 }

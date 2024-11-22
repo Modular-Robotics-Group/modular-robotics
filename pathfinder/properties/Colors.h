@@ -34,10 +34,16 @@ public:
     static const std::unordered_set<int>& Palette();
 };
 
-boost::any Palette() asm ("Palette");
+boost::any Palette();
+inline boost::any(*Palette_Ptr)() = &Palette;
+BOOST_DLL_ALIAS(Palette_Ptr, colorProperty_Palette)
 
-boost::any GetColorInt(IModuleProperty* prop) asm ("GetColorInt");
+boost::any GetColorInt(IModuleProperty* prop);
+inline boost::any(*GetColorInt_Ptr)(IModuleProperty*) = &GetColorInt;
+BOOST_DLL_ALIAS(GetColorInt_Ptr, colorProperty_GetColorInt)
 
-void Dummy();
+boost::any PropertyFuncTest();
+inline boost::any(*PropertyFuncTest_Ptr)() = &PropertyFuncTest;
+BOOST_DLL_ALIAS(PropertyFuncTest_Ptr, colorProperty_PropertyFuncTest)
 
 #endif //MODULAR_ROBOTICS_COLORS_H

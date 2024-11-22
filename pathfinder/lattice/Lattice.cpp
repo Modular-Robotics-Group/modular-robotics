@@ -47,7 +47,7 @@ void Lattice::InitLattice(const int _order, const int _axisSize, const int _boun
     }
 }
 
-void Lattice::setFlags(const bool _ignoreColors) {
+void Lattice::SetFlags(const bool _ignoreColors) {
     ignoreProperties = _ignoreColors;
 }
 
@@ -68,7 +68,7 @@ void Lattice::AddBound(const std::valarray<int>& coords) {
     coordTensor[coords] = OUT_OF_BOUNDS;
 }
 
-void Lattice::MoveModule(Module &mod, const std::valarray<int>& offset) {
+void Lattice::MoveModule(Module& mod, const std::valarray<int>& offset) {
     ClearAdjacencies(mod.id);
     coordTensor[mod.coords] = FREE_SPACE;
     mod.coords += offset;
@@ -83,13 +83,13 @@ void Lattice::MoveModule(Module &mod, const std::valarray<int>& offset) {
     }
 }
 
-bool Lattice::checkConnected() {
+bool Lattice::CheckConnected(int permitMissing) {
     if (moduleCount == 0) return true;
     std::vector<bool> visited(moduleCount, false);
     std::stack<int> stack;
     int visitedCount = 0;
-    stack.push(ModuleIdManager::MinStaticID());
-    visited[ModuleIdManager::MinStaticID()] = true;
+    stack.push(0);
+    visited[0] = true;
     while (!stack.empty()) {
         int node = stack.top();
         stack.pop();
@@ -101,7 +101,7 @@ bool Lattice::checkConnected() {
             }
         }
     }
-    return visitedCount == moduleCount;
+    return visitedCount >= moduleCount - permitMissing;
 }
 
 void Lattice::EdgeCheck(const Module& mod) {
@@ -278,8 +278,8 @@ void Lattice::AddEdge(const int modA, const int modB) {
     adjList[modB].push_back(modA);
 }
 
-void Lattice::APUtil(const int u, std::vector<bool> &visited, std::vector<bool> &ap, std::vector<int> &parent,
-                     std::vector<int> &low, std::vector<int> &disc) {
+void Lattice::APUtil(const int u, std::vector<bool>& visited, std::vector<bool>& ap, std::vector<int>& parent,
+                     std::vector<int>& low, std::vector<int>& disc) {
     int children = 0;
     visited[u] = true;
     disc[u] = time;
