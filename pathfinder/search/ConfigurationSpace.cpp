@@ -389,7 +389,6 @@ std::vector<const Configuration*> ConfigurationSpace::BiDirectionalBFS(BDConfigu
 #if CONFIG_OUTPUT_JSON
                 SearchAnalysis::PauseClock();
 #endif
-                std::cout << "BDBFS found path via collision!" << std::endl;
                 std::cout << "BDBFS Final Depth: " << depthFromStart + depthFromFinal << std::endl
                 << "Depth from initial configuration: " << depthFromStart << std::endl
                 << "Depth from final configuration: " << depthFromFinal << std::endl
