@@ -166,6 +166,9 @@ public:
     Origin GetOrigin() const;
 
     BDConfiguration* AddEdge(const std::set<ModuleData>& modData) override;
+
+    template <typename Heuristic>
+    static auto CompareBDConfiguration(const BDConfiguration* start, const BDConfiguration* final, Heuristic heuristic);
 };
 
 namespace ConfigurationSpace {

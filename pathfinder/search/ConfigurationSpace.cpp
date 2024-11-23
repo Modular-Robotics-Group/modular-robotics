@@ -141,6 +141,19 @@ BDConfiguration *BDConfiguration::AddEdge(const std::set<ModuleData> &modData) {
     return static_cast<BDConfiguration*>(next.back()); // NOLINT We can use static here it's fine
 }
 
+template <typename Heuristic>
+auto BDConfiguration::CompareBDConfiguration(const BDConfiguration* start, const BDConfiguration* final, Heuristic heuristic) {
+    return [start, final, heuristic](BDConfiguration* c1, BDConfiguration* c2) {
+#if CONFIG_PARALLEL_MOVES
+        const float cost1 = c1->GetCost() + (c1->GetOrigin() == START ? (c1->*heuristic)(final) : (c1->*heuristic)(start)) / ModuleIdManager::MinStaticID();
+        const float cost2 = c2->GetCost() + (c2->GetOrigin() == START ? (c2->*heuristic)(final) : (c2->*heuristic)(start)) / ModuleIdManager::MinStaticID();
+#else
+        const float cost1 = c1->GetCost() + (c1->GetOrigin() == START ? (c1->*heuristic)(final) : (c1->*heuristic)(start));
+        const float cost2 = c2->GetCost() + (c2->GetOrigin() == START ? (c2->*heuristic)(final) : (c2->*heuristic)(start));
+#endif
+        return (cost1 == cost2) ? c1->GetCost() > c2->GetCost() : cost1 > cost2;
+    };
+}
 
 int ConfigurationSpace::depth = -1;
 
