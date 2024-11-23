@@ -3,10 +3,12 @@
 import * as THREE from 'three';
 import { ModuleType } from "./utils.js";
 
-function _constructGenericMaterial(texture, color) {
+function _constructBorderedMaterial(texture, color, opacity) {
     return new THREE.MeshPhongMaterial({
         map: texture,
         color: color,
+        transparent: true,
+        opacity: opacity,
         onBeforeCompile: shader => { // Manually update the existing material shader to add borders to modules
             // Extract the index of the start of main
             //  We will declare some helper functions right before main()
@@ -40,7 +42,7 @@ vec3 borderColor = borderAttrs.xyz;
 vec3 border = borderMask * borderColor;
 
 vec3 interior = gl_FragColor.xyz * interiorMask;
-gl_FragColor = vec4(interior + border, 1.0);
+gl_FragColor = vec4(interior + border, gl_FragColor.a);
 `;          // Perform the injection
             shader.fragmentShader = 
                 uniformsToInject
@@ -53,17 +55,19 @@ gl_FragColor = vec4(interior + border, 1.0);
     });
 }
 
-function _constructBasicMaterial(texture, color) {
+function _constructBasicMaterial(texture, color, opacity) {
     return new THREE.MeshPhongMaterial({
         map: texture,
         color: color,
+        transparent: true,
+        opacity: opacity
     });
 }
 
 export const ModuleMaterialConstructors = new Map([
     //[ModuleType.CUBE, _constructBasicMaterial],
     //[ModuleType.RHOMBIC_DODECAHEDRON, _constructBasicMaterial],
-    [ModuleType.CUBE, _constructGenericMaterial],
-    [ModuleType.RHOMBIC_DODECAHEDRON, _constructGenericMaterial],
-    [ModuleType.CATOM, _constructGenericMaterial],
+    [ModuleType.CUBE, _constructBorderedMaterial],
+    [ModuleType.RHOMBIC_DODECAHEDRON, _constructBorderedMaterial],
+    [ModuleType.CATOM, _constructBasicMaterial],
 ]);

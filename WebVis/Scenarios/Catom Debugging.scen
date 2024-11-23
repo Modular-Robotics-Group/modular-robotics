@@ -2,8 +2,8 @@ Scenario Name
 Scenario Description
 CATOM
 
-50, 100,  0,100,  92    // Block 2: Group Definitions
-51, 255,  0,  0,  92    // Group 50 is red, with size 95%
+50, 128,  64,  200,  96    // Block 2: Group Definitions
+51,  75,  150,   0,  96    // Group 50 is red, with size 95%
 
   1, 50,  0,  0,  0   	// Block 3: Module Definitions
  12, 51, -3, -1, -2

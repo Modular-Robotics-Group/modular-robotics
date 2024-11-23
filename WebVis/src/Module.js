@@ -14,6 +14,7 @@ import { Move } from "./Move.js"
 const gTexLoader = new THREE.TextureLoader();
 let cubeTexture = gTexLoader.load('./resources/textures/cube_face.png');
 let rdTexture = gTexLoader.load('./resources/textures/cube_face.png');
+let catomTexture = gTexLoader.load('./resources/textures/catom.png');
 
 // Interpolation function used for animation progress: Should map [0.0, 1.0] -> [0.0, 1.0]
 function _animInterp(pct) {
@@ -23,16 +24,18 @@ function _animInterp(pct) {
     //return pct; // Bypass
 }
 
-function _createModuleMesh(moduleType, color = 0x808080, scale = 1.0) {
+function _createModuleMesh(moduleType, color = 0x808080, scale = 1.0, opacity = 1.0) {
     let geometry = ModuleData.get(moduleType)['geometry'];
     let material;
     let materialConstructor = ModuleMaterialConstructors.get(moduleType);
-    let texture = moduleType == ModuleType.CUBE ? cubeTexture : rdTexture;
+    let texture;
+
     switch (moduleType) {
-        case ModuleType.CUBE: /* fallthrough */
-        case ModuleType.RHOMBIC_DODECAHEDRON: /* fallthrough */
-        case ModuleType.CATOM: material = materialConstructor(texture, color); break;
+        case ModuleType.CUBE: texture = cubeTexture; break;
+        case ModuleType.RHOMBIC_DODECAHEDRON: texture = rdTexture; break;
+        case ModuleType.CATOM: texture = catomTexture; break;
     }
+    material = materialConstructor(texture, color, opacity);
 
     let mesh = new THREE.Mesh(geometry, material);
     mesh.scale.set(scale, scale, scale);
@@ -42,6 +45,7 @@ function _createModuleMesh(moduleType, color = 0x808080, scale = 1.0) {
     return mesh;
 }
 
+// Unused, for now
 function _createModuleBorder(moduleType, scale = 1.0) {
     let geometry = new THREE.EdgesGeometry(ModuleGeometries.get(moduleType), 1);
     let material = new THREE.LineBasicMaterial( {color: 0x000000, linewidth: 2.0} );
