@@ -784,6 +784,280 @@ std::vector<const Configuration*> ConfigurationSpace::AStar(Configuration* start
     throw SearchExcept();
 }
 
+std::vector<const Configuration*> ConfigurationSpace::BDAStar(BDConfiguration* start, BDConfiguration* final, const std::string& heuristic) {
+#if CONFIG_OUTPUT_JSON
+    SearchAnalysis::EnterGraph("AStarDepthOverTime_" + heuristic);
+    SearchAnalysis::LabelGraph("A* Depth over Time (" + heuristic + ")");
+    SearchAnalysis::LabelAxes("Time (μs)", "Depth");
+    SearchAnalysis::SetInterpolationOrder(0);
+    SearchAnalysis::EnterGraph("AStarEstimatedDepthOverTime_" + heuristic);
+    SearchAnalysis::LabelGraph("A* Estimated Final Depth over Time (" + heuristic + ")");
+    SearchAnalysis::LabelAxes("Time (μs)", "Estimated Final Depth");
+    SearchAnalysis::SetInterpolationOrder(0);
+    SearchAnalysis::EnterGraph("AStarEstimatedProgressOverTime_" + heuristic);
+    SearchAnalysis::LabelGraph("A* Estimated Progress over Time (" + heuristic + ")");
+    SearchAnalysis::LabelAxes("Time (μs)", "Estimated Search Progress (%)");
+    SearchAnalysis::SetInterpolationOrder(0);
+    SearchAnalysis::EnterGraph("AStarStatesVisitedOverTime_" + heuristic);
+    SearchAnalysis::LabelGraph("A* States visited over Time (" + heuristic + ")");
+    SearchAnalysis::LabelAxes("Time (μs)", "States visited");
+    SearchAnalysis::SetInterpolationOrder(1);
+    SearchAnalysis::EnterGraph("AStarStatesDiscoveredOverTime_" + heuristic);
+    SearchAnalysis::LabelGraph("A* States discovered over Time (" + heuristic + ")");
+    SearchAnalysis::LabelAxes("Time (μs)", "States discovered");
+    SearchAnalysis::SetInterpolationOrder(1);
+    SearchAnalysis::StartClock();
+#endif
+    int dupesAvoided = 0;
+    int statesProcessed = 0;
+    int estimatedFinalDepthFromStart = 0;
+    int estimatedStartDepthFromFinal = 0;
+    int depthFromStart = 0;
+    int depthFromFinal = 0;
+#if CONFIG_CONSISTENT_HEURISTIC_VALIDATOR
+    int previousFinalFromStartEstimate = 0;
+    int previousStartFromFinalEstimate = 0;
+#endif
+    float (BDConfiguration::*hFunc)(const Configuration *final) const;
+    if (heuristic == "Symmetric Difference" || heuristic == "symmetric difference" || heuristic == "SymDiff" || heuristic == "symdiff") {
+        hFunc = &Configuration::SymmetricDifferenceHeuristic;
+    } else if (heuristic == "Manhattan" || heuristic == "manhattan") {
+        hFunc = &Configuration::ManhattanDistance;
+    } else if (heuristic == "Chebyshev" || heuristic == "chebyshev") {
+        hFunc = &Configuration::TrueChebyshevDistance;
+    } else if (heuristic == "Nearest Chebyshev" || heuristic == "nearest chebyshev") {
+        hFunc = &Configuration::CacheChebyshevDistance;
+    } else if (Lattice::ignoreProperties || ModuleProperties::AnyDynamicPropertiesLinked()) {
+        // If properties are ignored it doesn't make sense to use the property-based cache
+        // The property-based cache also doesn't work with dynamic properties
+        hFunc = &BDConfiguration::BDCacheMoveOffsetDistance;
+    } else {
+        hFunc = &BDConfiguration::BDCacheMoveOffsetPropertyDistance;
+    }
+    auto compare = BDConfiguration::CompareBDConfiguration(start, final, hFunc);
+    using CompareType = decltype(compare);
+    std::priority_queue<BDConfiguration*, std::vector<BDConfiguration*>, CompareType> pq(compare);
+    std::unordered_set<HashedState> visited;
+    start->SetCost(0);
+    final->SetCost(0);
+    pq.push(start);
+    pq.push(final);
+    visited.insert(start->GetHash());
+    visited.insert(final->GetHash());
+
+    while (!pq.empty()) {
+        BDConfiguration* current = pq.top();
+        Lattice::UpdateFromModuleInfo(current->GetModData());
+#if CONFIG_VERBOSE > CS_LOG_NONE
+#if CONFIG_OUTPUT_JSON
+        SearchAnalysis::PauseClock();
+#endif
+#if CONFIG_CONSISTENT_HEURISTIC_VALIDATOR
+        if (current->GetOrigin() == START) {
+#if CONFIG_PARALLEL_MOVES
+            estimatedFinalDepthFromStart = current->depth + static_cast<int>((current->*hFunc)(final)) / ModuleIdManager::MinStaticID();
+#else
+            estimatedFinalDepthFromStart = current->depth + static_cast<int>((current->*hFunc)(final));
+#endif
+            if (estimatedFinalDepthFromStart < previousFinalFromStartEstimate) {
+                throw HeuristicExcept();
+            }
+            if (estimatedFinalDepthFromStart > previousFinalFromStartEstimate) {
+                previousFinalFromStartEstimate = estimatedFinalDepthFromStart;
+            }
+        } else {
+#if CONFIG_PARALLEL_MOVES
+            estimatedStartDepthFromFinal = current->depth + static_cast<int>((current->*hFunc)(start)) / ModuleIdManager::MinStaticID();
+#else
+            estimatedStartDepthFromFinal = current->depth + static_cast<int>((current->*hFunc)(start));
+#endif
+            if (estimatedStartDepthFromFinal < previousStartFromFinalEstimate) {
+                throw HeuristicExcept();
+            }
+            if (estimatedStartDepthFromFinal > previousStartFromFinalEstimate) {
+                previousStartFromFinalEstimate = estimatedStartDepthFromFinal;
+            }
+        }
+#endif
+        if ((current->GetOrigin() == START && current->depth != depthFromStart) ||
+            (current->GetOrigin() == END && current->depth != depthFromFinal)) {
+            if (current->GetOrigin() == START) {
+                depthFromStart = current->depth;
+            } else {
+                depthFromFinal = current->depth;
+            }
+#if !CONFIG_CONSISTENT_HEURISTIC_VALIDATOR
+            if (current->GetOrigin() == START) {
+#if CONFIG_PARALLEL_MOVES
+                estimatedFinalDepthFromStart = current->depth + static_cast<int>((current->*hFunc)(final)) / ModuleIdManager::MinStaticID();
+#else
+                estimatedFinalDepthFromStart = current->depth + static_cast<int>((current->*hFunc)(final));
+#endif
+            } else {
+#if CONFIG_PARALLEL_MOVES
+                estimatedStartDepthFromFinal = current->depth + static_cast<int>((current->*hFunc)(start)) / ModuleIdManager::MinStaticID();
+#else
+                estimatedStartDepthFromFinal = current->depth + static_cast<int>((current->*hFunc)(start));
+#endif
+            }
+#endif
+#if CONFIG_VERBOSE > CS_LOG_FINAL_DEPTH
+            std::cout << "Bi-Directional A* Depth: " << depthFromStart + depthFromFinal << std::endl
+                    << "Depth from initial configuration: " << depthFromStart << std::endl
+                    << "Depth from final configuration: " << depthFromFinal << std::endl
+                    << "Estimated Final Depth from Start: " << estimatedFinalDepthFromStart << std::endl
+                    << "Estimated Start Depth from Final: " << estimatedStartDepthFromFinal << std::endl
+                    << "Duplicate states Avoided: " << dupesAvoided << std::endl
+                    << "States Discovered: " << visited.size() << std::endl
+                    << "States Processed: " << statesProcessed << std::endl
+                    << Lattice::ToString() << std::endl;
+#if CONFIG_OUTPUT_JSON
+            SearchAnalysis::EnterGraph("AStarDepthOverTime_" + heuristic);
+            SearchAnalysis::InsertTimePoint(depth);
+            SearchAnalysis::EnterGraph("AStarEstimatedDepthOverTime_" + heuristic);
+            SearchAnalysis::InsertTimePoint(estimatedFinalDepth);
+            SearchAnalysis::EnterGraph("AStarEstimatedProgressOverTime_" + heuristic);
+            SearchAnalysis::InsertTimePoint(static_cast<float>(depth) / static_cast<float>(estimatedFinalDepth) * 100);
+            SearchAnalysis::EnterGraph("AStarStatesVisitedOverTime_" + heuristic);
+            SearchAnalysis::InsertTimePoint(statesProcessed);
+            SearchAnalysis::EnterGraph("AStarStatesDiscoveredOverTime_" + heuristic);
+            SearchAnalysis::InsertTimePoint(visited.size());
+#endif
+#endif
+        }
+#if CONFIG_OUTPUT_JSON
+        SearchAnalysis::ResumeClock();
+#endif
+#endif
+        pq.pop();
+        if ((current->GetOrigin() == START && current->GetHash() == final->GetHash()) ||
+            (current->GetOrigin() == END && current->GetHash() == start->GetHash())) {
+#if CONFIG_VERBOSE > CS_LOG_FINAL_DEPTH
+#if CONFIG_OUTPUT_JSON
+            SearchAnalysis::PauseClock();
+#endif
+            if (current->GetOrigin() == START) {
+#if CONFIG_PARALLEL_MOVES
+                estimatedFinalDepthFromStart = current->depth + static_cast<int>((current->*hFunc)(final)) / ModuleIdManager::MinStaticID();
+#else
+                estimatedFinalDepthFromStart = current->depth + static_cast<int>((current->*hFunc)(final));
+#endif
+            } else {
+#if CONFIG_PARALLEL_MOVES
+                estimatedStartDepthFromFinal = current->depth + static_cast<int>((current->*hFunc)(start)) / ModuleIdManager::MinStaticID();
+#else
+                estimatedStartDepthFromFinal = current->depth + static_cast<int>((current->*hFunc)(start));
+#endif
+            }
+            std::cout << "Bi-Directional A* Final Depth: " << depthFromStart + depthFromFinal << std::endl
+                    << "Depth from initial configuration: " << depthFromStart << std::endl
+                    << "Depth from final configuration: " << depthFromFinal << std::endl
+                    << "Estimated Final Depth from Start: " << estimatedFinalDepthFromStart << std::endl
+                    << "Estimated Start Depth from Final: " << estimatedStartDepthFromFinal << std::endl
+                    << "Duplicate states Avoided: " << dupesAvoided << std::endl
+                    << "States Discovered: " << visited.size() << std::endl
+                    << "States Processed: " << statesProcessed << std::endl
+                    << Lattice::ToString() << std::endl;
+#if CONFIG_OUTPUT_JSON
+            SearchAnalysis::EnterGraph("AStarDepthOverTime_" + heuristic);
+            SearchAnalysis::InsertTimePoint(depth);
+            SearchAnalysis::EnterGraph("AStarEstimatedDepthOverTime_" + heuristic);
+            SearchAnalysis::InsertTimePoint(estimatedFinalDepth);
+            SearchAnalysis::EnterGraph("AStarEstimatedProgressOverTime_" + heuristic);
+            SearchAnalysis::InsertTimePoint(static_cast<float>(depth) / static_cast<float>(estimatedFinalDepth) * 100);
+            SearchAnalysis::EnterGraph("AStarStatesVisitedOverTime_" + heuristic);
+            SearchAnalysis::InsertTimePoint(statesProcessed);
+            SearchAnalysis::EnterGraph("AStarStatesDiscoveredOverTime_" + heuristic);
+            SearchAnalysis::InsertTimePoint(visited.size());
+#endif
+#endif
+            if (current->GetOrigin() == START) {
+                return FindPath(start, current);
+            }
+            return FindPath(final, current, false);
+        }
+#if !CONFIG_PARALLEL_MOVES
+        auto adjList = current->MakeAllMoves();
+#else
+        auto adjList = MoveManager::MakeAllParallelMoves(visited);
+#endif
+        statesProcessed++;
+        for (const auto& moduleInfo : adjList) {
+#if !CONFIG_PARALLEL_MOVES
+            if (visited.find(HashedState(moduleInfo)) == visited.end()) {
+#endif
+                auto nextConfiguration = current->AddEdge(moduleInfo);
+                nextConfiguration->SetParent(current);
+                nextConfiguration->SetCost(current->GetCost() + 1);
+                pq.push(nextConfiguration);
+                nextConfiguration->depth = current->depth + 1;
+#if !CONFIG_PARALLEL_MOVES
+                visited.insert(nextConfiguration->GetHash());
+            } else if (static_cast<const BDConfiguration *>(visited.find(HashedState(moduleInfo))->FoundAt())-> // NOLINT Trust me, it will be BDConfiguration
+                    GetOrigin() != current->GetOrigin()) {
+                if (current->GetOrigin() == START) {
+                    depthFromStart++;
+                } else {
+                    depthFromFinal++;
+                }
+#if CONFIG_VERBOSE > CS_LOG_FINAL_DEPTH
+#if CONFIG_OUTPUT_JSON
+                SearchAnalysis::PauseClock();
+#endif
+                if (current->GetOrigin() == START) {
+#if CONFIG_PARALLEL_MOVES
+                    estimatedFinalDepthFromStart = current->depth + static_cast<int>((current->*hFunc)(final)) / ModuleIdManager::MinStaticID();
+#else
+                    estimatedFinalDepthFromStart = current->depth + static_cast<int>((current->*hFunc)(final));
+#endif
+                } else {
+#if CONFIG_PARALLEL_MOVES
+                    estimatedStartDepthFromFinal = current->depth + static_cast<int>((current->*hFunc)(start)) / ModuleIdManager::MinStaticID();
+#else
+                    estimatedStartDepthFromFinal = current->depth + static_cast<int>((current->*hFunc)(start));
+#endif
+                }
+                std::cout << "Bi-Directional A* Final Depth: " << depthFromStart + depthFromFinal << std::endl
+                        << "Depth from initial configuration: " << depthFromStart << std::endl
+                        << "Depth from final configuration: " << depthFromFinal << std::endl
+                        << "Estimated Final Depth from Start: " << estimatedFinalDepthFromStart << std::endl
+                        << "Estimated Start Depth from Final: " << estimatedStartDepthFromFinal << std::endl
+                        << "Duplicate states Avoided: " << dupesAvoided << std::endl
+                        << "States Discovered: " << visited.size() << std::endl
+                        << "States Processed: " << statesProcessed << std::endl
+                        << Lattice::ToString() << std::endl;
+#if CONFIG_OUTPUT_JSON
+                SearchAnalysis::EnterGraph("AStarDepthOverTime_" + heuristic);
+                SearchAnalysis::InsertTimePoint(depth);
+                SearchAnalysis::EnterGraph("AStarEstimatedDepthOverTime_" + heuristic);
+                SearchAnalysis::InsertTimePoint(estimatedFinalDepth);
+                SearchAnalysis::EnterGraph("AStarEstimatedProgressOverTime_" + heuristic);
+                SearchAnalysis::InsertTimePoint(static_cast<float>(depth) / static_cast<float>(estimatedFinalDepth) * 100);
+                SearchAnalysis::EnterGraph("AStarStatesVisitedOverTime_" + heuristic);
+                SearchAnalysis::InsertTimePoint(statesProcessed);
+                SearchAnalysis::EnterGraph("AStarStatesDiscoveredOverTime_" + heuristic);
+                SearchAnalysis::InsertTimePoint(visited.size());
+#endif
+#endif
+                std::vector<const Configuration*> path, pathRemainder;
+                if (current->GetOrigin() == START) {
+                    path = FindPath(start, current);
+                    pathRemainder = FindPath(final, visited.find(HashedState(moduleInfo))->FoundAt(), false);
+                } else {
+                    path = FindPath(start, visited.find(HashedState(moduleInfo))->FoundAt());
+                    pathRemainder = FindPath(final, current, false);
+                }
+                path.insert(path.end(), pathRemainder.begin(), pathRemainder.end());
+                return path;
+            } else {
+                dupesAvoided++;
+            }
+#endif
+        }
+    }
+    throw SearchExcept();
+}
+
 std::vector<const Configuration*> ConfigurationSpace::FindPath(const Configuration* start, const Configuration* final, const bool shouldReverse) {
     std::vector<const Configuration*> path;
     const Configuration* current = final;

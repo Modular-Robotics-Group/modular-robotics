@@ -255,6 +255,8 @@ int main(int argc, char* argv[]) {
         const auto timeBegin = std::chrono::high_resolution_clock::now();
         if (searchMethod.empty() || searchMethod == "A*" || searchMethod == "a*") {
             path = ConfigurationSpace::AStar(&start, &end, heuristic);
+        } else if (searchMethod == "BDA*" || searchMethod == "bda*") {
+            path = ConfigurationSpace::BDAStar(&bidirectionalStart, &bidirectionalEnd, heuristic);
         } else if (searchMethod == "BDBFS" || searchMethod == "bdbfs") {
             path = ConfigurationSpace::BiDirectionalBFS(&bidirectionalStart, &bidirectionalEnd);
         } else if (searchMethod == "BFS" || searchMethod == "bfs") {

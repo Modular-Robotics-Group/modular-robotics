@@ -184,6 +184,8 @@ namespace ConfigurationSpace {
 
     std::vector<const Configuration*> AStar(Configuration* start, const Configuration* final, const std::string& heuristic);
 
+    std::vector<const Configuration*> BDAStar(BDConfiguration* start, BDConfiguration* final, const std::string& heuristic);
+
     std::vector<const Configuration*> FindPath(const Configuration* start, const Configuration* final, bool shouldReverse = true);
 
     Configuration GenerateRandomFinal(int targetMoves = 8);
