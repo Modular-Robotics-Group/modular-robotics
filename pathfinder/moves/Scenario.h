@@ -17,7 +17,7 @@ namespace Scenario {
 
     std::string TryGetScenDesc(const std::string& initialFile);
 
-    void ExportToScen(const std::vector<Configuration*>& path, const ScenInfo& scenInfo);
+    void ExportToScen(const std::vector<const Configuration*>& path, const ScenInfo& scenInfo);
 }
 
 #endif

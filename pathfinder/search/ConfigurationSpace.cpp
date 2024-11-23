@@ -144,7 +144,7 @@ BDConfiguration *BDConfiguration::AddEdge(const std::set<ModuleData> &modData) {
 
 int ConfigurationSpace::depth = -1;
 
-std::vector<Configuration*> ConfigurationSpace::BFS(Configuration* start, const Configuration* final) {
+std::vector<const Configuration*> ConfigurationSpace::BFS(Configuration* start, const Configuration* final) {
 #if CONFIG_OUTPUT_JSON
     SearchAnalysis::EnterGraph("BFSDepthOverTime");
     SearchAnalysis::LabelGraph("BFS Depth over Time");
@@ -233,6 +233,180 @@ std::vector<Configuration*> ConfigurationSpace::BFS(Configuration* start, const 
                 nextConfiguration->depth = current->depth + 1;
 #if !CONFIG_PARALLEL_MOVES
                 visited.insert(HashedState(moduleInfo));
+            } else {
+                dupesAvoided++;
+            }
+#endif
+        }
+    }
+    throw SearchExcept();
+}
+
+std::vector<const Configuration*> ConfigurationSpace::BiDirectionalBFS(BDConfiguration* start, BDConfiguration* final) {
+#if CONFIG_OUTPUT_JSON
+    SearchAnalysis::EnterGraph("BDBFSDepthOverTime");
+    SearchAnalysis::LabelGraph("BFS Depth over Time (Bi-Directional)");
+    SearchAnalysis::LabelAxes("Time (μs)", "Depth");
+    SearchAnalysis::SetInterpolationOrder(0);
+    SearchAnalysis::EnterGraph("BDBFSStartDepthOverTime");
+    SearchAnalysis::LabelGraph("BFS Depth from start over Time (Bi-Directional)");
+    SearchAnalysis::LabelAxes("Time (μs)", "Depth");
+    SearchAnalysis::SetInterpolationOrder(0);
+    SearchAnalysis::EnterGraph("BDBFSFinalDepthOverTime");
+    SearchAnalysis::LabelGraph("BFS Depth from end over Time (Bi-Directional)");
+    SearchAnalysis::LabelAxes("Time (μs)", "Depth");
+    SearchAnalysis::SetInterpolationOrder(0);
+    SearchAnalysis::EnterGraph("BDBFSStatesVisitedOverTime");
+    SearchAnalysis::LabelGraph("BFS States visited over Time (Bi-Directional)");
+    SearchAnalysis::LabelAxes("Time (μs)", "States visited");
+    SearchAnalysis::SetInterpolationOrder(1);
+    SearchAnalysis::EnterGraph("BDBFSStatesDiscoveredOverTime");
+    SearchAnalysis::LabelGraph("BFS States discovered over Time (Bi-Directional)");
+    SearchAnalysis::LabelAxes("Time (μs)", "States discovered");
+    SearchAnalysis::SetInterpolationOrder(1);
+    SearchAnalysis::StartClock();
+#endif
+    int dupesAvoided = 0;
+    int statesProcessed = 0;
+    int depthFromStart = 0;
+    int depthFromFinal = 0;
+    std::queue<BDConfiguration*> q;
+    std::unordered_set<HashedState> visited;
+    q.push(start);
+    final->depth = 1;
+    q.push(final);
+    visited.insert(start->GetHash());
+    visited.insert(final->GetHash());
+    while (!q.empty()) {
+        BDConfiguration* current = q.front();
+        Lattice::UpdateFromModuleInfo(q.front()->GetModData());
+#if CONFIG_VERBOSE > CS_LOG_NONE
+#if CONFIG_OUTPUT_JSON
+        SearchAnalysis::PauseClock();
+#endif
+        if ((q.front()->GetOrigin() == START && q.front()->depth != depthFromStart) ||
+            (q.front()->GetOrigin() == END && q.front()->depth != depthFromFinal)) {
+            if (q.front()->GetOrigin() == START) {
+                depthFromStart = q.front()->depth;
+            } else {
+                depthFromFinal = q.front()->depth;
+            }
+#if CONFIG_VERBOSE > CS_LOG_FINAL_DEPTH
+            std::cout << "BDBFS Depth: " << depthFromStart + depthFromFinal << std::endl
+            << "Depth from initial configuration: " << depthFromStart << std::endl
+            << "Depth from final configuration: " << depthFromFinal << std::endl
+            << "Duplicate states Avoided: " << dupesAvoided << std::endl
+            << "States Discovered: " << visited.size() << std::endl
+            << "States Processed: " << statesProcessed << std::endl
+            << Lattice::ToString() << std::endl;
+#if CONFIG_OUTPUT_JSON
+            SearchAnalysis::EnterGraph("BDBFSDepthOverTime");
+            SearchAnalysis::InsertTimePoint(depthFromStart + depthFromFinal);
+            SearchAnalysis::EnterGraph("BDBFSStartDepthOverTime");
+            SearchAnalysis::InsertTimePoint(depthFromStart);
+            SearchAnalysis::EnterGraph("BDBFSFinalDepthOverTime");
+            SearchAnalysis::InsertTimePoint(depthFromFinal);
+            SearchAnalysis::EnterGraph("BDBFSStatesVisitedOverTime");
+            SearchAnalysis::InsertTimePoint(statesProcessed);
+            SearchAnalysis::EnterGraph("BDBFSStatesDiscoveredOverTime");
+            SearchAnalysis::InsertTimePoint(visited.size());
+#endif
+#endif
+        }
+#if CONFIG_OUTPUT_JSON
+        SearchAnalysis::ResumeClock();
+#endif
+#endif
+        q.pop();
+        if ((current->GetOrigin() == START && current->GetHash() == final->GetHash()) ||
+            (current->GetOrigin() == END && current->GetHash() == start->GetHash())) {
+#if CONFIG_VERBOSE > CS_LOG_FINAL_DEPTH
+#if CONFIG_OUTPUT_JSON
+            SearchAnalysis::PauseClock();
+#endif
+            std::cout << "BDBFS Final Depth: " << depthFromStart + depthFromFinal << std::endl
+            << "Depth from initial configuration: " << depthFromStart << std::endl
+            << "Depth from final configuration: " << depthFromFinal << std::endl
+            << "Duplicate states Avoided: " << dupesAvoided << std::endl
+            << "States Discovered: " << visited.size() << std::endl
+            << "States Processed: " << statesProcessed << std::endl
+            << Lattice::ToString() << std::endl;
+#if CONFIG_OUTPUT_JSON
+            SearchAnalysis::EnterGraph("BDBFSDepthOverTime");
+            SearchAnalysis::InsertTimePoint(depthFromStart + depthFromFinal);
+            SearchAnalysis::EnterGraph("BDBFSStartDepthOverTime");
+            SearchAnalysis::InsertTimePoint(depthFromStart);
+            SearchAnalysis::EnterGraph("BDBFSFinalDepthOverTime");
+            SearchAnalysis::InsertTimePoint(depthFromFinal);
+            SearchAnalysis::EnterGraph("BDBFSStatesVisitedOverTime");
+            SearchAnalysis::InsertTimePoint(statesProcessed);
+            SearchAnalysis::EnterGraph("BDBFSStatesDiscoveredOverTime");
+            SearchAnalysis::InsertTimePoint(visited.size());
+#endif
+#endif
+            if (current->GetOrigin() == START) {
+                return FindPath(start, current);
+            }
+            return FindPath(final, current, false);
+        }
+#if !CONFIG_PARALLEL_MOVES
+        auto adjList = current->MakeAllMoves();
+#else
+        auto adjList = MoveManager::MakeAllParallelMoves(visited);
+#endif
+        statesProcessed++;
+        for (const auto& moduleInfo : adjList) {
+#if !CONFIG_PARALLEL_MOVES
+            if (visited.find(HashedState(moduleInfo)) == visited.end()) {
+#endif
+                auto nextConfiguration = current->AddEdge(moduleInfo);
+                nextConfiguration->SetParent(current);
+                q.push(nextConfiguration);
+                nextConfiguration->depth = current->depth + 1;
+#if !CONFIG_PARALLEL_MOVES
+                visited.insert(nextConfiguration->GetHash());
+            } else if (static_cast<const BDConfiguration *>(visited.find(HashedState(moduleInfo))->FoundAt())-> // NOLINT Trust me, it will be BDConfiguration
+                       GetOrigin() != current->GetOrigin()) {
+                if (current->GetOrigin() == START) {
+                    depthFromStart++;
+                } else {
+                    depthFromFinal++;
+                }
+#if CONFIG_VERBOSE > CS_LOG_FINAL_DEPTH
+#if CONFIG_OUTPUT_JSON
+                SearchAnalysis::PauseClock();
+#endif
+                std::cout << "BDBFS found path via collision!" << std::endl;
+                std::cout << "BDBFS Final Depth: " << depthFromStart + depthFromFinal << std::endl
+                << "Depth from initial configuration: " << depthFromStart << std::endl
+                << "Depth from final configuration: " << depthFromFinal << std::endl
+                << "Duplicate states Avoided: " << dupesAvoided << std::endl
+                << "States Discovered: " << visited.size() << std::endl
+                << "States Processed: " << statesProcessed << std::endl
+                << Lattice::ToString() << std::endl;
+#if CONFIG_OUTPUT_JSON
+                SearchAnalysis::EnterGraph("BDBFSDepthOverTime");
+                SearchAnalysis::InsertTimePoint(depthFromStart + depthFromFinal);
+                SearchAnalysis::EnterGraph("BDBFSStartDepthOverTime");
+                SearchAnalysis::InsertTimePoint(depthFromStart);
+                SearchAnalysis::EnterGraph("BDBFSFinalDepthOverTime");
+                SearchAnalysis::InsertTimePoint(depthFromFinal);
+                SearchAnalysis::EnterGraph("BDBFSStatesVisitedOverTime");
+                SearchAnalysis::InsertTimePoint(statesProcessed);
+                SearchAnalysis::EnterGraph("BDBFSStatesDiscoveredOverTime");
+                SearchAnalysis::InsertTimePoint(visited.size());
+#endif
+#endif
+                std::vector<const Configuration*> path, pathRemainder;
+                if (current->GetOrigin() == START) {
+                    path = FindPath(start, current);
+                    pathRemainder = FindPath(final, visited.find(HashedState(moduleInfo))->FoundAt(), false);
+                } else {
+                    path = FindPath(start, visited.find(HashedState(moduleInfo))->FoundAt());
+                    pathRemainder = FindPath(final, current, false);
+                }
+                path.insert(path.end(), pathRemainder.begin(), pathRemainder.end());
+                return path;
             } else {
                 dupesAvoided++;
             }
@@ -383,7 +557,7 @@ float Configuration::CacheMoveOffsetPropertyDistance(const Configuration *final)
 }
 
 
-std::vector<Configuration*> ConfigurationSpace::AStar(Configuration* start, const Configuration* final, const std::string& heuristic) {
+std::vector<const Configuration*> ConfigurationSpace::AStar(Configuration* start, const Configuration* final, const std::string& heuristic) {
 #if CONFIG_OUTPUT_JSON
     SearchAnalysis::EnterGraph("AStarDepthOverTime");
     SearchAnalysis::LabelGraph("A* Depth over Time");
@@ -547,15 +721,17 @@ std::vector<Configuration*> ConfigurationSpace::AStar(Configuration* start, cons
     throw SearchExcept();
 }
 
-std::vector<Configuration*> ConfigurationSpace::FindPath(Configuration* start, Configuration* final) {
-    std::vector<Configuration*> path;
-    Configuration* current = final;
+std::vector<const Configuration*> ConfigurationSpace::FindPath(const Configuration* start, const Configuration* final, const bool shouldReverse) {
+    std::vector<const Configuration*> path;
+    const Configuration* current = final;
     while (current->GetHash() != start->GetHash()) {
         path.push_back(current);
         current = current->GetParent();
     }
     path.push_back(start);
-    std::reverse(path.begin(), path.end());
+    if (shouldReverse) {
+        std::reverse(path.begin(), path.end());
+    }
     return path;
 }
 

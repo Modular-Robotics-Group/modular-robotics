@@ -171,11 +171,13 @@ public:
 namespace ConfigurationSpace {
     extern int depth;
 
-    std::vector<Configuration*> BFS(Configuration* start, const Configuration* final);
+    std::vector<const Configuration*> BFS(Configuration* start, const Configuration* final);
 
-    std::vector<Configuration*> AStar(Configuration* start, const Configuration* final, const std::string& heuristic);
+    std::vector<const Configuration*> BiDirectionalBFS(BDConfiguration* start, BDConfiguration* final);
 
-    std::vector<Configuration*> FindPath(Configuration* start, Configuration* final);
+    std::vector<const Configuration*> AStar(Configuration* start, const Configuration* final, const std::string& heuristic);
+
+    std::vector<const Configuration*> FindPath(const Configuration* start, const Configuration* final, bool shouldReverse = true);
 
     Configuration GenerateRandomFinal(int targetMoves = 8);
 }

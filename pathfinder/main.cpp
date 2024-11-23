@@ -242,17 +242,21 @@ int main(int argc, char* argv[]) {
 
     // Pathfinding
     Configuration start(Lattice::GetModuleInfo());
+    BDConfiguration bidirectionalStart(start.GetModData(), START);
 #if GENERATE_FINAL_STATE
     Configuration end = ConfigurationSpace::GenerateRandomFinal();
 #else
     Configuration end = LatticeSetup::SetupFinalFromJson(finalFile);
 #endif
-    std::vector<Configuration*> path;
+    BDConfiguration bidirectionalEnd(end.GetModData(), END);
+    std::vector<const Configuration*> path;
     try {
         std::cout << "Beginning search..." << std::endl;
         const auto timeBegin = std::chrono::high_resolution_clock::now();
         if (searchMethod.empty() || searchMethod == "A*" || searchMethod == "a*") {
             path = ConfigurationSpace::AStar(&start, &end, heuristic);
+        } else if (searchMethod == "BDBFS" || searchMethod == "bdbfs") {
+            path = ConfigurationSpace::BiDirectionalBFS(&bidirectionalStart, &bidirectionalEnd);
         } else if (searchMethod == "BFS" || searchMethod == "bfs") {
             path = ConfigurationSpace::BFS(&start, &end);
         }

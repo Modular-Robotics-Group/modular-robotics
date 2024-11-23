@@ -32,7 +32,7 @@ std::string Scenario::TryGetScenDesc(const std::string& initialFile) {
 }
 
 
-void Scenario::ExportToScen(const std::vector<Configuration *>& path, const ScenInfo& scenInfo) {
+void Scenario::ExportToScen(const std::vector<const Configuration *>& path, const ScenInfo& scenInfo) {
     if (path.empty()) {
         std::cerr << "Tried to export empty path, no good!" << std::endl;
         return;
