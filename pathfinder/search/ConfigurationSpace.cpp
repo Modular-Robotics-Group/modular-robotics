@@ -559,24 +559,24 @@ float Configuration::CacheMoveOffsetPropertyDistance(const Configuration *final)
 
 std::vector<const Configuration*> ConfigurationSpace::AStar(Configuration* start, const Configuration* final, const std::string& heuristic) {
 #if CONFIG_OUTPUT_JSON
-    SearchAnalysis::EnterGraph("AStarDepthOverTime");
-    SearchAnalysis::LabelGraph("A* Depth over Time");
+    SearchAnalysis::EnterGraph("AStarDepthOverTime_" + heuristic);
+    SearchAnalysis::LabelGraph("A* Depth over Time (" + heuristic + ")");
     SearchAnalysis::LabelAxes("Time (μs)", "Depth");
     SearchAnalysis::SetInterpolationOrder(0);
-    SearchAnalysis::EnterGraph("AStarEstimatedDepthOverTime");
-    SearchAnalysis::LabelGraph("A* Estimated Final Depth over Time");
+    SearchAnalysis::EnterGraph("AStarEstimatedDepthOverTime_" + heuristic);
+    SearchAnalysis::LabelGraph("A* Estimated Final Depth over Time (" + heuristic + ")");
     SearchAnalysis::LabelAxes("Time (μs)", "Estimated Final Depth");
     SearchAnalysis::SetInterpolationOrder(0);
-    SearchAnalysis::EnterGraph("AStarEstimatedProgressOverTime");
-    SearchAnalysis::LabelGraph("A* Estimated Progress over Time");
+    SearchAnalysis::EnterGraph("AStarEstimatedProgressOverTime_" + heuristic);
+    SearchAnalysis::LabelGraph("A* Estimated Progress over Time (" + heuristic + ")");
     SearchAnalysis::LabelAxes("Time (μs)", "Estimated Search Progress (%)");
     SearchAnalysis::SetInterpolationOrder(0);
-    SearchAnalysis::EnterGraph("AStarStatesVisitedOverTime");
-    SearchAnalysis::LabelGraph("A* States visited over Time");
+    SearchAnalysis::EnterGraph("AStarStatesVisitedOverTime_" + heuristic);
+    SearchAnalysis::LabelGraph("A* States visited over Time (" + heuristic + ")");
     SearchAnalysis::LabelAxes("Time (μs)", "States visited");
     SearchAnalysis::SetInterpolationOrder(1);
-    SearchAnalysis::EnterGraph("AStarStatesDiscoveredOverTime");
-    SearchAnalysis::LabelGraph("A* States discovered over Time");
+    SearchAnalysis::EnterGraph("AStarStatesDiscoveredOverTime_" + heuristic);
+    SearchAnalysis::LabelGraph("A* States discovered over Time (" + heuristic + ")");
     SearchAnalysis::LabelAxes("Time (μs)", "States discovered");
     SearchAnalysis::SetInterpolationOrder(1);
     SearchAnalysis::StartClock();
@@ -648,15 +648,15 @@ std::vector<const Configuration*> ConfigurationSpace::AStar(Configuration* start
                     << "States Processed: " << statesProcessed << std::endl
                     << Lattice::ToString() << std::endl;
 #if CONFIG_OUTPUT_JSON
-            SearchAnalysis::EnterGraph("AStarDepthOverTime");
+            SearchAnalysis::EnterGraph("AStarDepthOverTime_" + heuristic);
             SearchAnalysis::InsertTimePoint(depth);
-            SearchAnalysis::EnterGraph("AStarEstimatedDepthOverTime");
+            SearchAnalysis::EnterGraph("AStarEstimatedDepthOverTime_" + heuristic);
             SearchAnalysis::InsertTimePoint(estimatedFinalDepth);
-            SearchAnalysis::EnterGraph("AStarEstimatedProgressOverTime");
+            SearchAnalysis::EnterGraph("AStarEstimatedProgressOverTime_" + heuristic);
             SearchAnalysis::InsertTimePoint(static_cast<float>(depth) / static_cast<float>(estimatedFinalDepth) * 100);
-            SearchAnalysis::EnterGraph("AStarStatesVisitedOverTime");
+            SearchAnalysis::EnterGraph("AStarStatesVisitedOverTime_" + heuristic);
             SearchAnalysis::InsertTimePoint(statesProcessed);
-            SearchAnalysis::EnterGraph("AStarStatesDiscoveredOverTime");
+            SearchAnalysis::EnterGraph("AStarStatesDiscoveredOverTime_" + heuristic);
             SearchAnalysis::InsertTimePoint(visited.size());
 #endif
 #endif
@@ -683,13 +683,15 @@ std::vector<const Configuration*> ConfigurationSpace::AStar(Configuration* start
                     << "States Processed: " << statesProcessed << std::endl
                     << Lattice::ToString() << std::endl;
 #if CONFIG_OUTPUT_JSON
-            SearchAnalysis::EnterGraph("AStarDepthOverTime");
+            SearchAnalysis::EnterGraph("AStarDepthOverTime_" + heuristic);
             SearchAnalysis::InsertTimePoint(depth);
-            SearchAnalysis::EnterGraph("AStarEstimatedDepthOverTime");
+            SearchAnalysis::EnterGraph("AStarEstimatedDepthOverTime_" + heuristic);
             SearchAnalysis::InsertTimePoint(estimatedFinalDepth);
-            SearchAnalysis::EnterGraph("AStarStatesVisitedOverTime");
+            SearchAnalysis::EnterGraph("AStarEstimatedProgressOverTime_" + heuristic);
+            SearchAnalysis::InsertTimePoint(static_cast<float>(depth) / static_cast<float>(estimatedFinalDepth) * 100);
+            SearchAnalysis::EnterGraph("AStarStatesVisitedOverTime_" + heuristic);
             SearchAnalysis::InsertTimePoint(statesProcessed);
-            SearchAnalysis::EnterGraph("AStarStatesDiscoveredOverTime");
+            SearchAnalysis::EnterGraph("AStarStatesDiscoveredOverTime_" + heuristic);
             SearchAnalysis::InsertTimePoint(visited.size());
 #endif
 #endif
