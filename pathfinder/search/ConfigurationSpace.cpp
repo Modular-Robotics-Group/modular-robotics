@@ -556,7 +556,6 @@ float Configuration::CacheMoveOffsetPropertyDistance(const Configuration *final)
     return h;
 }
 
-
 std::vector<const Configuration*> ConfigurationSpace::AStar(Configuration* start, const Configuration* final, const std::string& heuristic) {
 #if CONFIG_OUTPUT_JSON
     SearchAnalysis::EnterGraph("AStarDepthOverTime_" + heuristic);
