@@ -285,6 +285,6 @@ int main(int argc, char* argv[]) {
     ModuleIdManager::CleanupModules();
     std::cout << "Modules cleaned." << std::endl << "Cleaning Moves..." << std::endl;
     Isometry::CleanupTransforms();
-    std::cout << "Moves cleaned.";
+    std::cout << "Moves cleaned." << std::endl;
     return 0;
 }
