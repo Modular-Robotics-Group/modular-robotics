@@ -82,7 +82,7 @@ struct std::hash<HashedState> {
 
 // For tracking the state of a lattice
 class Configuration {
-private:
+protected:
     Configuration* parent = nullptr;
     std::vector<Configuration*> next;
     HashedState hash;
@@ -92,7 +92,7 @@ public:
 
     explicit Configuration(const std::set<ModuleData>& modData);
 
-    ~Configuration();
+    virtual ~Configuration();
 
     [[nodiscard]]
     std::vector<std::set<ModuleData>> MakeAllMoves() const;
@@ -100,7 +100,7 @@ public:
     [[nodiscard]]
     std::vector<std::set<ModuleData>> MakeAllMovesForAllVertices() const;
 
-    Configuration* AddEdge(const std::set<ModuleData>& modData);
+    virtual Configuration* AddEdge(const std::set<ModuleData>& modData);
 
     [[nodiscard]]
     Configuration* GetParent() const;
@@ -142,6 +142,22 @@ public:
     float CacheMoveOffsetDistance(const Configuration* final) const;
 
     float CacheMoveOffsetPropertyDistance(const Configuration* final) const;
+};
+
+enum Origin {
+    START = 0,
+    END = 1
+};
+
+class BDConfiguration : public Configuration {
+private:
+    Origin origin = START;
+public:
+    explicit BDConfiguration(const std::set<ModuleData>& modData, Origin origin);
+
+    Origin GetOrigin() const;
+
+    BDConfiguration* AddEdge(const std::set<ModuleData>& modData) override;
 };
 
 namespace ConfigurationSpace {

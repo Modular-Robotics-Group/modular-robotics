@@ -118,6 +118,20 @@ std::ostream& operator<<(std::ostream& out, const Configuration& config) {
     return out;
 }
 
+BDConfiguration::BDConfiguration(const std::set<ModuleData> &modData, Origin origin) : Configuration(modData), origin(origin) {
+    hash.SetFounder(this);
+}
+
+Origin BDConfiguration::GetOrigin() const {
+    return origin;
+}
+
+BDConfiguration *BDConfiguration::AddEdge(const std::set<ModuleData> &modData) {
+    next.push_back(new BDConfiguration(modData, origin));
+    return static_cast<BDConfiguration*>(next.back()); // NOLINT We can use static here it's fine
+}
+
+
 int ConfigurationSpace::depth = -1;
 
 std::vector<Configuration*> ConfigurationSpace::BFS(Configuration* start, const Configuration* final) {
