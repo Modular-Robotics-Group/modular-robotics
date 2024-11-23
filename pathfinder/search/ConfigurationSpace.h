@@ -169,6 +169,10 @@ public:
 
     template <typename Heuristic>
     static auto CompareBDConfiguration(const BDConfiguration* start, const BDConfiguration* final, Heuristic heuristic);
+
+    float BDCacheMoveOffsetDistance(const Configuration* final) const;
+
+    float BDCacheMoveOffsetPropertyDistance(const Configuration* final) const;
 };
 
 namespace ConfigurationSpace {

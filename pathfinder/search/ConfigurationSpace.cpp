@@ -568,6 +568,56 @@ float Configuration::CacheMoveOffsetPropertyDistance(const Configuration *final)
     return h;
 }
 
+MoveOffsetHeuristicCache BDCacheHelper(const BDConfiguration* initialState, const Configuration* desiredState) {
+    auto latticeState = Lattice::GetModuleInfo();
+    Lattice::UpdateFromModuleInfo(initialState->GetModData());
+    MoveOffsetHeuristicCache cache(desiredState->GetModData());
+    Lattice::UpdateFromModuleInfo(latticeState);
+    return cache;
+}
+
+MoveOffsetPropertyHeuristicCache BDPropertyCacheHelper(const BDConfiguration* initialState, const Configuration* desiredState) {
+    auto latticeState = Lattice::GetModuleInfo();
+    Lattice::UpdateFromModuleInfo(initialState->GetModData());
+    MoveOffsetPropertyHeuristicCache cache(desiredState->GetModData());
+    Lattice::UpdateFromModuleInfo(latticeState);
+    return cache;
+}
+
+float BDConfiguration::BDCacheMoveOffsetDistance(const Configuration* final) const {
+    if (static_cast<const BDConfiguration*>(final)->GetOrigin() == START) { // NOLINT
+        static MoveOffsetHeuristicCache cache(BDCacheHelper(this, final));
+        float h = 0;
+        for (const auto& modData : hash.GetState()) {
+            h += cache[modData.Coords()];
+        }
+        return h;
+    }
+    static MoveOffsetHeuristicCache cache(final->GetModData());
+    float h = 0;
+    for (const auto& modData : hash.GetState()) {
+        h += cache[modData.Coords()];
+    }
+    return h;
+}
+
+float BDConfiguration::BDCacheMoveOffsetPropertyDistance(const Configuration* final) const {
+    if (static_cast<const BDConfiguration*>(final)->GetOrigin() == START) { // NOLINT
+        static MoveOffsetPropertyHeuristicCache cache(BDPropertyCacheHelper(this, final));
+        float h = 0;
+        for (const auto& modData : hash.GetState()) {
+            h += cache(modData.Coords(), modData.Properties().AsInt());
+        }
+        return h;
+    }
+    static MoveOffsetPropertyHeuristicCache cache(final->GetModData());
+    float h = 0;
+    for (const auto& modData : hash.GetState()) {
+        h += cache(modData.Coords(), modData.Properties().AsInt());
+    }
+    return h;
+}
+
 std::vector<const Configuration*> ConfigurationSpace::AStar(Configuration* start, const Configuration* final, const std::string& heuristic) {
 #if CONFIG_OUTPUT_JSON
     SearchAnalysis::EnterGraph("AStarDepthOverTime_" + heuristic);
