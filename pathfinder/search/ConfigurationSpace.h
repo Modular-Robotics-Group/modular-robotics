@@ -52,11 +52,14 @@ class HeuristicExcept final : public std::exception {
     const char* what() const noexcept override;
 };
 
+class Configuration;
+
 // For comparing the state of a lattice and a configuration
 class HashedState {
 private:
     size_t seed;
     std::set<ModuleData> moduleData;
+    const Configuration* foundAt;
 public:
     HashedState() = delete;
 
@@ -69,6 +72,11 @@ public:
 
     [[nodiscard]]
     const std::set<ModuleData>& GetState() const;
+
+    void SetFounder(const Configuration* founder);
+
+    [[nodiscard]]
+    const Configuration* FoundAt() const;
 
     bool operator==(const HashedState& other) const;
 

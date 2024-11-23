@@ -21,9 +21,10 @@ const char *HeuristicExcept::what() const noexcept {
 HashedState::HashedState(const std::set<ModuleData>& modData) {
     seed = boost::hash_range(modData.begin(), modData.end());
     moduleData = modData;
+    foundAt = nullptr;
 }
 
-HashedState::HashedState(const HashedState& other) : seed(other.GetSeed()), moduleData(other.GetState()) {}
+HashedState::HashedState(const HashedState& other) : seed(other.GetSeed()), moduleData(other.GetState()), foundAt(other.FoundAt()) {}
 
 size_t HashedState::GetSeed() const {
     return seed;
@@ -32,6 +33,15 @@ size_t HashedState::GetSeed() const {
 const std::set<ModuleData>& HashedState::GetState() const {
     return moduleData;
 }
+
+void HashedState::SetFounder(const Configuration* founder) {
+    foundAt = founder;
+}
+
+const Configuration *HashedState::FoundAt() const {
+    return foundAt;
+}
+
 
 bool HashedState::operator==(const HashedState& other) const {
     return seed == other.GetSeed() && moduleData == other.GetState();
