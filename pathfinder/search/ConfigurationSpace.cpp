@@ -593,7 +593,7 @@ std::vector<const Configuration*> ConfigurationSpace::AStar(Configuration* start
     } else if (heuristic == "Manhattan" || heuristic == "manhattan") {
         hFunc = &Configuration::ManhattanDistance;
     } else if (heuristic == "Chebyshev" || heuristic == "chebyshev") {
-        hFunc = &Configuration::ChebyshevDistance;
+        hFunc = &Configuration::TrueChebyshevDistance;
     } else if (heuristic == "Nearest Chebyshev" || heuristic == "nearest chebyshev") {
         hFunc = &Configuration::CacheChebyshevDistance;
     } else if (Lattice::ignoreProperties || ModuleProperties::AnyDynamicPropertiesLinked()) {
