@@ -75,7 +75,7 @@ private:
 #if CONFIG_HEURISTIC_CACHE_HELP_LIMITATIONS
     static int currentHelp;
 #endif
-    static std::unordered_map<std::uint_fast64_t, int> propConversionMap;
+    std::unordered_map<std::uint_fast64_t, int> propConversionMap;
 
     static void MoveOffsetPropertyEnqueueAdjacent(std::queue<SearchCoordProp>& coordPropQueue, const SearchCoordProp& coordPropInfo);
 public:

@@ -290,8 +290,6 @@ MoveOffsetHeuristicCache::MoveOffsetHeuristicCache(const std::set<ModuleData>& d
     std::cout << std::endl;
 }
 
-std::unordered_map<std::uint_fast64_t, int> MoveOffsetPropertyHeuristicCache::propConversionMap;
-
 #if CONFIG_HEURISTIC_CACHE_HELP_LIMITATIONS
 int MoveOffsetPropertyHeuristicCache::currentHelp = 0;
 #endif
@@ -462,6 +460,6 @@ float MoveOffsetPropertyHeuristicCache::operator()(const std::valarray<int>& coo
     for (int i = 0; i < Lattice::Order(); i++) {
         coordProps[i] = coords[i];
     }
-    coordProps[Lattice::Order()] = propConversionMap[propInt];
+    coordProps[Lattice::Order()] = propConversionMap.at(propInt);
     return weightCache[coordProps];
 }
