@@ -503,7 +503,7 @@ bool Move2d::MoveCheck(const CoordTensor<int>& tensor, const Module& mod) {
         }
         return true;
     });
-    if (result) for (const auto& check : propertyChecks) {
+    if (result && !Lattice::ignoreProperties) for (const auto& check : propertyChecks) {
         if (!check.DoCheck(mod.coords)) {
             return false;
         }
@@ -624,7 +624,7 @@ bool Move3d::MoveCheck(const CoordTensor<int>& tensor, const Module& mod) {
         }
         return true;
     });
-    if (result) for (const auto& check : propertyChecks) {
+    if (result && !Lattice::ignoreProperties) for (const auto& check : propertyChecks) {
         if (!check.DoCheck(mod.coords)) {
             return false;
         }
