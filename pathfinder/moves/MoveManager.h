@@ -144,6 +144,29 @@ public:
     void Reflect(int index) override;
 };
 
+class MovePropertyUpdate : public ITransformable {
+private:
+    std::valarray<int> modOffset;
+    std::string propertyName;
+    PropertyFunctionType functionType;
+    PropertyFunction propertyFunction;
+    nlohmann::basic_json<> args;
+    bool allArgsRotate;
+    bool allArgsReflect;
+    std::vector<int> rotateArgIndices;
+    std::vector<int> reflectArgIndices;
+public:
+    MovePropertyUpdate(const nlohmann::basic_json<>& propertyUpdateDef);
+
+    void DoUpdate(const std::valarray<int>& updateFromPosition) const;
+
+    MovePropertyUpdate* MakeCopy() const override;
+
+    void Rotate(int a, int b) override;
+
+    void Reflect(int index) override;
+};
+
 class MoveBase : public ITransformable {
 protected:
     // each pair represents a coordinate offset to check and whether a module should be there or not
