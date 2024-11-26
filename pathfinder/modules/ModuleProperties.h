@@ -22,9 +22,23 @@ public:
     const char* what() const noexcept override;
 };
 
+enum PropertyFunctionType {
+    STATIC_NOARGS = 0b00,
+    INSTANCE_NOARGS = 0b01,
+    STATIC_ARGS = 0b10,
+    INSTANCE_ARGS = 0b11
+};
+
 class IModuleProperty;
 
 class IModuleDynamicProperty;
+
+union PropertyFunction {
+    boost::shared_ptr<boost::any (*)()> staticFunction;
+    boost::shared_ptr<boost::any (*)(IModuleProperty*)> instanceFunction;
+    boost::shared_ptr<boost::any (*)(const nlohmann::basic_json<>&)> argStaticFunction;
+    boost::shared_ptr<boost::any (*)(IModuleProperty*, const nlohmann::basic_json<>&)> argInstanceFunction;
+};
 
 // Class used by modules to track and update their properties (other than coordinate info)
 class ModuleProperties {
