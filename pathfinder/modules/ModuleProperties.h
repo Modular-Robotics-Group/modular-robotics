@@ -42,10 +42,10 @@ private:
     static std::unordered_map<std::string, boost::shared_ptr<boost::any (*)(IModuleProperty*)>>& InstFunctions();
 
     // Static data for mapping strings to static property functions with arguments
-    static std::unordered_map<std::string, boost::shared_ptr<boost::any (*)(boost::any...)>>& ArgFunctions();
+    static std::unordered_map<std::string, boost::shared_ptr<boost::any (*)(const nlohmann::basic_json<>&)>>& ArgFunctions();
 
     // Static data for mapping strings to dynamic property functions with arguments
-    static std::unordered_map<std::string, boost::shared_ptr<boost::any (*)(IModuleProperty*, boost::any...)>>& ArgInstFunctions();
+    static std::unordered_map<std::string, boost::shared_ptr<boost::any (*)(IModuleProperty*, const nlohmann::basic_json<>&)>>& ArgInstFunctions();
 
     // # of properties linked
     static int _propertiesLinkedCount;

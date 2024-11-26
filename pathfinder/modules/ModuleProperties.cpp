@@ -42,13 +42,13 @@ std::unordered_map<std::string, boost::shared_ptr<boost::any (*)(IModuleProperty
     return _functions;
 }
 
-std::unordered_map<std::string, boost::shared_ptr<boost::any (*)(boost::any...)>>& ModuleProperties::ArgFunctions() {
-    static std::unordered_map<std::string, boost::shared_ptr<boost::any (*)(boost::any...)>> _functions;
+std::unordered_map<std::string, boost::shared_ptr<boost::any (*)(const nlohmann::basic_json<>&)>>& ModuleProperties::ArgFunctions() {
+    static std::unordered_map<std::string, boost::shared_ptr<boost::any (*)(const nlohmann::basic_json<>&)>> _functions;
     return _functions;
 }
 
-std::unordered_map<std::string, boost::shared_ptr<boost::any (*)(IModuleProperty*, boost::any...)>>& ModuleProperties::ArgInstFunctions() {
-    static std::unordered_map<std::string, boost::shared_ptr<boost::any (*)(IModuleProperty*, boost::any...)>> _functions;
+std::unordered_map<std::string, boost::shared_ptr<boost::any (*)(IModuleProperty*, const nlohmann::basic_json<>&)>>& ModuleProperties::ArgInstFunctions() {
+    static std::unordered_map<std::string, boost::shared_ptr<boost::any (*)(IModuleProperty*, const nlohmann::basic_json<>&)>> _functions;
     return _functions;
 }
 
