@@ -380,10 +380,13 @@ std::vector<const Configuration*> ConfigurationSpace::BiDirectionalBFS(BDConfigu
                 visited.insert(nextConfiguration->GetHash());
             } else if (static_cast<const BDConfiguration *>(visited.find(HashedState(moduleInfo))->FoundAt())-> // NOLINT Trust me, it will be BDConfiguration
                        GetOrigin() != current->GetOrigin()) {
-                if (current->GetOrigin() == START) {
-                    depthFromStart++;
-                } else {
-                    depthFromFinal++;
+                if ((q.front()->GetOrigin() == START && q.front()->depth != depthFromStart) ||
+                    (q.front()->GetOrigin() == END && q.front()->depth != depthFromFinal)) {
+                    if (current->GetOrigin() == START) {
+                        depthFromStart++;
+                    } else {
+                        depthFromFinal++;
+                    }
                 }
 #if CONFIG_VERBOSE > CS_LOG_FINAL_DEPTH
 #if CONFIG_OUTPUT_JSON
