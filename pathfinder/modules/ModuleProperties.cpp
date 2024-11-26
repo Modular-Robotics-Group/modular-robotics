@@ -100,8 +100,8 @@ void ModuleProperties::LinkProperties() {
                 InstFunctions()[functionName] = boost::dll::import_alias<boost::any(*)(IModuleProperty*)>(propertyLibrary, ptrName);
             }
         }
-        if (propertyClassDef.contains("argumentFunctions")) {
-            for (const auto& functionName : propertyClassDef["argumentFunctions"]) {
+        if (propertyClassDef.contains("argumentStaticFunctions")) {
+            for (const auto& functionName : propertyClassDef["argumentStaticFunctions"]) {
                 auto ptrName = propertyName + "_" + static_cast<std::string>(functionName);
                 ArgFunctions()[functionName] = boost::dll::import_alias<boost::any(*)(const nlohmann::basic_json<>&)>(propertyLibrary, ptrName);
             }
