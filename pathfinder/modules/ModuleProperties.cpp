@@ -18,6 +18,13 @@ void IModuleProperty::CallFunction(const std::string& funcKey) {
     }
 }
 
+void IModuleProperty::CallFunction(const std::string &funcKey, const nlohmann::basic_json<>& args) {
+    if (ModuleProperties::ArgInstFunctions().contains(funcKey)) {
+        (*ModuleProperties::ArgInstFunctions()[funcKey])(this, args);
+    }
+}
+
+
 IModuleProperty* PropertyInitializer::GetProperty(const nlohmann::basic_json<>& propertyDef) {
     return ModuleProperties::Constructors()[propertyDef["name"]](propertyDef);
 }

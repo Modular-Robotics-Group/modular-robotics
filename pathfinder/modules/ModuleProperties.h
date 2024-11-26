@@ -89,6 +89,21 @@ public:
         return boost::any_cast<std::reference_wrapper<std::remove_reference_t<T>>>((*Functions()[funcKey])());
     }
 
+    template<typename T> requires Value<T>
+    static T CallFunction(const std::string& funcKey, const nlohmann::basic_json<>& args) {
+        return boost::any_cast<T>((*ArgFunctions()[funcKey])(args));
+    }
+
+    template<typename T> requires (Const<T> && Ref<T>)
+    static const T& CallFunction(const std::string& funcKey, const nlohmann::basic_json<>& args) {
+        return boost::any_cast<std::reference_wrapper<const std::remove_reference_t<T>>>((*ArgFunctions()[funcKey])(args));
+    }
+
+    template<typename T> requires (!Const<T> && Ref<T>)
+    static T& CallFunction(const std::string& funcKey, const nlohmann::basic_json<>& args) {
+        return boost::any_cast<std::reference_wrapper<std::remove_reference_t<T>>>((*ArgFunctions()[funcKey])(args));
+    }
+
     void InitProperties(const nlohmann::basic_json<>& propertyDefs);
 
     void UpdateProperties(const std::valarray<int>& moveInfo) const;
@@ -131,6 +146,8 @@ public:
 
     void CallFunction(const std::string& funcKey);
 
+    void CallFunction(const std::string& funcKey, const nlohmann::basic_json<>& args);
+
     template<typename T> requires Value<T>
     T CallFunction(const std::string& funcKey) {
         return boost::any_cast<T>((*ModuleProperties::InstFunctions()[funcKey])(this));
@@ -144,6 +161,21 @@ public:
     template<typename T> requires (!Const<T> && Ref<T>)
     T& CallFunction(const std::string& funcKey) {
         return boost::any_cast<std::reference_wrapper<std::remove_reference_t<T>>>((*ModuleProperties::InstFunctions()[funcKey])(this));
+    }
+
+    template<typename T> requires Value<T>
+    T CallFunction(const std::string& funcKey, const nlohmann::basic_json<>& args) {
+        return boost::any_cast<T>((*ModuleProperties::ArgInstFunctions()[funcKey])(this, args));
+    }
+
+    template<typename T> requires (Const<T> && Ref<T>)
+    const T& CallFunction(const std::string& funcKey, const nlohmann::basic_json<>& args) {
+        return boost::any_cast<std::reference_wrapper<const std::remove_reference_t<T>>>((*ModuleProperties::ArgInstFunctions()[funcKey])(this, args));
+    }
+
+    template<typename T> requires (!Const<T> && Ref<T>)
+    T& CallFunction(const std::string& funcKey, const nlohmann::basic_json<>& args) {
+        return boost::any_cast<std::reference_wrapper<std::remove_reference_t<T>>>((*ModuleProperties::ArgInstFunctions()[funcKey])(this, args));
     }
 
     friend class ModuleProperties;
