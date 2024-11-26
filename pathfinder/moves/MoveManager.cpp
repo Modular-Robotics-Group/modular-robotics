@@ -324,6 +324,12 @@ bool MoveBase::FreeSpaceCheckHelpLimit(const CoordTensor<int>& tensor, const std
     });
 }
 
+void MoveBase::ApplyUpdates(const Module& mod) const {
+    for (const auto& update : propertyUpdates) {
+        update.DoUpdate(mod.coords);
+    }
+}
+
 MovePropertyCheck *MovePropertyCheck::MakeCopy() const {
     const auto copy = new MovePropertyCheck(*this);
     *copy = *this;
@@ -461,6 +467,12 @@ void Move2d::InitMove(const nlohmann::basic_json<>& moveDef) {
             propertyChecks.push_back(check);
         }
     }
+    // Set up property updates
+    if (moveDef.contains("propertyUpdates")) {
+        for (const auto& update : moveDef["propertyUpdates"]) {
+            propertyUpdates.push_back(update);
+        }
+    }
     // Set up animation data
     for (const auto& animDef : moveDef["animSeq"]) {
         Move::AnimType animType = Move::StrAnimMap.at(animDef[0]);
@@ -574,6 +586,12 @@ void Move3d::InitMove(const nlohmann::basic_json<>& moveDef) {
             propertyChecks.push_back(check);
         }
     }
+    // Set up property updates
+    if (moveDef.contains("propertyUpdates")) {
+        for (const auto& update : moveDef["propertyUpdates"]) {
+            propertyUpdates.push_back(update);
+        }
+    }
     // Set up animation data
     if (moveDef.contains("animSeq") == true) {
         for (const auto& animDef : moveDef["animSeq"]) {
@@ -624,6 +642,9 @@ void MoveManager::InitMoveManager(const int order, const int maxDistance) {
 }
 
 void MoveManager::MoveModule(Module& mod, const MoveBase* move) {
+    if (!ModuleProperties::IsReversing() && !Lattice::ignoreProperties) {
+        move->ApplyUpdates(mod);
+    }
     Lattice::ClearAdjacencies(mod.id);
     Lattice::coordTensor[mod.coords] = FREE_SPACE;
     mod.coords += ModuleProperties::IsReversing() ? -move->MoveOffset() : move->MoveOffset();
@@ -633,8 +654,8 @@ void MoveManager::MoveModule(Module& mod, const MoveBase* move) {
 #else
     Lattice::EdgeCheck(mod);
 #endif
-    if (!Lattice::ignoreProperties) {
-        mod.properties.UpdateProperties(move->MoveOffset());
+    if (ModuleProperties::IsReversing() && !Lattice::ignoreProperties) {
+        move->ApplyUpdates(mod);
     }
 }
 

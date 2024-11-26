@@ -173,6 +173,8 @@ protected:
     std::vector<std::pair<std::valarray<int>, bool>> moves;
     // any property checks that a move must pass in order to be made are stored here
     std::vector<MovePropertyCheck> propertyChecks;
+    // any property updates that a move must make in order to be made are stored here
+    std::vector<MovePropertyUpdate> propertyUpdates;
     // bounds ex: {(2, 1), (0, 1)} would mean bounds extend from -2 to 1 on x-axis and 0 to 1 on y-axis
     std::vector<std::pair<int, int>> bounds;
     std::valarray<int> initPos, finalPos;
@@ -186,6 +188,8 @@ public:
     virtual bool FreeSpaceCheck(const CoordTensor<int>& tensor, const std::valarray<int>& coords);
     // Check to see if move is possible from a given position assuming some non-static modules would help
     virtual bool FreeSpaceCheckHelpLimit(const CoordTensor<int>& tensor, const std::valarray<int>& coords, const CoordTensor<int>& helpTensor, int help);
+    // Apply updates to a module's properties based on the move
+    void ApplyUpdates(const Module& mod) const;
 
     [[nodiscard]]
     MoveBase* MakeCopy() const override = 0;
