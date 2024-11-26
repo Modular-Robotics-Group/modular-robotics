@@ -53,6 +53,9 @@ private:
     // True if any linked properties are dynamic
     static bool _anyDynamicProperties;
 
+    // Boolean to track if a move is being reversed
+    static bool _reversing;
+
     // Properties of a module
     std::unordered_set<IModuleProperty*> _properties;
 
@@ -69,6 +72,10 @@ public:
     static int PropertyCount();
 
     static bool AnyDynamicPropertiesLinked();
+
+    static void ToggleReverse();
+
+    static bool IsReversing();
 
     static void CallFunction(const std::string& funcKey);
 

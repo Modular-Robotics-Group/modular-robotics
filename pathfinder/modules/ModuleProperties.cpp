@@ -134,6 +134,16 @@ bool ModuleProperties::AnyDynamicPropertiesLinked() {
     return _anyDynamicProperties;
 }
 
+bool ModuleProperties::_reversing = false;
+
+void ModuleProperties::ToggleReverse() {
+    _reversing = !_reversing;
+}
+
+bool ModuleProperties::IsReversing() {
+    return _reversing;
+}
+
 void ModuleProperties::CallFunction(const std::string& funcKey) {
     std::cout << "Attempting to call function " << funcKey << "..." << std::endl;
     if (Functions().contains(funcKey)) {
