@@ -145,6 +145,12 @@ bool MovePropertyCheck::DoCheck(const std::valarray<int>& checkFromPosition) con
     }
 }
 
+MovePropertyCheck *MovePropertyCheck::MakeCopy() const {
+    const auto copy = new MovePropertyCheck(*this);
+    *copy = *this;
+    return copy;
+}
+
 void MovePropertyCheck::Rotate(int a, int b) {
     std::swap(modOffset[a], modOffset[b]);
     if (allArgsRotate) {
@@ -251,6 +257,12 @@ void MovePropertyUpdate::DoUpdate(const std::valarray<int>& updateFromPosition) 
     }
 }
 
+MovePropertyUpdate *MovePropertyUpdate::MakeCopy() const {
+    const auto copy = new MovePropertyUpdate(*this);
+    *copy = *this;
+    return copy;
+}
+
 void MovePropertyUpdate::Rotate(int a, int b) {
     std::swap(modOffset[a], modOffset[b]);
     if (allArgsRotate) {
@@ -329,13 +341,6 @@ void MoveBase::ApplyUpdates(const Module& mod) const {
         update.DoUpdate(mod.coords);
     }
 }
-
-MovePropertyCheck *MovePropertyCheck::MakeCopy() const {
-    const auto copy = new MovePropertyCheck(*this);
-    *copy = *this;
-    return copy;
-}
-
 
 void MoveBase::Rotate(const int a, const int b) {
     std::swap(initPos[a], initPos[b]);
