@@ -132,6 +132,8 @@ private:
     bool allArgsReflect;
     std::vector<int> rotateArgIndices;
     std::vector<int> reflectArgIndices;
+    bool invertReflection;
+    bool reflectOnNormalRotation;
 public:
     MovePropertyCheck(const nlohmann::basic_json<>& propertyCheckDef);
 
@@ -155,6 +157,8 @@ private:
     bool allArgsReflect;
     std::vector<int> rotateArgIndices;
     std::vector<int> reflectArgIndices;
+    bool invertReflection;
+    bool reflectOnNormalRotation;
 public:
     MovePropertyUpdate(const nlohmann::basic_json<>& propertyUpdateDef);
 

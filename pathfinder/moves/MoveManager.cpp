@@ -98,6 +98,8 @@ MovePropertyCheck::MovePropertyCheck(const nlohmann::basic_json<> &propertyCheck
         } else {
             allArgsRotate = propertyCheckDef["rotateArgs"];
         }
+    } else {
+        allArgsRotate = false;
     }
     if (propertyCheckDef.contains("reflectArgs")) {
         if (propertyCheckDef["reflectArgs"].is_array()) {
@@ -106,6 +108,18 @@ MovePropertyCheck::MovePropertyCheck(const nlohmann::basic_json<> &propertyCheck
         } else {
             allArgsReflect = propertyCheckDef["reflectArgs"];
         }
+    } else {
+        allArgsReflect = false;
+    }
+    if (propertyCheckDef.contains("inverseReflection")) {
+        invertReflection = propertyCheckDef["inverseReflection"];
+    } else {
+        invertReflection = false;
+    }
+    if (propertyCheckDef.contains("reflectOnNormalRotation")) {
+        reflectOnNormalRotation = propertyCheckDef["reflectOnNormalRotation"];
+    } else {
+        reflectOnNormalRotation = false;
     }
     if (isInstance) {
         if (hasArguments) {
@@ -153,27 +167,37 @@ MovePropertyCheck *MovePropertyCheck::MakeCopy() const {
 
 void MovePropertyCheck::Rotate(int a, int b) {
     std::swap(modOffset[a], modOffset[b]);
-    if (allArgsRotate) {
-        for (auto& arg : args) {
-            if (arg.is_array()) {
-                std::swap(arg[a], arg[b]);
+    if (allArgsRotate) for (auto& arg : args) {
+        if (arg.is_array()) {
+            if (reflectOnNormalRotation) for (int i = 0; i < arg.size(); i++) {
+                if (i != a && i != b) arg[i] = -arg[i].get<int>();
             }
+            std::swap(arg[a], arg[b]);
         }
     } else for (const auto i : rotateArgIndices) {
+        if (reflectOnNormalRotation) for (int j = 0; j < args[i].size(); j++) {
+            if (j != a && j != b) args[i][j] = -args[i][j].get<int>();
+        }
         std::swap(args[i][a], args[i][b]);
     }
 }
 
 void MovePropertyCheck::Reflect(int index) {
     modOffset[index] *= -1;
-    if (allArgsReflect) {
-        for (auto& arg : args) {
-            if (arg.is_array()) {
-                arg[index] = -static_cast<int>(arg[index]);
+    if (allArgsReflect) for (auto& arg : args) {
+        if (arg.is_array()) {
+            if (invertReflection) for (int i = 0; i < arg.size(); i++) {
+                arg[i] = i == index ? arg[i].get<int>() : -arg[i].get<int>();
+            } else {
+                arg[index] = -arg[index].get<int>();
             }
         }
     } else for (const auto i : reflectArgIndices) {
-        args[i][index] = -static_cast<int>(args[i][index]);
+        if (invertReflection) for (int j = 0; j < args[i].size(); j++) {
+            args[i][j] = j == index ? args[i][j].get<int>() : -args[i][j].get<int>();
+        } else {
+            args[i][index] = -args[i][index].get<int>();
+        }
     }
 }
 
@@ -206,6 +230,8 @@ MovePropertyUpdate::MovePropertyUpdate(const nlohmann::basic_json<> &propertyUpd
         } else {
             allArgsRotate = propertyUpdateDef["rotateArgs"];
         }
+    } else {
+        allArgsRotate = false;
     }
     if (propertyUpdateDef.contains("reflectArgs")) {
         if (propertyUpdateDef["reflectArgs"].is_array()) {
@@ -214,6 +240,18 @@ MovePropertyUpdate::MovePropertyUpdate(const nlohmann::basic_json<> &propertyUpd
         } else {
             allArgsReflect = propertyUpdateDef["reflectArgs"];
         }
+    } else {
+        allArgsReflect = false;
+    }
+    if (propertyUpdateDef.contains("inverseReflection")) {
+        invertReflection = propertyUpdateDef["inverseReflection"];
+    } else {
+        invertReflection = false;
+    }
+    if (propertyUpdateDef.contains("reflectOnNormalRotation")) {
+        reflectOnNormalRotation = propertyUpdateDef["reflectOnNormalRotation"];
+    } else {
+        reflectOnNormalRotation = false;
     }
     if (isInstance) {
         if (hasArguments) {
@@ -265,27 +303,37 @@ MovePropertyUpdate *MovePropertyUpdate::MakeCopy() const {
 
 void MovePropertyUpdate::Rotate(int a, int b) {
     std::swap(modOffset[a], modOffset[b]);
-    if (allArgsRotate) {
-        for (auto& arg : args) {
-            if (arg.is_array()) {
-                std::swap(arg[a], arg[b]);
+    if (allArgsRotate) for (auto& arg : args) {
+        if (arg.is_array()) {
+            if (reflectOnNormalRotation) for (int i = 0; i < arg.size(); i++) {
+                if (i != a && i != b) arg[i] = -arg[i].get<int>();
             }
+            std::swap(arg[a], arg[b]);
         }
     } else for (const auto i : rotateArgIndices) {
+        if (reflectOnNormalRotation) for (int j = 0; j < args[i].size(); j++) {
+            if (j != a && j != b) args[i][j] = -args[i][j].get<int>();
+        }
         std::swap(args[i][a], args[i][b]);
     }
 }
 
 void MovePropertyUpdate::Reflect(int index) {
     modOffset[index] *= -1;
-    if (allArgsReflect) {
-        for (auto& arg : args) {
-            if (arg.is_array()) {
-                arg[index] = -static_cast<int>(arg[index]);
+    if (allArgsReflect) for (auto& arg : args) {
+        if (arg.is_array()) {
+            if (invertReflection) for (int i = 0; i < arg.size(); i++) {
+                arg[i] = i == index ? arg[i].get<int>() : -arg[i].get<int>();
+            } else {
+                arg[index] = -arg[index].get<int>();
             }
         }
     } else for (const auto i : reflectArgIndices) {
-        args[i][index] = -static_cast<int>(args[i][index]);
+        if (invertReflection) for (int j = 0; j < args[i].size(); j++) {
+            args[i][j] = j == index ? args[i][j].get<int>() : -args[i][j].get<int>();
+        } else {
+            args[i][index] = -args[i][index].get<int>();
+        }
     }
 }
 
