@@ -72,6 +72,8 @@ public:
 
     static void CallFunction(const std::string& funcKey);
 
+    static void CallArgFunction(const std::string& funcKey, const nlohmann::basic_json<>& args);
+
     template<typename T> requires Value<T>
     static T CallFunction(const std::string& funcKey) {
         return boost::any_cast<T>((*Functions()[funcKey])());

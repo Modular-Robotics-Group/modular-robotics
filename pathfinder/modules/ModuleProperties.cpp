@@ -141,6 +141,14 @@ void ModuleProperties::CallFunction(const std::string& funcKey) {
     }
 }
 
+void ModuleProperties::CallArgFunction(const std::string &funcKey, const nlohmann::basic_json<>& args) {
+    if (ArgFunctions().contains(funcKey)) {
+        if (*ArgFunctions()[funcKey]) {
+            (*ArgFunctions()[funcKey])(args);
+        }
+    }
+}
+
 void ModuleProperties::InitProperties(const nlohmann::basic_json<>& propertyDefs) {
     for (const auto& key : PropertyKeys()) {
         if (propertyDefs.contains(key)) {
