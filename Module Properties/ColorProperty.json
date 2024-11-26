@@ -1,6 +1,7 @@
 {
   "filename": "ColorPropertyLib",
   "name": "colorProperty",
+  "propertyClass": "Const",
   "staticFunctions": [
     "Palette"
   ],
