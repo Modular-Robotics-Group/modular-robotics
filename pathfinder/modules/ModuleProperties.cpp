@@ -24,6 +24,18 @@ void IModuleProperty::CallFunction(const std::string &funcKey, const nlohmann::b
     }
 }
 
+void IModuleProperty::CallFunction(const boost::shared_ptr<boost::any(*)(IModuleProperty*)>& func) {
+    if (*func) {
+        (*func)(this);
+    }
+}
+
+void IModuleProperty::CallFunction(const boost::shared_ptr<boost::any(*)(IModuleProperty*, const nlohmann::basic_json<>&)>& func, const nlohmann::basic_json<>& args) {
+    if (*func) {
+        (*func)(this, args);
+    }
+}
+
 
 IModuleProperty* PropertyInitializer::GetProperty(const nlohmann::basic_json<>& propertyDef) {
     return ModuleProperties::Constructors()[propertyDef["name"]](propertyDef);
@@ -163,6 +175,18 @@ void ModuleProperties::CallFunction(const std::string &funcKey, const nlohmann::
         if (*ArgFunctions()[funcKey]) {
             (*ArgFunctions()[funcKey])(args);
         }
+    }
+}
+
+void ModuleProperties::CallFunction(const boost::shared_ptr<boost::any(*)()>& func) {
+    if (*func) {
+        (*func)();
+    }
+}
+
+void ModuleProperties::CallFunction(const boost::shared_ptr<boost::any(*)(const nlohmann::basic_json<>&)>& func, const nlohmann::basic_json<>& args) {
+    if (*func) {
+        (*func)(args);
     }
 }
 

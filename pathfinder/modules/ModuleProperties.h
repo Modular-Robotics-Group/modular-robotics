@@ -125,6 +125,40 @@ public:
         return boost::any_cast<std::reference_wrapper<std::remove_reference_t<T>>>((*ArgFunctions()[funcKey])(args));
     }
 
+    static void CallFunction(const boost::shared_ptr<boost::any (*)()>& func);
+
+    static void CallFunction(const boost::shared_ptr<boost::any (*)(const nlohmann::basic_json<>&)>& func, const nlohmann::basic_json<>& args);
+
+    template<typename T> requires Value<T>
+    static T CallFunction(const boost::shared_ptr<boost::any (*)()>& func) {
+        return boost::any_cast<T>((*func)());
+    }
+
+    template<typename T> requires (Const<T> && Ref<T>)
+    static const T& CallFunction(const boost::shared_ptr<boost::any (*)()>& func) {
+        return boost::any_cast<std::reference_wrapper<const std::remove_reference_t<T>>>((*func)());
+    }
+
+    template<typename T> requires (!Const<T> && Ref<T>)
+    static T& CallFunction(const boost::shared_ptr<boost::any (*)()>& func) {
+        return boost::any_cast<std::reference_wrapper<std::remove_reference_t<T>>>((*func)());
+    }
+
+    template<typename T> requires Value<T>
+    static T CallFunction(const boost::shared_ptr<boost::any (*)(const nlohmann::basic_json<>&)>& func, const nlohmann::basic_json<>& args) {
+        return boost::any_cast<T>((*func)(args));
+    }
+
+    template<typename T> requires (Const<T> && Ref<T>)
+    static const T& CallFunction(const boost::shared_ptr<boost::any (*)(const nlohmann::basic_json<>&)>& func, const nlohmann::basic_json<>& args) {
+        return boost::any_cast<std::reference_wrapper<const std::remove_reference_t<T>>>((*func)(args));
+    }
+
+    template<typename T> requires (!Const<T> && Ref<T>)
+    static T& CallFunction(const boost::shared_ptr<boost::any (*)(const nlohmann::basic_json<>&)>& func, const nlohmann::basic_json<>& args) {
+        return boost::any_cast<std::reference_wrapper<std::remove_reference_t<T>>>((*func)(args));
+    }
+
     void InitProperties(const nlohmann::basic_json<>& propertyDefs);
 
     void UpdateProperties(const std::valarray<int>& moveInfo) const;
@@ -197,6 +231,40 @@ public:
     template<typename T> requires (!Const<T> && Ref<T>)
     T& CallFunction(const std::string& funcKey, const nlohmann::basic_json<>& args) {
         return boost::any_cast<std::reference_wrapper<std::remove_reference_t<T>>>((*ModuleProperties::ArgInstFunctions()[funcKey])(this, args));
+    }
+
+    void CallFunction(const boost::shared_ptr<boost::any (*)(IModuleProperty*)>& func);
+
+    void CallFunction(const boost::shared_ptr<boost::any (*)(IModuleProperty*, const nlohmann::basic_json<>&)>& func, const nlohmann::basic_json<>& args);
+
+    template<typename T> requires Value<T>
+    T CallFunction(const boost::shared_ptr<boost::any (*)(IModuleProperty*)>& func) {
+        return boost::any_cast<T>((*func)(this));
+    }
+
+    template<typename T> requires (Const<T> && Ref<T>)
+    const T& CallFunction(const boost::shared_ptr<boost::any (*)(IModuleProperty*)>& func) {
+        return boost::any_cast<std::reference_wrapper<const std::remove_reference_t<T>>>((*func)(this));
+    }
+
+    template<typename T> requires (!Const<T> && Ref<T>)
+    T& CallFunction(const boost::shared_ptr<boost::any (*)(IModuleProperty*)>& func) {
+        return boost::any_cast<std::reference_wrapper<std::remove_reference_t<T>>>((*func)(this));
+    }
+
+    template<typename T> requires Value<T>
+    T CallFunction(const boost::shared_ptr<boost::any (*)(IModuleProperty*, const nlohmann::basic_json<>&)>& func, const nlohmann::basic_json<>& args) {
+        return boost::any_cast<T>((*func)(this, args));
+    }
+
+    template<typename T> requires (Const<T> && Ref<T>)
+    const T& CallFunction(const boost::shared_ptr<boost::any (*)(IModuleProperty*, const nlohmann::basic_json<>&)>& func, const nlohmann::basic_json<>& args) {
+        return boost::any_cast<std::reference_wrapper<const std::remove_reference_t<T>>>((*func)(this, args));
+    }
+
+    template<typename T> requires (!Const<T> && Ref<T>)
+    T& CallFunction(const boost::shared_ptr<boost::any (*)(IModuleProperty*, const nlohmann::basic_json<>&)>& func, const nlohmann::basic_json<>& args) {
+        return boost::any_cast<std::reference_wrapper<std::remove_reference_t<T>>>((*func)(this, args));
     }
 
     friend class ModuleProperties;
