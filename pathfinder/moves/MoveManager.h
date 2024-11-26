@@ -121,10 +121,33 @@ namespace Move {
     };
 }
 
+class MovePropertyCheck : public ITransformable {
+private:
+    std::valarray<int> modOffset;
+    std::string propertyName;
+    PropertyFunctionType functionType;
+    PropertyFunction propertyFunction;
+    nlohmann::basic_json<> args;
+    bool allArgsRotate;
+    bool allArgsReflect;
+    std::vector<int> rotateArgIndices;
+    std::vector<int> reflectArgIndices;
+public:
+    MovePropertyCheck(const nlohmann::basic_json<>& propertyCheckDef);
+
+    bool DoCheck(const std::valarray<int>& checkFromPosition) const;
+
+    void Rotate(int a, int b) override;
+
+    void Reflect(int index) override;
+};
+
 class MoveBase : public ITransformable {
 protected:
     // each pair represents a coordinate offset to check and whether a module should be there or not
     std::vector<std::pair<std::valarray<int>, bool>> moves;
+    // any property checks that a move must pass in order to be made are stored here
+    std::vector<MovePropertyCheck> propertyChecks;
     // bounds ex: {(2, 1), (0, 1)} would mean bounds extend from -2 to 1 on x-axis and 0 to 1 on y-axis
     std::vector<std::pair<int, int>> bounds;
     std::valarray<int> initPos, finalPos;

@@ -69,6 +69,108 @@ void Move::RotateAnim(Move::AnimType& anim, const int a, const int b) {
     }
 }
 
+MovePropertyCheck::MovePropertyCheck(const nlohmann::basic_json<> &propertyCheckDef): propertyFunction() {
+    bool isInstance = false, hasArguments = false;
+    if (propertyCheckDef.contains("module")) {
+        std::vector<int> offsetVec = propertyCheckDef["module"];
+        if (offsetVec.size() != Lattice::Order()) {
+            offsetVec.resize(Lattice::Order(), 0);
+        }
+        modOffset = std::valarray<int>(offsetVec.data(), offsetVec.size());
+        isInstance = true;
+    }
+    if (propertyCheckDef.contains("property")) {
+        propertyName = propertyCheckDef["property"];
+        if (!isInstance) {
+            std::cerr << "Property checks should always specify module offset to check! Defaulting to moving module." << std::endl;
+            modOffset = std::valarray<int>(0, Lattice::Order());
+        }
+        isInstance = true;
+    }
+    if (propertyCheckDef.contains("args")) {
+        args = propertyCheckDef["args"];
+        hasArguments = true;
+    }
+    if (propertyCheckDef.contains("rotateArgs")) {
+        if (propertyCheckDef["rotateArgs"].is_array()) {
+            allArgsRotate = false;
+            rotateArgIndices = static_cast<std::vector<int>>(propertyCheckDef["rotateArgs"]);
+        } else {
+            allArgsRotate = propertyCheckDef["rotateArgs"];
+        }
+    }
+    if (propertyCheckDef.contains("reflectArgs")) {
+        if (propertyCheckDef["reflectArgs"].is_array()) {
+            allArgsReflect = false;
+            reflectArgIndices = static_cast<std::vector<int>>(propertyCheckDef["reflectArgs"]);
+        } else {
+            allArgsReflect = propertyCheckDef["reflectArgs"];
+        }
+    }
+    if (isInstance) {
+        if (hasArguments) {
+            propertyFunction.argInstanceFunction = ModuleProperties::ArgInstFunctions()[propertyCheckDef["function"]];
+            functionType = INSTANCE_ARGS;
+        } else {
+            propertyFunction.instanceFunction = ModuleProperties::InstFunctions()[propertyCheckDef["function"]];
+            functionType = INSTANCE_NOARGS;
+        }
+    } else if (hasArguments) {
+        propertyFunction.argStaticFunction = ModuleProperties::ArgFunctions()[propertyCheckDef["function"]];
+        functionType = STATIC_ARGS;
+    } else {
+        propertyFunction.staticFunction = ModuleProperties::Functions()[propertyCheckDef["function"]];
+        functionType = STATIC_NOARGS;
+    }
+}
+
+bool MovePropertyCheck::DoCheck(const std::valarray<int>& checkFromPosition) const {
+    switch (functionType) {
+        case STATIC_NOARGS:
+            return ModuleProperties::CallFunction<bool>(propertyFunction.staticFunction);
+        case INSTANCE_NOARGS: {
+            const auto modIdToCheck = Lattice::coordTensor[checkFromPosition + modOffset];
+            const auto prop = ModuleIdManager::GetModule(modIdToCheck).properties.Find(propertyName);
+            return prop->CallFunction<bool>(propertyFunction.instanceFunction);
+        }
+        case STATIC_ARGS:
+            return ModuleProperties::CallFunction<bool>(propertyFunction.argStaticFunction, args);
+        case INSTANCE_ARGS: {
+            const auto modIdToCheck = Lattice::coordTensor[checkFromPosition + modOffset];
+            const auto prop = ModuleIdManager::GetModule(modIdToCheck).properties.Find(propertyName);
+            return prop->CallFunction<bool>(propertyFunction.argInstanceFunction, args);
+        }
+        case default:
+            return false;
+    }
+}
+
+void MovePropertyCheck::Rotate(int a, int b) {
+    std::swap(modOffset[a], modOffset[b]);
+    if (allArgsRotate) {
+        for (auto& arg : args) {
+            if (arg.is_array()) {
+                std::swap(arg[a], arg[b]);
+            }
+        }
+    } else for (const auto i : rotateArgIndices) {
+        std::swap(args[i][a], args[i][b]);
+    }
+}
+
+void MovePropertyCheck::Reflect(int index) {
+    modOffset[index] *= -1;
+    if (allArgsReflect) {
+        for (auto& arg : args) {
+            if (arg.is_array()) {
+                arg[index] = -static_cast<int>(arg[index]);
+            }
+        }
+    } else for (const auto i : reflectArgIndices) {
+        args[i][index] = -static_cast<int>(args[i][index]);
+    }
+}
+
 bool MoveBase::FreeSpaceCheck(const CoordTensor<int>& tensor, const std::valarray<int>& coords) {
     return std::all_of(moves.begin(), moves.end(), [&coords = std::as_const(coords), &tensor = std::as_const(tensor)](auto& move) {
         if (!move.second && (tensor[coords + move.first] > FREE_SPACE)) {
@@ -234,6 +336,12 @@ void Move2d::InitMove(const nlohmann::basic_json<>& moveDef) {
     maxBounds -= initPos;
     bounds[0].second = maxBounds[0];
     bounds[1].second = maxBounds[1];
+    // Set up property checks
+    if (moveDef.contains("propertyChecks")) {
+        for (const auto& check : moveDef["propertyChecks"]) {
+            propertyChecks.push_back(check);
+        }
+    }
     // Set up animation data
     for (const auto& animDef : moveDef["animSeq"]) {
         Move::AnimType animType = Move::StrAnimMap.at(animDef[0]);
@@ -335,6 +443,12 @@ void Move3d::InitMove(const nlohmann::basic_json<>& moveDef) {
     bounds[0].second = maxBounds[0];
     bounds[1].second = maxBounds[1];
     bounds[2].second = maxBounds[2];
+    // Set up property checks
+    if (moveDef.contains("propertyChecks")) {
+        for (const auto& check : moveDef["propertyChecks"]) {
+            propertyChecks.push_back(check);
+        }
+    }
     // Set up animation data
     if (moveDef.contains("animSeq") == true) {
         for (const auto& animDef : moveDef["animSeq"]) {

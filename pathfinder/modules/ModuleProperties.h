@@ -178,6 +178,7 @@ public:
 
     friend class IModuleProperty;
     friend struct PropertyInitializer;
+    friend class MovePropertyCheck;
     friend class boost::hash<ModuleProperties>;
 };
 
