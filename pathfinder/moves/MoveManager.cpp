@@ -229,6 +229,9 @@ void MoveBase::Rotate(const int a, const int b) {
         std::swap(offset[a], offset[b]);
         Move::RotateAnim(type, a, b);
     }
+    for (auto& propertyCheck : propertyChecks) {
+        propertyCheck.Rotate(a, b);
+    }
 }
 
 void MoveBase::Reflect(const int index) {
@@ -241,6 +244,9 @@ void MoveBase::Reflect(const int index) {
     for (auto&[type, offset] : animSequence) {
         type = Move::AnimReflectionMap.at(type)[index];
         offset[index] *= -1;
+    }
+    for (auto& propertyCheck : propertyChecks) {
+        propertyCheck.Reflect(index);
     }
 }
 
