@@ -4,8 +4,8 @@ namespace Colors {
     ColorsRGB::ColorsRGB(const int r, const int g, const int b) : red(r), green(g), blue(b) {}
 
     ColorsRGB::ColorsRGB(const int rgbInt) {
-        red = rgbInt & 0xFF0000;
-        green = rgbInt & 0x00FF00;
+        red = (rgbInt & 0xFF0000) >> 16;
+        green = (rgbInt & 0x00FF00) >> 8;
         blue = rgbInt & 0x0000FF;
     }
 
