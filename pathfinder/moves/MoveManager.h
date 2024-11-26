@@ -137,6 +137,8 @@ public:
 
     bool DoCheck(const std::valarray<int>& checkFromPosition) const;
 
+    MovePropertyCheck* MakeCopy() const override;
+
     void Rotate(int a, int b) override;
 
     void Reflect(int index) override;

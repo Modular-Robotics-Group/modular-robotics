@@ -218,6 +218,13 @@ bool MoveBase::FreeSpaceCheckHelpLimit(const CoordTensor<int>& tensor, const std
     });
 }
 
+MovePropertyCheck *MovePropertyCheck::MakeCopy() const {
+    const auto copy = new MovePropertyCheck(*this);
+    *copy = *this;
+    return copy;
+}
+
+
 void MoveBase::Rotate(const int a, const int b) {
     std::swap(initPos[a], initPos[b]);
     std::swap(finalPos[a], finalPos[b]);
