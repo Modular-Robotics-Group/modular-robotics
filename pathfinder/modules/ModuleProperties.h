@@ -33,7 +33,7 @@ class IModuleProperty;
 
 class IModuleDynamicProperty;
 
-union PropertyFunction {
+struct PropertyFunction {
     boost::shared_ptr<boost::any (*)()> staticFunction;
     boost::shared_ptr<boost::any (*)(IModuleProperty*)> instanceFunction;
     boost::shared_ptr<boost::any (*)(const nlohmann::basic_json<>&)> argStaticFunction;
