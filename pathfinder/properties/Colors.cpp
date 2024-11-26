@@ -65,7 +65,28 @@ boost::any GetColorInt(IModuleProperty* prop) {
     return colorProp->GetColorInt();
 }
 
-boost::any PropertyFuncTest() {
-    std::cout << "Test function! Address: " << reinterpret_cast<void*>(PropertyFuncTest) << std::endl;
-    return 0;
+boost::any IsColor(IModuleProperty* prop, const nlohmann::basic_json<>& args) {
+    const auto colorProp = static_cast<ColorProperty*>(prop);
+    if (args[0].is_number_integer()) {
+        return colorProp->GetColorInt() == args[0];
+    }
+    int color = 0;
+    if (args[0].is_array()) {
+        if (std::all_of(args[0].begin(), args[0].end(),
+                        [](const nlohmann::basic_json<>& i){return i.is_number_integer();})) {
+            for (const int channel : args[0]) {
+                color <<= 8;
+                color += channel;
+            }
+        } else {
+            return false;
+        }
+    } else if (args[0].is_string()) {
+        if (static_cast<std::string>(args[0])[0] == '#') {
+            color = Colors::GetColorFromHex(args[0]);
+        } else {
+            color = Colors::colorToInt[args[0]];
+        }
+    }
+    return colorProp->GetColorInt() == color;
 }

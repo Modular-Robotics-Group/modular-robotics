@@ -42,8 +42,8 @@ boost::any GetColorInt(IModuleProperty* prop);
 inline boost::any(*GetColorInt_Ptr)(IModuleProperty*) = &GetColorInt;
 BOOST_DLL_ALIAS(GetColorInt_Ptr, colorProperty_GetColorInt)
 
-boost::any PropertyFuncTest();
-inline boost::any(*PropertyFuncTest_Ptr)() = &PropertyFuncTest;
-BOOST_DLL_ALIAS(PropertyFuncTest_Ptr, colorProperty_PropertyFuncTest)
+boost::any IsColor(IModuleProperty* prop, const nlohmann::basic_json<>& args);
+inline boost::any(*IsColor_Ptr)(IModuleProperty*, const nlohmann::basic_json<>&) = &IsColor;
+BOOST_DLL_ALIAS(IsColor_Ptr, colorProperty_IsColor)
 
 #endif //MODULAR_ROBOTICS_COLORS_H
