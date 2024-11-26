@@ -465,6 +465,7 @@ int Lattice::AxisSize() {
 }
 
 std::string Lattice::ToString() {
+    static int nextColorId = 0;
     std::stringstream out;
     if (order != 2) {
         DEBUG("Lattice string conversion not permitted for non-2d lattice");
@@ -477,7 +478,20 @@ std::string Lattice::ToString() {
                 out << '#';
             } else {
                 const auto colorProp = (ModuleIdManager::Modules()[id].properties.Find(COLOR_PROP_NAME));
-                out << Colors::intToColor[colorProp->CallFunction<int>("GetColorInt")][0];
+                if (Colors::intToColor.contains(colorProp->CallFunction<int>("GetColorInt"))) {
+                    out << Colors::intToColor[colorProp->CallFunction<int>("GetColorInt")][0];
+                } else {
+                    if (nextColorId < 10) {
+                        Colors::intToColor[colorProp->CallFunction<int>("GetColorInt")] = static_cast<char>('0' + nextColorId);
+                    } else if (nextColorId < 36) {
+                        Colors::intToColor[colorProp->CallFunction<int>("GetColorInt")] = static_cast<char>('a' + nextColorId - 10);
+                    } else if (nextColorId < 62) {
+                        Colors::intToColor[colorProp->CallFunction<int>("GetColorInt")] = static_cast<char>('A' + nextColorId - 36);
+                    } else {
+                        Colors::intToColor[colorProp->CallFunction<int>("GetColorInt")] = "?";
+                    }
+                    nextColorId++;
+                }
             }
         } else if (id >= 0) {
             out << (ModuleIdManager::GetModule(id).moduleStatic ? '#' : '@');
