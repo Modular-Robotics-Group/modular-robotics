@@ -200,4 +200,22 @@ if(${INCLUDE_TESTS})
             -m ./Test-Resources/Moves_Pivot)
 
     set_property(TEST TestParallelCoop PROPERTY PASS_REGULAR_EXPRESSION "A* Final Depth: 5")
+
+    add_test(NAME TestMovePropertyChecks COMMAND Pathfinder_Standard
+            -I ./Test-Resources/Mixed-Modules_initial.json
+            -F ./Test-Resources/Mixed-Modules_final.json
+            -e ./Test-Resources/Output/MovePropertyChecks.scen
+            -a ./Test-Resources/Output/MovePropertyChecks_analysis.json
+            -m ./Test-Resources/Moves_ColorRestricted)
+
+    set_property(TEST TestMovePropertyChecks PROPERTY PASS_REGULAR_EXPRESSION "A* Final Depth: 14")
+
+    # This test takes too long to complete
+#    add_test(NAME 15PuzzleGen COMMAND Pathfinder_Standard
+#            -I ./Test-Resources/15_Puzzle_initial.json
+#            -e ./Test-Resources/Output/15_Puzzle.scen
+#            -a ./Test-Resources/Output/15_Puzzle_analysis.json
+#            -m ./Test-Resources/Moves_15_Puzzle)
+#
+#    set_property(TEST 15PuzzleGen PROPERTY PASS_REGULAR_EXPRESSION "Exporting moves...   Done.")
 endif()

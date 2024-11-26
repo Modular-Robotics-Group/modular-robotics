@@ -1,0 +1,212 @@
+{
+  "moves": [
+    {
+      "name": "Corner Slide (Blue)",
+      "order": 2,
+      "def": [[
+        "?x",
+        "#!"
+      ]],
+      "propertyChecks": [
+        {
+          "module": [0, 0],
+          "property": "colorProperty",
+          "function": "IsColor",
+          "args": [255]
+        }
+      ],
+      "permGen": true,
+      "animSeq": [
+        ["x-slide", [1, 1, 0]]
+      ]
+    },
+    {
+      "name": "Slide (Blue)",
+      "order": 2,
+      "def": [[
+        "?!",
+        "##"
+      ]],
+      "propertyChecks": [
+        {
+          "module": [0, 0],
+          "property": "colorProperty",
+          "function": "IsColor",
+          "args": [255]
+        }
+      ],
+      "permGen": true,
+      "animSeq": [
+        ["slide", [1, 0, 0]]
+      ]
+    },
+    {
+      "name": "Leapfrog Slide (Blue)",
+      "order": 2,
+      "def": [[
+        "?!#",
+        "#"
+      ]],
+      "propertyChecks": [
+        {
+          "module": [0, 0],
+          "property": "colorProperty",
+          "function": "IsColor",
+          "args": [255]
+        }
+      ],
+      "permGen": true,
+      "animSeq": [
+        ["slide", [1, 0, 0]]
+      ]
+    },
+    {
+      "name": "Reverse Leapfrog Slide (Blue)",
+      "order": 2,
+      "def": [[
+        "!?#",
+        "#"
+      ]],
+      "propertyChecks": [
+        {
+          "module": [0, 0],
+          "property": "colorProperty",
+          "function": "IsColor",
+          "args": [255]
+        }
+      ],
+      "permGen": true,
+      "animSeq": [
+        ["slide", [1, 0, 0]]
+      ]
+    },
+    {
+      "name": "Corner Pivot (Green)",
+      "order": 2,
+      "def": [[
+        "xx",
+        "?xx",
+        "#!x"
+      ]],
+      "propertyChecks": [
+        {
+          "module": [0, 0],
+          "property": "colorProperty",
+          "function": "IsColor",
+          "args": [65280]
+        }
+      ],
+      "permGen": true,
+      "animSeq": [
+        ["pivot+y", [1, 1, 0]]
+      ]
+    },
+    {
+      "name": "Pivot (Green)",
+      "order": 2,
+      "def": [[
+        "xx",
+        "?!",
+        "##"
+      ]],
+      "propertyChecks": [
+        {
+          "module": [0, 0],
+          "property": "colorProperty",
+          "function": "IsColor",
+          "args": [65280]
+        }
+      ],
+      "permGen": true,
+      "animSeq": [
+        ["pivot+y", [1, 0, 0]]
+      ]
+    },
+    {
+      "name": "Leapfrog (Green)",
+      "order": 2,
+      "def": [[
+        "xx",
+        "?!#",
+        "#"
+      ]],
+      "propertyChecks": [
+        {
+          "module": [0, 0],
+          "property": "colorProperty",
+          "function": "IsColor",
+          "args": [65280]
+        }
+      ],
+      "permGen": true,
+      "animSeq": [
+        ["pivot+y", [1, 0, 0]]
+      ]
+    },
+    {
+      "name": "Reversed Leapfrog (Green)",
+      "order": 2,
+      "def": [[
+        " xx",
+        "#?!",
+        "  #"
+      ]],
+      "propertyChecks": [
+        {
+          "module": [0, 0],
+          "property": "colorProperty",
+          "function": "IsColor",
+          "args": [65280]
+        }
+      ],
+      "permGen": true,
+      "animSeq": [
+        ["pivot+y", [1, 0, 0]]
+      ]
+    },
+    {
+      "name": "Monkey (Green)",
+      "order": 2,
+      "def": [[
+        "xxx",
+        "?x!",
+        "#x#"
+      ]],
+      "propertyChecks": [
+        {
+          "module": [0, 0],
+          "property": "colorProperty",
+          "function": "IsColor",
+          "args": [65280]
+        }
+      ],
+      "permGen": true,
+      "animSeq": [
+        ["pivot+y", [1, 0, 0]],
+        ["pivot+y", [1, 0, 0]]
+      ]
+    },
+    {
+      "name": "Diagonal Monkey (Green)",
+      "order": 2,
+      "def": [[
+        "x!#",
+        "?xx",
+        "#x"
+      ]],
+      "propertyChecks": [
+        {
+          "module": [0, 0],
+          "property": "colorProperty",
+          "function": "IsColor",
+          "args": [65280]
+        }
+      ],
+      "permGen": true,
+      "animSeq": [
+        ["pivot+y", [1, 0, 0]],
+        ["pivot+x", [0, -1, 0]]
+      ]
+    }
+  ]
+}
