@@ -1,0 +1,99 @@
+{
+    "order": 3,
+    "axisSize": 7,
+    "modules": [
+	{
+		"position": [0, 0, 0],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [0,0,0]
+			}
+		}
+	},
+	{
+		"position": [6, 6, 6],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [0,0,0]
+			}
+		}
+	},
+	{
+		"position": [2, 3, 2],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [3, 3, 2],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [4, 3, 2],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [4, 3, 3],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [4, 3, 4],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [4, 2, 4],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [3, 2, 4],
+		"static": true,
+		"properties": {
+			"colorProperty": {
+				"color": [255,255,255]
+			}
+		}
+	},
+	{
+		"position": [2, 2, 2],
+		"static": false,
+		"properties": {
+			"colorProperty": {
+				"color": [0,0,255]
+			},
+			"orientationProperty": {
+				"orientation": [0, 0, 0]
+			}
+		}
+	}
+    ]
+}

@@ -1,0 +1,108 @@
+{
+  "moves": [
+    {
+      "name": "Pivot-Drop-1",
+      "order": 2,
+      "def": [[
+        " # ",
+        "#?x",
+        "xxx"
+      ]],
+      "propertyUpdates": [
+        {
+          "module": [0, 0],
+          "property": "orientationProperty",
+          "function": "Rotate",
+          "args": [[0, 0, 90]]
+        }
+      ],
+      "permGen": false,
+      "animSeq": [
+        ["pivot-x", [0, 1, 0]],
+        ["slide", [0, -1, 0]]
+      ]
+    },
+    {
+      "name": "Pivot-Drop-2",
+      "order": 2,
+      "def": [[
+        " # ",
+        "x?#",
+        "xxx"
+      ]],
+      "propertyUpdates": [
+        {
+          "module": [0, 0],
+          "property": "orientationProperty",
+          "function": "Rotate",
+          "args": [[0, 0, -90]]
+        }
+      ],
+      "permGen": false,
+      "animSeq": [
+        ["pivot+x", [0, 1, 0]],
+        ["slide", [0, -1, 0]]
+      ]
+    },
+    {
+      "name": "Pivot-Drop-3",
+      "order": 3,
+      "def": [[
+        " ",
+        "#",
+        "x"
+      ], [
+        "#",
+        "?",
+        "x"
+      ], [
+        " ",
+        "x",
+        "x"
+      ]],
+      "propertyUpdates": [
+        {
+          "module": [0, 0],
+          "property": "orientationProperty",
+          "function": "Rotate",
+          "args": [[90, 0, 0]]
+        }
+      ],
+      "permGen": false,
+      "animSeq": [
+        ["pivot-z", [0, 1, 0]],
+        ["slide", [0, -1, 0]]
+      ]
+    },
+    {
+      "name": "Pivot-Drop-4",
+      "order": 3,
+      "def": [[
+        " ",
+        "x",
+        "x"
+      ], [
+        "#",
+        "?",
+        "x"
+      ], [
+        " ",
+        "#",
+        "x"
+      ]],
+      "propertyUpdates": [
+        {
+          "module": [0, 0],
+          "property": "orientationProperty",
+          "function": "Rotate",
+          "args": [[-90, 0, 0]]
+        }
+      ],
+      "permGen": false,
+      "animSeq": [
+        ["pivot+z", [0, 1, 0]],
+        ["slide", [0, -1, 0]]
+      ]
+    }
+  ]
+}

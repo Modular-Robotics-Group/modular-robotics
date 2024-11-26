@@ -86,7 +86,7 @@ add_dependencies(OrientationPropertyLib PropertyLib)
 # Pathfinder
 
 if(${INCLUDE_TESTS})
-    set(Targets Pathfinder Pathfinder_Standard Pathfinder_Rhombic Pathfinder_Parallel)
+    set(Targets Pathfinder Pathfinder_Standard Pathfinder_Rhombic Pathfinder_Parallel Pathfinder_FullCheck)
 else()
     set(Targets Pathfinder)
 endif()
@@ -136,13 +136,22 @@ if(${INCLUDE_TESTS})
 
     target_compile_definitions(Pathfinder_Standard PUBLIC
             LATTICE_RD_EDGECHECK=false
-            CONFIG_PARALLEL_MOVES=false)
+            CONFIG_PARALLEL_MOVES=false
+            MOVEMANAGER_CHECK_BY_OFFSET=true)
     target_compile_definitions(Pathfinder_Rhombic PUBLIC
             LATTICE_RD_EDGECHECK=true
-            CONFIG_PARALLEL_MOVES=false)
+            CONFIG_PARALLEL_MOVES=false
+            MOVEMANAGER_CHECK_BY_OFFSET=true)
     target_compile_definitions(Pathfinder_Parallel PUBLIC
             LATTICE_RD_EDGECHECK=false
-            CONFIG_PARALLEL_MOVES=true)
+            CONFIG_PARALLEL_MOVES=true
+            MOVEMANAGER_CHECK_BY_OFFSET=true)
+    target_compile_definitions(Pathfinder_FullCheck PUBLIC
+            LATTICE_RD_EDGECHECK=false
+            CONFIG_PARALLEL_MOVES=false
+            MOVEMANAGER_CHECK_BY_OFFSET=false)
+
+    add_dependencies(Pathfinder_FullCheck OrientationPropertyLib)
 
     enable_testing()
 
@@ -225,6 +234,26 @@ if(${INCLUDE_TESTS})
             -m ./Test-Resources/Moves_ColorRestricted)
 
     set_property(TEST TestMovePropertyChecks PROPERTY PASS_REGULAR_EXPRESSION "A* Final Depth: 14")
+
+    add_test(NAME TestOrientationProperty COMMAND Pathfinder_FullCheck
+            -I ./Test-Resources/Orientation_initial.json
+            -F ./Test-Resources/Orientation_final.json
+            -e ./Test-Resources/Output/OrientationProperty.scen
+            -a ./Test-Resources/Output/OrientationProperty_analysis.json
+            -m ./Test-Resources/Moves_Orientation
+            -s BDBFS)
+
+    set_property(TEST TestOrientationProperty PROPERTY PASS_REGULAR_EXPRESSION "BDBFS Final Depth: 4")
+
+    add_test(NAME TestOrientationProperty3D COMMAND Pathfinder_FullCheck
+            -I ./Test-Resources/Orientation3D_initial.json
+            -F ./Test-Resources/Orientation3D_final.json
+            -e ./Test-Resources/Output/OrientationProperty3D.scen
+            -a ./Test-Resources/Output/OrientationProperty3D_analysis.json
+            -m ./Test-Resources/Moves_Orientation
+            -s BDBFS)
+
+    set_property(TEST TestOrientationProperty3D PROPERTY PASS_REGULAR_EXPRESSION "BDBFS Final Depth: 6")
 
     # This test takes too long to complete
 #    add_test(NAME 15PuzzleGen COMMAND Pathfinder_Standard
