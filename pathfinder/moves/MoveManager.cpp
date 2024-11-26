@@ -372,12 +372,18 @@ bool Move2d::MoveCheck(const CoordTensor<int>& tensor, const Module& mod) {
     }
 #endif
     // Move Check
-    return std::all_of(moves.begin(), moves.end(), [&mod = std::as_const(mod), &tensor = std::as_const(tensor)](auto& move) {
+    const auto result = std::all_of(moves.begin(), moves.end(), [&mod = std::as_const(mod), &tensor = std::as_const(tensor)](auto& move) {
         if ((tensor[mod.coords + move.first] < 0) == move.second) {
             return false;
         }
         return true;
     });
+    if (result) for (const auto& check : propertyChecks) {
+        if (!check.DoCheck(mod.coords)) {
+            return false;
+        }
+    }
+    return result;
 }
 
 Move3d::Move3d() {
@@ -481,12 +487,18 @@ bool Move3d::MoveCheck(const CoordTensor<int>& tensor, const Module& mod) {
     }
 #endif
     // Move Check
-    return std::all_of(moves.begin(), moves.end(), [&mod = std::as_const(mod), &tensor = std::as_const(tensor)](auto& move) {
+    const auto result = std::all_of(moves.begin(), moves.end(), [&mod = std::as_const(mod), &tensor = std::as_const(tensor)](auto& move) {
         if ((tensor[mod.coords + move.first] < 0) == move.second) {
             return false;
         }
         return true;
     });
+    if (result) for (const auto& check : propertyChecks) {
+        if (!check.DoCheck(mod.coords)) {
+            return false;
+        }
+    }
+    return result;
 }
 
 std::vector<MoveBase*> MoveManager::_moves;
