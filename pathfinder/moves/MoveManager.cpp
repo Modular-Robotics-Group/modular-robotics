@@ -140,7 +140,7 @@ bool MovePropertyCheck::DoCheck(const std::valarray<int>& checkFromPosition) con
             const auto prop = ModuleIdManager::GetModule(modIdToCheck).properties.Find(propertyName);
             return prop->CallFunction<bool>(propertyFunction.argInstanceFunction, args);
         }
-        case default:
+        default:
             return false;
     }
 }
