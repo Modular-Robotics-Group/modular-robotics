@@ -542,7 +542,7 @@ void Move2d::InitMove(const nlohmann::basic_json<>& moveDef) {
         animSequence.emplace_back(animType, animOffset);
     }
     // Generate move permutations if necessary (it pretty much always is)
-    if (moveDef["permGen"] == true) {
+    if (moveDef.contains("permGen") == false || moveDef["permGen"] == true) {
         MoveManager::GenerateMovesFrom(this);
     } else {
         MoveManager::RegisterSingleMove(this);
@@ -666,7 +666,7 @@ void Move3d::InitMove(const nlohmann::basic_json<>& moveDef) {
         }
     }
     // Generate move permutations if necessary (it pretty much always is)
-    if (moveDef.contains("PermGen") == false || moveDef["permGen"] == true) {
+    if (moveDef.contains("permGen") == false || moveDef["permGen"] == true) {
         MoveManager::GenerateMovesFrom(this);
     } else {
         MoveManager::RegisterSingleMove(this);
@@ -798,7 +798,9 @@ void MoveManager::RegisterAllMoves(const std::string& movePath) {
     }
 }
 
+#ifndef MOVEMANAGER_CHECK_BY_OFFSET
 #define MOVEMANAGER_CHECK_BY_OFFSET true
+#endif
 std::vector<MoveBase*> MoveManager::CheckAllMoves(CoordTensor<int>& tensor, Module& mod) {
     std::vector<MoveBase*> legalMoves = {};
 #if MOVEMANAGER_CHECK_BY_OFFSET
