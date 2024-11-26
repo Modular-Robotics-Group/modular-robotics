@@ -727,6 +727,10 @@ void MoveManager::RegisterAllMoves(const std::string& movePath) {
                 // Not currently supported
                 std::cout << "Attempted to create move of order != 2 or 3, moveDef at: " << moveFile.path() << std::endl;
             }
+            if (Lattice::order < moveDef["order"]) {
+                std::cout << "Skipping move registration due to dimension conflict!" << std::endl;
+                continue;
+            }
             if (Lattice::order == 2) {
                 const auto move = new Move2d();
                 Isometry::transformsToFree.push_back(move);
