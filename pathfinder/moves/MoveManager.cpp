@@ -72,7 +72,7 @@ void Move::RotateAnim(Move::AnimType& anim, const int a, const int b) {
 MovePropertyCheck::MovePropertyCheck(const nlohmann::basic_json<> &propertyCheckDef): propertyFunction() {
     bool isInstance = false, hasArguments = false;
     if (propertyCheckDef.contains("module")) {
-        std::vector<int> offsetVec = propertyCheckDef["module"];
+        std::vector<int> offsetVec = propertyCheckDef["module"].get<std::vector<int>>();
         if (offsetVec.size() != Lattice::Order()) {
             offsetVec.resize(Lattice::Order(), 0);
         }
@@ -80,7 +80,7 @@ MovePropertyCheck::MovePropertyCheck(const nlohmann::basic_json<> &propertyCheck
         isInstance = true;
     }
     if (propertyCheckDef.contains("property")) {
-        propertyName = propertyCheckDef["property"];
+        propertyName = propertyCheckDef["property"].get<std::string>();
         if (!isInstance) {
             std::cerr << "Property checks should always specify module offset to check! Defaulting to moving module." << std::endl;
             modOffset = std::valarray<int>(0, Lattice::Order());
@@ -94,7 +94,7 @@ MovePropertyCheck::MovePropertyCheck(const nlohmann::basic_json<> &propertyCheck
     if (propertyCheckDef.contains("rotateArgs")) {
         if (propertyCheckDef["rotateArgs"].is_array()) {
             allArgsRotate = false;
-            rotateArgIndices = static_cast<std::vector<int>>(propertyCheckDef["rotateArgs"]);
+            rotateArgIndices = propertyCheckDef["rotateArgs"].get<std::vector<int>>();
         } else {
             allArgsRotate = propertyCheckDef["rotateArgs"];
         }
@@ -102,7 +102,7 @@ MovePropertyCheck::MovePropertyCheck(const nlohmann::basic_json<> &propertyCheck
     if (propertyCheckDef.contains("reflectArgs")) {
         if (propertyCheckDef["reflectArgs"].is_array()) {
             allArgsReflect = false;
-            reflectArgIndices = static_cast<std::vector<int>>(propertyCheckDef["reflectArgs"]);
+            reflectArgIndices = propertyCheckDef["reflectArgs"].get<std::vector<int>>();
         } else {
             allArgsReflect = propertyCheckDef["reflectArgs"];
         }
