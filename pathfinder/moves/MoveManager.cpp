@@ -378,6 +378,27 @@ void MoveManager::InitMoveManager(const int order, const int maxDistance) {
             {}, std::valarray<int>(maxDistance, order)));
 }
 
+void MoveManager::MoveModule(Module& mod, const MoveBase* move) {
+    Lattice::ClearAdjacencies(mod.id);
+    Lattice::coordTensor[mod.coords] = FREE_SPACE;
+    mod.coords += ModuleProperties::IsReversing() ? -move->MoveOffset() : move->MoveOffset();
+    Lattice::coordTensor[mod.coords] = mod.id;
+#if LATTICE_RD_EDGECHECK
+    Lattice::RDEdgeCheck(mod);
+#else
+    Lattice::EdgeCheck(mod);
+#endif
+    if (!Lattice::ignoreProperties) {
+        mod.properties.UpdateProperties(move->MoveOffset());
+    }
+}
+
+void MoveManager::UnMoveModule(Module &mod, const MoveBase *move) {
+    ModuleProperties::ToggleReverse();
+    MoveModule(mod, move);
+    ModuleProperties::ToggleReverse();
+}
+
 void MoveManager::GenerateMovesFrom(MoveBase* origMove) {
     auto list = Isometry::GenerateTransforms(origMove);
 #if MOVEMANAGER_VERBOSE > MM_LOG_NONE
@@ -661,14 +682,14 @@ std::vector<std::set<ModuleData>> MoveManager::MakeAllParallelMoves(std::unorder
                 for (int i = 0; i < modCount; i++) {
                     auto move = _moves[modMoveIndex[i]];
                     auto mod = mods[i];
-                    Lattice::MoveModule(*mod, move->MoveOffset());
+                    MoveModule(*mod, move);
                 }
                 adjStates.push_back(Lattice::GetModuleInfo());
                 visited.insert(HashedState(Lattice::GetModuleInfo()));
                 for (int i = 0; i < modCount; i++) {
                     auto move = _moves[modMoveIndex[i]];
                     auto mod = mods[i];
-                    Lattice::MoveModule(*mod, -move->MoveOffset());
+                    UnMoveModule(*mod, move);
                 }
             }
         }
@@ -853,7 +874,7 @@ std::vector<std::pair<Module*, MoveBase*>> MoveManager::FindParallelMovesToState
             for (int i = 0; i < modCount; i++) {
                 auto move = _moves[modMoveIndex[i]];
                 auto mod = mods[i];
-                Lattice::MoveModule(*mod, move->MoveOffset());
+                MoveModule(*mod, move);
             }
             if (Lattice::GetModuleInfo() == modData) {
                 for (int i = 0; i < modCount; i++) {
@@ -862,14 +883,14 @@ std::vector<std::pair<Module*, MoveBase*>> MoveManager::FindParallelMovesToState
                 for (int i = 0; i < modCount; i++) {
                     auto move = _moves[modMoveIndex[i]];
                     auto mod = mods[i];
-                    Lattice::MoveModule(*mod, -move->MoveOffset());
+                    UnMoveModule(*mod, move);
                 }
                 break;
             }
             for (int i = 0; i < modCount; i++) {
                 auto move = _moves[modMoveIndex[i]];
                 auto mod = mods[i];
-                Lattice::MoveModule(*mod, -move->MoveOffset());
+                UnMoveModule(*mod, move);
             }
         }
     }

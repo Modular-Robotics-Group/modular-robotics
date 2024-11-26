@@ -195,6 +195,12 @@ public:
     // Initialize Move Manager
     static void InitMoveManager(int order, int maxDistance);
 
+    // Move a module
+    static void MoveModule(Module& mod, const MoveBase* move);
+
+    // Reverse a move
+    static void UnMoveModule(Module& mod, const MoveBase* move);
+
     // Generate multiple moves from a single move definition
     static void GenerateMovesFrom(MoveBase* origMove);
 

@@ -107,7 +107,7 @@ void Scenario::ExportToScen(const std::vector<const Configuration *>& path, cons
         }
         // Make moves
         for (auto [mod, move] : parallelMoves) {
-            Lattice::MoveModule(*mod, move->MoveOffset());
+            MoveManager::MoveModule(*mod, move);
         }
 #else
         auto [movingModule, move] = MoveManager::FindMoveToState(path[i]->GetModData());
@@ -122,7 +122,7 @@ void Scenario::ExportToScen(const std::vector<const Configuration *>& path, cons
             file << modDef.str() << std::endl << std::endl;
             checkpoint = false;
         }
-        Lattice::MoveModule(*modToMove, move->MoveOffset());
+        MoveManager::MoveModule(*modToMove, move);
 #endif
     }
     std::cout << "Done." << std::endl;

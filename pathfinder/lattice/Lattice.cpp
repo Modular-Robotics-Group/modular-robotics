@@ -68,21 +68,6 @@ void Lattice::AddBound(const std::valarray<int>& coords) {
     coordTensor[coords] = OUT_OF_BOUNDS;
 }
 
-void Lattice::MoveModule(Module& mod, const std::valarray<int>& offset) {
-    ClearAdjacencies(mod.id);
-    coordTensor[mod.coords] = FREE_SPACE;
-    mod.coords += offset;
-    coordTensor[mod.coords] = mod.id;
-#if LATTICE_RD_EDGECHECK
-    RDEdgeCheck(mod);
-#else
-    EdgeCheck(mod);
-#endif
-    if (!ignoreProperties) {
-        mod.properties.UpdateProperties(offset);
-    }
-}
-
 bool Lattice::CheckConnected(int permitMissing) {
     if (moduleCount == 0) return true;
     std::vector<bool> visited(moduleCount, false);

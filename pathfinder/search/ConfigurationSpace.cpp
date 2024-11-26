@@ -70,9 +70,9 @@ std::vector<std::set<ModuleData>> Configuration::MakeAllMoves() const {
     for (const auto module: movableModules) {
         auto legalMoves = MoveManager::CheckAllMoves(Lattice::coordTensor, *module);
         for (const auto move : legalMoves) {
-            Lattice::MoveModule(*module, move->MoveOffset());
+            MoveManager::MoveModule(*module, move);
             result.emplace_back(Lattice::GetModuleInfo());
-            Lattice::MoveModule(*module, -move->MoveOffset());
+            MoveManager::UnMoveModule(*module, move);
         }
     }
     return result;
@@ -88,11 +88,11 @@ std::vector<std::set<ModuleData>> Configuration::MakeAllMovesForAllVertices() co
     for (const auto module: movableModules) {
         auto legalMoves = MoveManager::CheckAllMoves(Lattice::coordTensor, *module);
         for (const auto move: legalMoves) {
-            Lattice::MoveModule(*module, move->MoveOffset());
+            MoveManager::MoveModule(*module, move);
             if (Lattice::CheckConnected()) {
                 result.emplace_back(Lattice::GetModuleInfo());
             }
-            Lattice::MoveModule(*module, -move->MoveOffset());
+            MoveManager::UnMoveModule(*module, move);
         }
     }
     return result;

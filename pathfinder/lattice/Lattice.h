@@ -76,9 +76,6 @@ public:
     // Add a new boundary
     static void AddBound(const std::valarray<int>& coords);
 
-    // Move a module
-    static void MoveModule(Module& mod, const std::valarray<int>& offset);
-
     static bool CheckConnected(int permitMissing = 0);
 
     // Adjacency Check
