@@ -96,8 +96,8 @@ int main(int argc, char* argv[]) {
             }
         }
     }
-#if !GENERATE_FINAL_STATE
     std::size_t trimPos;
+#if !GENERATE_FINAL_STATE
     if (finalFile.empty()) {
         if ((trimPos = initialFile.find("_initial")) != std::string::npos) {
             finalFile = initialFile;
