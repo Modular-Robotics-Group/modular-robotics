@@ -440,6 +440,9 @@ void Move2d::InitMove(const nlohmann::basic_json<>& moveDef) {
                 case Move::INITIAL:
                     initPos = {x, y};
                     bounds = {{x, 0}, {y, 0}};
+                    if (finalPos.size() == 0) {
+                        finalPos = {x, y};
+                    }
                     break;
             }
             if (x > maxBounds[0]) {
@@ -552,6 +555,9 @@ void Move3d::InitMove(const nlohmann::basic_json<>& moveDef) {
                         bounds = {{x, 0},
                                   {y, 0},
                                   {z, 0}};
+                        if (finalPos.size() == 0) {
+                            finalPos = {x, y, z};
+                        }
                         break;
                 }
                 if (x > maxBounds[0]) {
@@ -715,7 +721,7 @@ void MoveManager::RegisterAllMoves(const std::string& movePath) {
 #endif
             } else if (moveDef["order"] == 3) {
 #if MOVEMANAGER_VERBOSE > MM_LOG_NONE
-                DEBUG("Registering 3d move " << Lattice::order << "d space: " << moveDef["name"] << std::endl);
+                DEBUG("Registering 3d move in " << Lattice::order << "d space: " << moveDef["name"] << std::endl);
 #endif
             } else {
                 // Not currently supported
@@ -968,7 +974,6 @@ std::vector<std::set<ModuleData>> MoveManager::MakeAllParallelMoves(std::unorder
     return adjStates;
 }
 
-#define MOVEMANAGER_CHECK_BY_OFFSET true
 std::vector<MoveBase*> MoveManager::CheckAllMovesAndConnectivity(CoordTensor<int>& tensor, Module& mod) {
     std::vector<MoveBase*> legalMoves = {};
 #if MOVEMANAGER_CHECK_BY_OFFSET
@@ -1019,7 +1024,17 @@ std::pair<Module*, MoveBase*> MoveManager::FindMoveToState(const std::set<Module
         }
     }
     if (candidates.size() != 1) {
-        return {nullptr, nullptr};
+        for (const auto& info : modData) {
+            for (const auto& mod : ModuleIdManager::FreeModules()) {
+                if (mod.properties != info.Properties()) {
+                    candidates.insert(mod.id);
+                    destination = info.Coords();
+                }
+            }
+        }
+        if (candidates.size() != 1) {
+            return {nullptr, nullptr};
+        }
     }
     modToMove = &ModuleIdManager::GetModule(*candidates.begin());
     if (modToMove == nullptr) {
