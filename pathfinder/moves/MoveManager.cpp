@@ -404,6 +404,9 @@ void MoveBase::Rotate(const int a, const int b) {
     for (auto& propertyCheck : propertyChecks) {
         propertyCheck.Rotate(a, b);
     }
+    for (auto& propertyUpdate : propertyUpdates) {
+        propertyUpdate.Rotate(a, b);
+    }
 }
 
 void MoveBase::Reflect(const int index) {
@@ -419,6 +422,9 @@ void MoveBase::Reflect(const int index) {
     }
     for (auto& propertyCheck : propertyChecks) {
         propertyCheck.Reflect(index);
+    }
+    for (auto& propertyUpdate : propertyUpdates) {
+        propertyUpdate.Reflect(index);
     }
 }
 
