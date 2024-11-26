@@ -100,6 +100,18 @@ void ModuleProperties::LinkProperties() {
                 InstFunctions()[functionName] = boost::dll::import_alias<boost::any(*)(IModuleProperty*)>(propertyLibrary, ptrName);
             }
         }
+        if (propertyClassDef.contains("argumentFunctions")) {
+            for (const auto& functionName : propertyClassDef["argumentFunctions"]) {
+                auto ptrName = propertyName + "_" + static_cast<std::string>(functionName);
+                ArgFunctions()[functionName] = boost::dll::import_alias<boost::any(*)(boost::any...)>(propertyLibrary, ptrName);
+            }
+        }
+        if (propertyClassDef.contains("argumentInstanceFunctions")) {
+            for (const auto& functionName : propertyClassDef["argumentInstanceFunctions"]) {
+                auto ptrName = propertyName + "_" + static_cast<std::string>(functionName);
+                ArgInstFunctions()[functionName] = boost::dll::import_alias<boost::any(*)(IModuleProperty*, boost::any...)>(propertyLibrary, ptrName);
+            }
+        }
         std::cout << "\tLinked " << propertyLibName << '.' << std::endl;
         _propertiesLinkedCount++;
     }
