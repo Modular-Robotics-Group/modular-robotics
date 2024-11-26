@@ -1,0 +1,8 @@
+{
+  "filename": "OrientationPropertyLib",
+  "name": "orientationProperty",
+  "propertyClass": "Variable",
+  "argumentInstanceFunctions": [
+    "Rotate"
+  ]
+}

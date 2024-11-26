@@ -51,6 +51,8 @@ if(NOT "${CMAKE_CURRENT_BINARY_DIR}" STREQUAL "${CMAKE_CURRENT_LIST_DIR}")
     )
 endif()
 
+# Base Property Library
+
 add_library(PropertyLib SHARED pathfinder/modules/ModuleProperties.cpp)
 
 target_link_libraries(PropertyLib ${Boost_LIBRARIES})
@@ -61,6 +63,8 @@ target_link_libraries(PropertyLib Boost::filesystem)
 
 set_target_properties(PropertyLib PROPERTIES PREFIX "")
 
+# Color Property
+
 add_library(ColorPropertyLib MODULE pathfinder/properties/Colors.cpp pathfinder/utility/color_util.cpp)
 
 set_target_properties(ColorPropertyLib PROPERTIES PREFIX "")
@@ -68,6 +72,18 @@ set_target_properties(ColorPropertyLib PROPERTIES PREFIX "")
 target_link_libraries(ColorPropertyLib PropertyLib)
 
 add_dependencies(ColorPropertyLib PropertyLib)
+
+# Orientation Property
+
+add_library(OrientationPropertyLib MODULE EXCLUDE_FROM_ALL pathfinder/properties/Orientation.cpp)
+
+set_target_properties(OrientationPropertyLib PROPERTIES PREFIX "")
+
+target_link_libraries(OrientationPropertyLib PropertyLib)
+
+add_dependencies(OrientationPropertyLib PropertyLib)
+
+# Pathfinder
 
 if(${INCLUDE_TESTS})
     set(Targets Pathfinder Pathfinder_Standard Pathfinder_Rhombic Pathfinder_Parallel)
