@@ -3,6 +3,15 @@
 #include "ModuleProperties.h"
 #include "../utility/debug_util.h"
 
+const char *IntegerPropertyExcept::what() const noexcept {
+    return "Property cannot be accurately represented as an integer!";
+}
+
+std::uint_fast64_t IModuleProperty::AsInt() const {
+    throw IntegerPropertyExcept();
+}
+
+
 void IModuleProperty::CallFunction(const std::string& funcKey) {
     if (ModuleProperties::InstFunctions().contains(funcKey)) {
         (*ModuleProperties::InstFunctions()[funcKey])(this);

@@ -16,6 +16,12 @@ concept Const = std::is_const_v<T> || std::is_reference_v<T> && std::is_const_v<
 template<typename T>
 concept Ref = std::is_reference_v<T>;
 
+class IntegerPropertyExcept : public std::exception {
+public:
+    [[nodiscard]]
+    const char* what() const noexcept override;
+};
+
 class IModuleProperty;
 
 class IModuleDynamicProperty;
@@ -114,7 +120,7 @@ protected:
     virtual IModuleProperty* MakeCopy() const = 0;
 
     [[nodiscard]]
-    virtual std::uint_fast64_t AsInt() const = 0;
+    virtual std::uint_fast64_t AsInt() const;
 
 public:
     virtual std::size_t GetHash() = 0;
