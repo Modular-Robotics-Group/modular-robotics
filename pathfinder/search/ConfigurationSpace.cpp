@@ -998,10 +998,13 @@ std::vector<const Configuration*> ConfigurationSpace::BDAStar(BDConfiguration* s
                 visited.insert(nextConfiguration->GetHash());
             } else if (static_cast<const BDConfiguration *>(visited.find(HashedState(moduleInfo))->FoundAt())-> // NOLINT Trust me, it will be BDConfiguration
                     GetOrigin() != current->GetOrigin()) {
-                if (current->GetOrigin() == START) {
-                    depthFromStart++;
-                } else {
-                    depthFromFinal++;
+                if ((current->GetOrigin() == START && current->depth != depthFromStart) ||
+                    (current->GetOrigin() == END && current->depth != depthFromFinal)) {
+                    if (current->GetOrigin() == START) {
+                        depthFromStart++;
+                    } else {
+                        depthFromFinal++;
+                    }
                 }
 #if CONFIG_VERBOSE > CS_LOG_FINAL_DEPTH
 #if CONFIG_OUTPUT_JSON
