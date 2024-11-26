@@ -24,6 +24,8 @@ namespace Colors {
 
     ColorsRGB ConvertColorNameToRGB(const std::string& colorName);
 
+    int GetColorFromHex(const std::string& colorHex);
+
     extern std::map<std::string, int> colorToInt;
 
     extern std::map<int, std::string> intToColor;

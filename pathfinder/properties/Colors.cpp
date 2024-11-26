@@ -36,7 +36,11 @@ ColorProperty::ColorProperty(const nlohmann::basic_json<>& propertyDef) {
             }
         }
     } else if (propertyDef[COLOR].is_string()) {
-        color = Colors::colorToInt[propertyDef[COLOR]];
+        if (static_cast<std::string>(propertyDef[COLOR])[0] == '#') {
+            color = Colors::GetColorFromHex(propertyDef[COLOR]);
+        } else {
+            color = Colors::colorToInt[propertyDef[COLOR]];
+        }
     } else {
         std::cerr << "Color improperly formatted." << std::endl;
         return;

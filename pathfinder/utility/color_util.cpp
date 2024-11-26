@@ -34,6 +34,21 @@ namespace Colors {
         return ColorsRGB(0);
     }
 
+    int GetColorFromHex(const std::string &colorHex) {
+        int colorInt = 0;
+        for (const auto &c : colorHex) {
+            colorInt <<= 4;
+            if (c >= '0' && c <= '9') {
+                colorInt = colorInt + c - '0';
+            } else if (c >= 'a' && c <= 'f') {
+                colorInt = colorInt + 10 + c - 'a';
+            } else if (c >= 'A' && c <= 'F') {
+                colorInt = colorInt + 10 + c - 'A';
+            }
+        }
+        return colorInt;
+    }
+
     std::map<std::string, int> colorToInt = {
             {"red", 0xFF0000},
             {"green", 0x00FF00},
