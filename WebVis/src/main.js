@@ -41,20 +41,20 @@ window.gwScenarioRadius = 1.0;
 
 let renderMode = 'WEBGL';
 function _setupWebGLRenderer() {
-    gCanvas.width = window.innerWidth;
-    gCanvas.height = window.innerHeight;
+    gCanvas.width = gCanvas.clientWidth;
+    gCanvas.height = gCanvas.clientHeight;
     gRenderer = new THREE.WebGLRenderer( {canvas: gCanvas, antialiasing: true} );
     gRenderer.setPixelRatio(window.devicePixelRatio * 1.5);
     THREE.ColorManagement.enabled = true;
     gRenderer.shadowMap.enabled = true;
-    gRenderer.setSize(window.innerWidth, window.innerHeight);
+    gRenderer.setSize(gCanvas.clientWidth, gCanvas.clientHeight);
 }
 function _setupSVGRenderer() {
     gCanvas.width = 0;
     gCanvas.height = 0;
     THREE.ColorManagement.enabled = false;
     gRenderer = new SVGRenderer( {} );
-    gRenderer.setSize(window.innerWidth, window.innerHeight);
+    gRenderer.setSize(gCanvas.clientWidth, gCanvas.clientHeight);
     document.body.appendChild(gRenderer.domElement);
     gRenderer.domElement.setAttribute('xmlns' ,'http://www.w3.org/2000/svg');
     requestAnimationFrame(animate);
@@ -73,6 +73,7 @@ export function toggleRenderMode() {
 /* --- setup --- */
 export let gRenderer;
 export const gCanvas = document.getElementById("scene");
+gCanvas._scale = gCanvas.clientWidth / window.innerWidth; // Used for resizing
 export const gLights = {_fullbright: false};
 export const gScene = new THREE.Scene();
 export const gUser = new User();

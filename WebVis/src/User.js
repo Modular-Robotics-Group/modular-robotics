@@ -56,8 +56,8 @@ export class User {
 }
 
 function window_resize_callback() {
-    const width = window.innerWidth;
-    const height = window.innerHeight;
+    const width = window.innerWidth * gCanvas._scale;
+    const height = window.innerHeight * gCanvas._scale;
 
     let newAspect = width/height;
     switch (gUser.cameraStyle) {
