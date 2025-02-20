@@ -73,7 +73,8 @@ export function toggleRenderMode() {
 /* --- setup --- */
 export let gRenderer;
 export const gCanvas = document.getElementById("scene");
-gCanvas._scale = gCanvas.clientWidth / window.innerWidth; // Used for resizing
+gCanvas._xscale = gCanvas.clientWidth / window.innerWidth; // Used for resizing
+gCanvas._yscale = gCanvas.clientHeight / window.innerHeight; // Used for resizing
 export const gLights = {_fullbright: false};
 export const gScene = new THREE.Scene();
 export const gUser = new User();
