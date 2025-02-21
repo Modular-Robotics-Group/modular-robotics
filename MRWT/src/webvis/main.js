@@ -195,6 +195,7 @@ function animate(time) {
 let debugId = 0;
 document.getElementById ("addModule").addEventListener ("click", debugAddMod, false);
 document.getElementById ("deleteModule").addEventListener ("click", debugDeleteMod, false);
+// document.getElementById ("addModuleAtPosition").addEventListener ("click", addModuleAtPosition, false);
 
 function debugAddMod() {
     new Module(ModuleType.RHOMBIC_DODECAHEDRON, debugId, new THREE.Vector3(debugId, debugId, debugId), 0xFFFFFF, 0.9);
@@ -205,4 +206,8 @@ function debugDeleteMod() {
     debugId--;
 }
 
+function addModuleAtPosition(x, y, z, color = 0xFFFFFF, scale = 0.9) {
+    new Module(ModuleType.CUBE, debugId, new THREE.Vector3(x, y, z), color, scale);
+}
 
+window.addModuleAtPosition = addModuleAtPosition;
