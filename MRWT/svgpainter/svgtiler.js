@@ -388,6 +388,7 @@ ${this.body.svg().replace(/transform="[^"]*"/, '')}
                   });
                   this.set(x, y, after);
                   autosize[this.id] = true;
+                  window.addModuleAtPosition(x, y, 0);
                   return button = e.button;
                 }).mouseover((e) => {
                   var after, ref2;
