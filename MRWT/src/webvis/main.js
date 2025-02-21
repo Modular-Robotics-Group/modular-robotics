@@ -107,9 +107,9 @@ let axesHelper = new THREE.AxesHelper(5);
 gScene.add(axesHelper);
 
 // On page loaded
-document.addEventListener("DOMContentLoaded", async function () {
-    new Scenario(await fetch('./Scenarios/3x3 Metamodule.scen').then(response => response.text()));
-});
+// document.addEventListener("DOMContentLoaded", async function () {
+//     new Scenario(await fetch('./Scenarios/3x3 Metamodule.scen').then(response => response.text()));
+// });
 
 // TODO Put all this in a better place?
 let moveSet;

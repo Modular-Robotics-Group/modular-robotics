@@ -1,64 +1,49 @@
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-    <link rel="stylesheet" href="styles.css">
-    <script type="importmap"> {
-        "imports": {
-            "three": "https://cdn.jsdelivr.net/npm/three@0.167.1/build/three.module.js",
-            "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.167.1/examples/jsm/"
-        }
-    } </script>
-    <meta charset="utf-8">
-    <title>CubeTiler</title>
-</head>
-
-<body>
-
-<div class="mrwt">
-    <div class="controls" id="controls">
-        <button id="addModule">ADD MODULE</button>
-        <button id="deleteModule">DELETE MODULE</button>
-
-        <!-- <button id="zUp" onclick="upLayer()">+1 Layer</button>
-        <button id="zDown" onclick="downLayer()">-1 Layer</button>
-        <button id="highlight" onclick="highlightLayer()">Highlight Layer</button>
-        <button id="undo">Undo</button>
-        <button id="redo">Redo</button>
-        <button id="clear">Clear</button>
-        <button id="switch-shape">Switch to Dodecahedron</button>
-        <button id="importFromJson" onclick="triggerFileInput('fileInputJson')">Import from JSON</button>
-        <input type="file" id="fileInputJson" accept=".json" style="display: none;" onchange="importFromJson(event)">
-        <button id="importMetamodule" onclick="triggerFileInput('fileInputMetamodule')">Import Metamodule</button>
-        <input type="file" id="fileInputMetamodule" accept=".json" style="display: none;" onchange="importMetamodule(event)">
-        <button id="exportToJson" onclick="exportToJson()">Export to JSON</button>
-        <button id="exportToObj" onclick="exportToObj()">Export to OBJ</button>
-        <button id="static" onclick="toggleStatic()">Static</button>
-        <button id="red" onclick="changeColor([255, 0, 0])">Red</button>
-        <button id="green" onclick="changeColor([0, 255, 0])">Green</button>
-        <button id="blue" onclick="changeColor([0, 0, 255])">Blue</button>
-        <button id="yellow" onclick="changeColor([255, 255, 0])">Yellow</button>
-        <button id="cyan" onclick="changeColor([0, 255, 255])">Cyan</button>
-        <button id="magenta" onclick="changeColor([255, 0, 255])">Magenta</button>
-        <button id="black" onclick="changeColor([0, 0, 0])">Black</button>
-        <button id="white" onclick="changeColor([255, 255, 255])">White</button>
-        <p id="curLayer" style="width: 10em;">Current Layer = 0</p>
-        <p id="coordinates">Tile Coordinates: x=0, y=0</p>
-        <button id="increaseTileSize" onclick="increaseTileSize()">Increase Tile Size</button>
-        <button id="decreaseTileSize" onclick="decreaseTileSize()">Decrease Tile Size</button>
-        <a href="https://github.com/gShahr/modular-robotics/wiki/3D-Tiler" target="_blank">3D Tiler Wiki</a>
-        -->
-    </div>
-    <div class="grid" id="grid">
-        -- 2dgrid -- 
-        <canvas id="canvas-grid">
-    </div>
-    <div class="webvis" id="webvis">
-        <canvas id="canvas-webvis">
-    </div>
-
-    <script type="module" src="src/webvis/main.js"></script>
-    <script type="module" src="src/grid/grid.js"></script>
-</body>
-
-</html>
+<HTML>
+<HEAD>
+<TITLE>SVG Painter</TITLE>
+<link rel="stylesheet" href="styles.css">
+<SCRIPT SRC="svgpainter/node_modules/jquery/dist/jquery.min.js"></SCRIPT>
+<SCRIPT SRC="svgpainter/node_modules/svg.js/dist/svg.min.js"></SCRIPT>
+<script type="importmap"> {
+  "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.167.1/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.167.1/examples/jsm/"
+  }
+}
+</script>
+<!--
+<SCRIPT SRC="/js/coffee-script.js"></SCRIPT>
+<SCRIPT TYPE="text/coffeescript" SRC="svgtiler.coffee"></SCRIPT>
+-->
+<SCRIPT SRC="svgpainter/svgtiler.js"></SCRIPT>
+<STYLE>
+  body { display: flex; margin: 0px; align-items: stretch; width: 100%; height: 100%; }
+  #palette { width: 100px; padding-right: 4px; display: table-cell; vertical-align: top; overflow-y: scroll; box-sizing: border-box; }
+  .tool { display: inline-block; width: 25px; height: 25px; border: 5px solid; border-color: white; }
+  .tool svg { transform: scale(0.5); transform-origin: top left; position: relative; overflow: visible; }
+  #shift { vertical-align: top; }
+  #svg { width: 100%; height: 100%; box-sizing: border-box; vertical-align: top; overflow: auto; }
+  button, textarea { margin-bottom: 2ex; width: 100% }
+</STYLE>
+</HEAD>
+<BODY>
+<DIV ID="palette">
+  <BUTTON ID="save">Save</BUTTON>
+  <TEXTAREA ID="file"></TEXTAREA>
+  <BUTTON ID="load">Load</BUTTON>
+  <BUTTON ID="undo" TITLE="[Ctrl]-Z">Undo</BUTTON>
+  <BUTTON ID="redo" TITLE="[Ctrl]-Y">Redo</BUTTON>
+  <!--
+  <BUTTON ID="save">Save to Clipboard</BUTTON>
+  <BUTTON ID="load">Load from Clipboard</BUTTON>
+  -->
+</DIV>
+<DIV ID="svg">
+</DIV>
+<div class="webvis" id="webvis">
+  <canvas id="canvas-webvis">
+</div>
+<A style="display: none" id="svglink"></A>
+<script type="module" src="src/webvis/main.js"></script>
+</BODY>
+</HTML>
