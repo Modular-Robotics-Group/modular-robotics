@@ -13,8 +13,8 @@
 //#include "moves/Scenario.h"
 //#include "search/SearchAnalysis.h"
 //#include "search/HeuristicCache.h"
-#include "coordtensor/CoordTensor.h"
-#include "utility/color_util.h"
+#include "../../pathfinder/coordtensor/CoordTensor.h"
+#include "../../pathfinder/utility/color_util.h"
 
 struct ScenInfo {
     std::string exportFile;
