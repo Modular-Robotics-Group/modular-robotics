@@ -77,6 +77,8 @@ export class Module {
     }
 
     destroy() {
+        gModules[this.id] = null;
+        gModulePositions.set(JSON.stringify({x: Math.round(this.pos.x), y: Math.round(this.pos.y), z: Math.round(this.pos.z)}), null);
         gScene.remove(this.parentMesh);
         this.mesh.geometry.dispose();
         this.mesh.material.dispose();
