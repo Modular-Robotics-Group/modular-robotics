@@ -18,11 +18,14 @@ function _constructBorderedMaterial(texture, color, opacity) {
             //  We will inject code to the end of main
             let endOfMain = shader.fragmentShader.lastIndexOf('}');
 
-            // We will inject a uniform variable at the head of the shader source file
-            let uniformsToInject = 
+            // Anything to inject at the top of the shader (uniforms, macros, etc)
+            let uniformsToInject = ``;
+
+/*          let uniformsToInject =
 `uniform vec4 borderAttrs;
 `           // Hook up these uniforms to a variable TODO: add actual variability
             shader.uniforms.borderAttrs = { value: new THREE.Vector4(0.0, 0.0, 0.0, 0.02) }; // R,G,B,width
+*/
             
             // We will inject some helper functions
             let helperFunctions =
@@ -35,15 +38,16 @@ float y = Between(orig.y, orig.y + wh.y, st.y);
 return x*y;
 }
 `;          // We will inject code at the end of main()
-            let codeToInjectToMain =
-`float borderMask = 1.0 - Rectangle(vec2(borderAttrs.w), vec2(1.0 - 2.0*borderAttrs.w), vMapUv);
+            let codeToInjectToMain = ``;
+/*`float borderMask = 1.0 - Rectangle(vec2(borderAttrs.w), vec2(1.0 - 2.0*borderAttrs.w), vMapUv);
 float interiorMask = 1.0 - borderMask;
 vec3 borderColor = borderAttrs.xyz;
 vec3 border = borderMask * borderColor;
 
 vec3 interior = gl_FragColor.xyz * interiorMask;
 gl_FragColor = vec4(interior + border, gl_FragColor.a);
-`;          // Perform the injection
+`*/
+            // Perform the injection
             shader.fragmentShader = 
                 uniformsToInject
                 + shader.fragmentShader.substring(0, beginningOfMain)
