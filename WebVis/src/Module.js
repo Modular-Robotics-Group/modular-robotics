@@ -12,7 +12,7 @@ import { gScene, gModules, gRenderer } from "./main.js";
 import { Move } from "./Move.js"
 
 const gTexLoader = new THREE.TextureLoader();
-let cubeTexture = gTexLoader.load('./resources/textures/cube_face.png');
+let cubeTexture = gTexLoader.load('./resources/textures/box.png');
 let rdTexture = gTexLoader.load('./resources/textures/cube_face.png');
 let catomTexture = gTexLoader.load('./resources/textures/catom.png');
 
