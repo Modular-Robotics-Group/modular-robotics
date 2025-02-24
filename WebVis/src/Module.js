@@ -102,6 +102,7 @@ export class Module {
             }
             if (iPct < step.maxPct) { break; }
         }
+        transform.multiply(this.cumulativeRotationMatrix);
         this._setMeshMatrix(transform);
     }
 
