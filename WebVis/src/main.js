@@ -85,10 +85,11 @@ gScene.background = gScene._backgroundColors[gScene._backgroundColorSelected];
 requestAnimationFrame(animate);
 
 /* --- objects --- */
-// Module constructor automatically adds modules to this global
+// Module constructor automatically adds modules to these globals
 // Create a dummy module just to have something on the screen
 //  Once the page is loaded, it should automatically fetch an example scenario anyway
 export const gModules = {}
+export const gModulePositions = new Map();
 new Module(ModuleType.RHOMBIC_DODECAHEDRON, 0, new THREE.Vector3(0.0, 0.0, 0.0), 0xFFFFFF, 0.9);
 
 /* --- lights --- */

@@ -8,7 +8,7 @@ import * as THREE from 'three';
 import { ModuleType, MoveType } from "./utils.js";
 import { ModuleData } from "./ModuleGeometries.js";
 import { ModuleMaterialConstructors } from "./ModuleMaterials.js";
-import { gScene, gModules, gRenderer } from "./main.js";
+import { gScene, gModules, gModulePositions, gRenderer } from "./main.js";
 import { Move } from "./Move.js"
 
 const gTexLoader = new THREE.TextureLoader();
@@ -73,6 +73,7 @@ export class Module {
         //this.mesh.add(axesHelper);
         gScene.add(this.parentMesh);
         gModules[id] = this;
+        gModulePositions.set(JSON.stringify({x: Math.round(pos.x), y: Math.round(pos.y), z: Math.round(pos.z)}), this);
     }
 
     destroy() {
