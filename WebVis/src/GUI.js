@@ -67,6 +67,26 @@ function _generateExampleLoader(name) {
     return () => _loadExampleScenario(name);
 }
 
+// web Pathfinder stuff
+// TODO: I'm not sure this is the right place to put this functionality, feel free
+// to move it somewhere else if you can find a spot that makes more sense.
+const pathfinder = Module.cwrap("pathfinder", "string", ["string", "string"]);
+let pathfinder_config_i ='{"exists": false}';
+let pathfinder_config_f ='{"exists": false}';
+window._pathfinderConfigDEBUG = async function() {
+    let example_configs = "";
+    await fetch("../pathfinder/example_config.json").then(response => response.text()).then(text => { example_configs = text });
+    let j = JSON.parse(example_configs);
+    pathfinder_config_i = JSON.stringify(j.initial);
+    pathfinder_config_f = JSON.stringify(j.final);
+}
+
+window._pathfinderRun = function() {
+    let rv = pathfinder(pathfinder_config_i, pathfinder_config_f);
+    //console.log(rv); // Uncomment this if you want to see the produced scen contents
+    new Scenario(rv);
+}
+
 document.addEventListener("DOMContentLoaded", async function () {
     gGui.add(new GuiGlobalsHelper('gwAnimSpeed', 1.0, SliderType.QUADRATIC), 'value', 0.0, 5.0, 0.1).name("Anim Speed");
     gGui.add(new GuiGlobalsHelper('gwAutoAnimate', false), 'value').name("Auto Animate");
@@ -75,6 +95,8 @@ document.addEventListener("DOMContentLoaded", async function () {
     gGui.add(window, '_toggleFullbright').name("Toggle Fullbright");
     gGui.add(window, '_requestForwardAnim').name("Step Forward");
     gGui.add(window, '_requestBackwardAnim').name("Step Backward");
+    gGui.add(window, '_pathfinderConfigDEBUG').name("Set configurations for Pathfinder");
+    gGui.add(window, '_pathfinderRun').name("Run Pathfinder");
 
     const _folder = gGui.addFolder("Example Scenarios");
     for (let i in EXAMPLE_SCENARIOS) {
