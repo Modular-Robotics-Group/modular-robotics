@@ -4,7 +4,7 @@ import { Module } from "./Module.js";
 import { Move } from "./Move.js";
 import { MoveSet } from "./MoveSet.js";
 import { MoveSetSequence } from "./MoveSetSequence.js";
-import { gModules, gRenderer, gUser, cancelActiveMove } from "./main.js";
+import { gModules, gModulePositions, gRenderer, gUser, cancelActiveMove } from "./main.js";
 
 function Visgroup(r, g, b, scale) {
     this.color = `rgb(${r}, ${g}, ${b})`;
