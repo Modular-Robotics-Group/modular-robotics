@@ -1,6 +1,15 @@
 /* Enums and basic data structures */
 import { gModulePositions } from "./main.js";
 
+export let moduleBrush = {
+    // Module Properties
+    color: { r:1.0, g:1.0, b:1.0 },
+    static: false,
+    // Configuration Slice Properties
+    zSlice: 0,
+    adjSlicesVisible: true
+};
+
 export function getModuleAtPosition(x, y, z) {
     return gModulePositions.get(JSON.stringify({x: Math.round(x), y: Math.round(y), z: Math.round(z)}));
 }

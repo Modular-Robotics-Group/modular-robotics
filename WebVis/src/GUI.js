@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
 import { Scenario } from './Scenario.js';
 import { gScene, gLights } from './main.js';
+import { moduleBrush } from './utils.js';
 
 // Exact filenames of example scenarios in /Scenarios/
 let EXAMPLE_SCENARIOS = [
@@ -45,7 +46,20 @@ class GuiGlobalsHelper {
     }
 }
 
-export const gGui = new GUI();
+// GUI elements for general settings
+export const gGraphicsGui = new GUI( { title: "Graphics", width: 160, container: document.getElementById("controlBar") } ).close();
+
+// GUI elements for Visualizer Mode
+export const gAnimGui = new GUI( { title: "Animation", container: document.getElementById("controlBar") } );
+export const gScenGui = new GUI( { title: "Scenario", container: document.getElementById("controlBar") } ).close();
+
+// GUI elements for Configurizer Mode
+export const gModuleBrushGui = new GUI( { title: "Brush", container: document.getElementById("controlBar") } ).hide();
+export const gLayerGui = new GUI( { title: "Layer", container: document.getElementById("controlBar") } ).hide();
+
+// GUI element for Pathfinder and developer options
+export const gPathfinderGui = new GUI( { title: "Pathfinder", container: document.getElementById("controlBar") } ).close();
+export const gDevGui = new GUI( { title: "Dev Menu", width: 160, container: document.getElementById("controlBar") } ).close().hide();
 
 window._toggleBackgroundColor = function() {
     gScene._backgroundColorSelected = (gScene._backgroundColorSelected + 1) % gScene._backgroundColors.length
@@ -89,18 +103,36 @@ window._pathfinderRun = function() {
     new Scenario(rv);
 }
 
-document.addEventListener("DOMContentLoaded", async function () {
-    gGui.add(new GuiGlobalsHelper('gwAnimSpeed', 1.0, SliderType.QUADRATIC), 'value', 0.0, 5.0, 0.1).name("Anim Speed");
-    gGui.add(new GuiGlobalsHelper('gwAutoAnimate', false), 'value').name("Auto Animate");
-    gGui.add(window.gwUser, 'toggleCameraStyle').name("Toggle Camera Style");
-    gGui.add(window, '_toggleBackgroundColor').name("Toggle Background Color");
-    gGui.add(window, '_toggleFullbright').name("Toggle Fullbright");
-    gGui.add(window, '_requestForwardAnim').name("Step Forward");
-    gGui.add(window, '_requestBackwardAnim').name("Step Backward");
-    gGui.add(window, '_pathfinderConfigDEBUG').name("Set configurations for Pathfinder");
-    pathfinder_controller = gGui.add(window, '_pathfinderRun').name("Run Pathfinder").disable();
+// MRWT Mode Toggle
+window._toggleMRWTMode = function() {
+    gAnimGui.show(gAnimGui._hidden);
+    gScenGui.show(gScenGui._hidden);
+    gModuleBrushGui.show(gModuleBrushGui._hidden);
+    gLayerGui.show(gLayerGui._hidden);
+}
 
-    const _folder = gGui.addFolder("Example Scenarios");
+document.addEventListener("DOMContentLoaded", async function () {
+    // Visualizer Controls
+    gAnimGui.add(new GuiGlobalsHelper('gwAnimSpeed', 1.0, SliderType.QUADRATIC), 'value', 0.0, 5.0, 0.1).name("Anim Speed");
+    gAnimGui.add(new GuiGlobalsHelper('gwAutoAnimate', false), 'value').name("Auto Animate");
+    gGraphicsGui.add(window.gwUser, 'toggleCameraStyle').name("Toggle Camera Style");
+    gGraphicsGui.add(window, '_toggleBackgroundColor').name("Toggle Background Color");
+    gGraphicsGui.add(window, '_toggleFullbright').name("Toggle Fullbright");
+    gAnimGui.add(window, '_requestForwardAnim').name("Step Forward");
+    gAnimGui.add(window, '_requestBackwardAnim').name("Step Backward");
+    // Configurizer Controls
+    gModuleBrushGui.addColor(moduleBrush, 'color').name("Module Color");
+    gModuleBrushGui.add(moduleBrush, 'static').name("Static Module");
+    // TODO: set max value for zSlice to highest module z-value in scene
+    // TODO: might need to adjust step size for zSlice depending on module type
+    gLayerGui.add(moduleBrush, 'zSlice', 0, 10, 1).name("Layer");
+    gLayerGui.add(moduleBrush, 'adjSlicesVisible').name("Visualize Adjacent Layers");
+    // Pathfinder and debug Controls
+    gPathfinderGui.add(window, '_pathfinderConfigDEBUG').name("Set configurations for Pathfinder");
+    pathfinder_controller = gPathfinderGui.add(window, '_pathfinderRun').name("Run Pathfinder").disable();
+    gDevGui.add(window, '_toggleMRWTMode').name("MRWT Mode Toggle");
+
+    const _folder = gScenGui.addFolder("Example Scenarios");
     for (let i in EXAMPLE_SCENARIOS) {
         let ex = EXAMPLE_SCENARIOS[i];
         _exampleLoaders[ex] = _generateExampleLoader(ex);

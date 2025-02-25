@@ -9,8 +9,9 @@
 
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { gScene, gCanvas, gUser, gRenderer, gLights, toggleRenderMode } from "./main.js";
+import { gScene, gCanvas, gUser, gRenderer, gMiniRenderer, gLights, toggleRenderMode } from "./main.js";
 import { CameraType } from "./utils.js";
+import { gDevGui } from "./GUI.js";
 
 export class User {
     constructor() {
@@ -72,6 +73,9 @@ function window_resize_callback() {
 
     gUser.camera.updateProjectionMatrix();
     gRenderer.setSize(width, height);
+    
+    // Mini Scene
+    gMiniRenderer.setSize(0.25 * width, 0.25 * height);
 }
 
 function keydown_input_callback(event) {
@@ -83,6 +87,7 @@ function keydown_input_callback(event) {
         case 'ArrowLeft': _requestBackwardAnim(); break;
         case 'M': toggleRenderMode(); break;
         case 'P': console.log(gRenderer.domElement); break;
+        case '`': gDevGui.show(); break;
         default: break;
     }
 }
