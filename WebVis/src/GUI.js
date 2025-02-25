@@ -19,6 +19,9 @@ let EXAMPLE_SCENARIOS = [
     'Catom Debugging'
 ]
 
+/* ****************************** */
+/* Helpers */
+/* ****************************** */
 const SliderType = Object.freeze({
     LINEAR: 0,
     QUADRATIC: 1
@@ -46,21 +49,9 @@ class GuiGlobalsHelper {
     }
 }
 
-// GUI elements for general settings
-export const gGraphicsGui = new GUI( { title: "Graphics", width: 160, container: document.getElementById("controlBar") } ).close();
-
-// GUI elements for Visualizer Mode
-export const gAnimGui = new GUI( { title: "Animation", container: document.getElementById("controlBar") } );
-export const gScenGui = new GUI( { title: "Scenario", container: document.getElementById("controlBar") } ).close();
-
-// GUI elements for Configurizer Mode
-export const gModuleBrushGui = new GUI( { title: "Brush", container: document.getElementById("controlBar") } ).hide();
-export const gLayerGui = new GUI( { title: "Layer", container: document.getElementById("controlBar") } ).hide();
-
-// GUI element for Pathfinder and developer options
-export const gPathfinderGui = new GUI( { title: "Pathfinder", container: document.getElementById("controlBar") } ).close();
-export const gDevGui = new GUI( { title: "Dev Menu", width: 160, container: document.getElementById("controlBar") } ).close().hide();
-
+/* ****************************** */
+/* Global function definitions */
+/* ****************************** */
 window._toggleBackgroundColor = function() {
     gScene._backgroundColorSelected = (gScene._backgroundColorSelected + 1) % gScene._backgroundColors.length
     gScene.background = gScene._backgroundColors[gScene._backgroundColorSelected];
@@ -72,6 +63,15 @@ window._toggleFullbright = function() {
     gLights.headlamp.intensity = gLights._fullbright ? 0 : gLights._defaultHeadlampIntensity;
 }
 
+// MRWT Mode Toggle
+window._toggleMRWTMode = function() {
+    gAnimGui.show(gAnimGui._hidden);
+    gScenGui.show(gScenGui._hidden);
+    gModuleBrushGui.show(gModuleBrushGui._hidden);
+    gLayerGui.show(gLayerGui._hidden);
+}
+
+
 let _exampleLoaders = {};
 async function _loadExampleScenario(name) {
     const scen = await fetch(`./Scenarios/${name}.scen`).then(response => response.text());
@@ -81,7 +81,9 @@ function _generateExampleLoader(name) {
     return () => _loadExampleScenario(name);
 }
 
-// web Pathfinder stuff
+/* ****************************** */
+/* Pathfinder stuff */
+/* ****************************** */
 // TODO: I'm not sure this is the right place to put this functionality, feel free
 // to move it somewhere else if you can find a spot that makes more sense.
 const pathfinder = Module.cwrap("pathfinder", "string", ["string", "string"]);
@@ -103,13 +105,23 @@ window._pathfinderRun = function() {
     new Scenario(rv);
 }
 
-// MRWT Mode Toggle
-window._toggleMRWTMode = function() {
-    gAnimGui.show(gAnimGui._hidden);
-    gScenGui.show(gScenGui._hidden);
-    gModuleBrushGui.show(gModuleBrushGui._hidden);
-    gLayerGui.show(gLayerGui._hidden);
-}
+/* ****************************** */
+/* GUI setup */
+/* ****************************** */
+// GUI elements for general settings
+export const gGraphicsGui = new GUI( { title: "Graphics", width: 160, container: document.getElementById("controlBar") } ).close();
+
+// GUI elements for Visualizer Mode
+export const gAnimGui = new GUI( { title: "Animation", container: document.getElementById("controlBar") } );
+export const gScenGui = new GUI( { title: "Scenario", container: document.getElementById("controlBar") } ).close();
+
+// GUI elements for Configurizer Mode
+export const gModuleBrushGui = new GUI( { title: "Brush", container: document.getElementById("controlBar") } ).hide();
+export const gLayerGui = new GUI( { title: "Layer", container: document.getElementById("controlBar") } ).hide();
+
+// GUI element for Pathfinder and developer options
+export const gPathfinderGui = new GUI( { title: "Pathfinder", container: document.getElementById("controlBar") } ).close();
+export const gDevGui = new GUI( { title: "Dev Menu", width: 160, container: document.getElementById("controlBar") } ).close().hide();
 
 document.addEventListener("DOMContentLoaded", async function () {
     // Visualizer Controls

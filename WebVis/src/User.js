@@ -13,6 +13,9 @@ import { gScene, gCanvas, gUser, gRenderer, gMiniRenderer, gLights, toggleRender
 import { CameraType } from "./utils.js";
 import { gDevGui } from "./GUI.js";
 
+/* ****************************** */
+/* User class */
+/* ****************************** */
 export class User {
     constructor() {
         this.cameraStyle = CameraType.ORTHOGRAPHIC;
@@ -56,6 +59,9 @@ export class User {
     }
 }
 
+/* ****************************** */
+/* User interaction callbacks */
+/* ****************************** */
 function window_resize_callback() {
     const width = window.innerWidth * gCanvas._xscale;
     const height = window.innerHeight * gCanvas._yscale;
@@ -92,7 +98,9 @@ function keydown_input_callback(event) {
     }
 }
 
-// effectively making these functions global
+/* ****************************** */
+/* Global function definitions */
+/* ****************************** */
 window._requestForwardAnim = function () {
     window.gwNextAnimationRequested = true; 
     window.gwForward = true;

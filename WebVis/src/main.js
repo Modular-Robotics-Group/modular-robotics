@@ -27,9 +27,9 @@ THREE.Vector3.prototype.sgn = function() {
     return rounded.divide(rounded.abs()).setNaN(0);
 }
 
-// Following are global attributes set directly to the window object
-//  This allows them to (more easily) be added to the GUI,
-//  or directly modified by other scripts
+/* ****************************** */
+/* Global attributes */
+/* ****************************** */
 window.gwAutoAnimate = false;
 window.gwForward = true;
 window.gwNextAnimationRequested = false;
@@ -39,8 +39,12 @@ window.gwMoveSetSequence = new MoveSetSequence();
 window.gwScenarioCentroid = new THREE.Vector3(0.0, 0.0, 0.0);
 window.gwScenarioRadius = 1.0;
 
+/* ****************************** */
+/* Renderer setup */
+/* ****************************** */
 let renderMode = 'WEBGL';
 function _setupWebGLRenderer() {
+    // Primary scene: set up canvas + renderer
     gCanvas.width = gCanvas.clientWidth;
     gCanvas.height = gCanvas.clientHeight;
     gRenderer = new THREE.WebGLRenderer( {canvas: gCanvas, antialiasing: true} );
@@ -48,7 +52,7 @@ function _setupWebGLRenderer() {
     THREE.ColorManagement.enabled = true;
     gRenderer.shadowMap.enabled = true;
     gRenderer.setSize(gCanvas.clientWidth, gCanvas.clientHeight);
-    // Mini Scene Renderer
+    // Mini scene: set up canvas + renderer
     gMiniCanvas.width = gMiniCanvas.clientWidth;
     gMiniCanvas.height = gMiniCanvas.clientHeight;
     gMiniRenderer = new THREE.WebGLRenderer( {canvas: gMiniCanvas, antialiasing: true} );
@@ -77,34 +81,36 @@ export function toggleRenderMode() {
     }
 }
 
-// Mini Scene Setup
-export let gMiniRenderer
-export const gMiniCanvas = document.getElementById("miniScene");
-gMiniCanvas._xscale = gMiniCanvas.clientWidth / window.innerWidth; // Used for resizing
-gMiniCanvas._yscale = gMiniCanvas.clientHeight / window.innerHeight; // Used for resizing
-/* --- setup --- */
+// Primary scene
 export let gRenderer;
 export const gCanvas = document.getElementById("scene");
 gCanvas._xscale = gCanvas.clientWidth / window.innerWidth; // Used for resizing
 gCanvas._yscale = gCanvas.clientHeight / window.innerHeight; // Used for resizing
+// Mini scene
+export let gMiniRenderer;
+export const gMiniCanvas = document.getElementById("miniScene");
+gMiniCanvas._xscale = gMiniCanvas.clientWidth / window.innerWidth; // Used for resizing
+gMiniCanvas._yscale = gMiniCanvas.clientHeight / window.innerHeight; // Used for resizing
+
+// Final initialization
 export const gLights = {_fullbright: false};
 export const gScene = new THREE.Scene();
 export const gUser = new User();
+export const gModules = {};
+export const gModulePositions = new Map();
 _setupWebGLRenderer();
 gScene._backgroundColors = [new THREE.Color(0x334D4D), new THREE.Color(0xFFFFFF), new THREE.Color(0x000000)];
 gScene._backgroundColorSelected = 0;
 gScene.background = gScene._backgroundColors[gScene._backgroundColorSelected];
 requestAnimationFrame(animate);
 
-/* --- objects --- */
-// Module constructor automatically adds modules to these globals
+/* ****************************** */
+/* Initial scene setup: modules + lights */
+/* ****************************** */
 // Create a dummy module just to have something on the screen
-//  Once the page is loaded, it should automatically fetch an example scenario anyway
-export const gModules = {}
-export const gModulePositions = new Map();
 new Module(ModuleType.RHOMBIC_DODECAHEDRON, 0, new THREE.Vector3(0.0, 0.0, 0.0), 0xFFFFFF, 0.9);
 
-/* --- lights --- */
+// Add some lighting
 export const lightAmbient = new THREE.AmbientLight(0xFFFFFF, 0.8);
 const lightDirectional = new THREE.DirectionalLight(0xFFFFFF, 0.5);
 lightDirectional.position.set(1, 1, 1);
@@ -115,22 +121,24 @@ gLights.lightDirectional = lightDirectional;
 gLights._defaultAmbientIntensity = lightAmbient.intensity;
 gLights._defaultDirectionalIntensity = lightDirectional.intensity;
 
-/* --- debug --- */
+// Axis lines to help with orientation
 let axesHelper = new THREE.AxesHelper(5);
 gScene.add(axesHelper);
 
-// On page loaded
+// Once the page loads, automatically load an example scenario
 document.addEventListener("DOMContentLoaded", async function () {
     new Scenario(await fetch('./Scenarios/3x3 Metamodule.scen').then(response => response.text()));
 });
 
-// TODO Put all this in a better place?
+/* ****************************** */
+/* Animation function, called every frame */
+/* ****************************** */
+// First a few helper variables and functions
 let moveSet;
 let lastFrameTime = 0;
 let gDeltaTime;
 let readyForNewAnimation = true;
 let currentAnimProgress = 0.0; // 0.0-1.0
-
 export function cancelActiveMove() {
     moveSet = null;
     currentAnimProgress = 0.0;
@@ -138,6 +146,7 @@ export function cancelActiveMove() {
     window.gwNextAnimationRequested = false;
 }
 
+// OK
 function animate(time) {
     gDeltaTime = time - lastFrameTime;
     lastFrameTime = time;
@@ -169,8 +178,7 @@ function animate(time) {
         moveSet = window.gwForward ? window.gwMoveSetSequence.pop() : window.gwMoveSetSequence.undo();
 
         // if there was no moveset to extract,
-        //  keep readyForNewAnimation = true,
-        //  but set request to false
+        //  keep readyForNewAnimation = true, but set request to false
         // otherwise, proceed as usual
         if (moveSet == null) {
             window.gwNextAnimationRequested = false;
@@ -194,7 +202,6 @@ function animate(time) {
     gUser.controls.update();
 
 	gRenderer.render( gScene, gUser.camera );
-	// Mini Scene Rendering
 	gMiniRenderer.render( gScene, gUser.camera );
 
     // Manually add line strokes to SVG paths, if in SVG rendering mode
