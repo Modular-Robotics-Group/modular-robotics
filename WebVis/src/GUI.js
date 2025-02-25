@@ -73,12 +73,14 @@ function _generateExampleLoader(name) {
 const pathfinder = Module.cwrap("pathfinder", "string", ["string", "string"]);
 let pathfinder_config_i ='{"exists": false}';
 let pathfinder_config_f ='{"exists": false}';
+let pathfinder_controller;
 window._pathfinderConfigDEBUG = async function() {
     let example_configs = "";
     await fetch(`./pathfinder/example_config.json`).then(response => response.text()).then(text => { example_configs = text });
     let j = JSON.parse(example_configs);
     pathfinder_config_i = JSON.stringify(j.initial);
     pathfinder_config_f = JSON.stringify(j.final);
+    pathfinder_controller.enable();
 }
 
 window._pathfinderRun = function() {
@@ -96,7 +98,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     gGui.add(window, '_requestForwardAnim').name("Step Forward");
     gGui.add(window, '_requestBackwardAnim').name("Step Backward");
     gGui.add(window, '_pathfinderConfigDEBUG').name("Set configurations for Pathfinder");
-    gGui.add(window, '_pathfinderRun').name("Run Pathfinder");
+    pathfinder_controller = gGui.add(window, '_pathfinderRun').name("Run Pathfinder").disable();
 
     const _folder = gGui.addFolder("Example Scenarios");
     for (let i in EXAMPLE_SCENARIOS) {
