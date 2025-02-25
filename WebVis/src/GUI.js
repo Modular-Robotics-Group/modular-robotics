@@ -75,7 +75,7 @@ let pathfinder_config_i ='{"exists": false}';
 let pathfinder_config_f ='{"exists": false}';
 window._pathfinderConfigDEBUG = async function() {
     let example_configs = "";
-    await fetch("../pathfinder/example_config.json").then(response => response.text()).then(text => { example_configs = text });
+    await fetch(`./pathfinder/example_config.json`).then(response => response.text()).then(text => { example_configs = text });
     let j = JSON.parse(example_configs);
     pathfinder_config_i = JSON.stringify(j.initial);
     pathfinder_config_f = JSON.stringify(j.final);
