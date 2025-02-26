@@ -44,7 +44,7 @@ window.gwScenarioRadius = 1.0;
 /* ****************************** */
 let renderMode = 'WEBGL';
 function _setupWebGLRenderer() {
-    // Primary scene: set up canvas + renderer
+    // Primary View: set up canvas + renderer
     gCanvas.width = gCanvas.clientWidth;
     gCanvas.height = gCanvas.clientHeight;
     gRenderer = new THREE.WebGLRenderer( {canvas: gCanvas, antialiasing: true} );
@@ -52,7 +52,7 @@ function _setupWebGLRenderer() {
     THREE.ColorManagement.enabled = true;
     gRenderer.shadowMap.enabled = true;
     gRenderer.setSize(gCanvas.clientWidth, gCanvas.clientHeight);
-    // Mini scene: set up canvas + renderer
+    // Mini View: set up canvas + renderer
     gMiniCanvas.width = gMiniCanvas.clientWidth;
     gMiniCanvas.height = gMiniCanvas.clientHeight;
     gMiniRenderer = new THREE.WebGLRenderer( {canvas: gMiniCanvas, antialiasing: true} );
@@ -81,14 +81,14 @@ export function toggleRenderMode() {
     }
 }
 
-// Primary scene
+// Primary View
 export let gRenderer;
-export const gCanvas = document.getElementById("scene");
+export const gCanvas = document.getElementById("mainView");
 gCanvas._xscale = gCanvas.clientWidth / window.innerWidth; // Used for resizing
 gCanvas._yscale = gCanvas.clientHeight / window.innerHeight; // Used for resizing
-// Mini scene
+// Mini View
 export let gMiniRenderer;
-export const gMiniCanvas = document.getElementById("miniScene");
+export const gMiniCanvas = document.getElementById("miniView");
 gMiniCanvas._xscale = gMiniCanvas.clientWidth / window.innerWidth; // Used for resizing
 gMiniCanvas._yscale = gMiniCanvas.clientHeight / window.innerHeight; // Used for resizing
 

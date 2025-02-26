@@ -80,7 +80,7 @@ function window_resize_callback() {
     gUser.camera.updateProjectionMatrix();
     gRenderer.setSize(width, height);
     
-    // Mini Scene
+    // Mini View
     gMiniRenderer.setSize(0.25 * width, 0.25 * height);
 }
 
