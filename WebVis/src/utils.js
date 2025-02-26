@@ -10,6 +10,12 @@ export let moduleBrush = {
     adjSlicesVisible: true
 };
 
+export let pathfinderData = {
+    config_i: '{"exists": false}',
+    config_f: '{"exists": false}',
+    scen_out: 'INVALID SCENE'
+};
+
 export function getModuleAtPosition(x, y, z) {
     return gModulePositions.get(JSON.stringify({x: Math.round(x), y: Math.round(y), z: Math.round(z)}));
 }

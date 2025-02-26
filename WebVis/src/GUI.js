@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
 import { Scenario } from './Scenario.js';
 import { gScene, gLights } from './main.js';
-import { moduleBrush } from './utils.js';
+import { moduleBrush, pathfinderData } from './utils.js';
 
 // Exact filenames of example scenarios in /Scenarios/
 let EXAMPLE_SCENARIOS = [
@@ -87,22 +87,20 @@ function _generateExampleLoader(name) {
 // TODO: I'm not sure this is the right place to put this functionality, feel free
 // to move it somewhere else if you can find a spot that makes more sense.
 const pathfinder = Module.cwrap("pathfinder", "string", ["string", "string"]);
-let pathfinder_config_i ='{"exists": false}';
-let pathfinder_config_f ='{"exists": false}';
 let pathfinder_controller;
 window._pathfinderConfigDEBUG = async function() {
     let example_configs = "";
     await fetch(`./pathfinder/example_config.json`).then(response => response.text()).then(text => { example_configs = text });
     let j = JSON.parse(example_configs);
-    pathfinder_config_i = JSON.stringify(j.initial);
-    pathfinder_config_f = JSON.stringify(j.final);
+    pathfinderData.config_i = JSON.stringify(j.initial);
+    pathfinderData.config_f = JSON.stringify(j.final);
     pathfinder_controller.enable();
 }
 
 window._pathfinderRun = function() {
-    let rv = pathfinder(pathfinder_config_i, pathfinder_config_f);
-    //console.log(rv); // Uncomment this if you want to see the produced scen contents
-    new Scenario(rv);
+    pathfinderData.scen_out = pathfinder(pathfinderData.config_i, pathfinderData.config_f);
+    //console.log(pathfinderData.scen_out); // Uncomment this if you want to see the produced scen contents
+    new Scenario(pathfinderData.scen_out);
 }
 
 /* ****************************** */
