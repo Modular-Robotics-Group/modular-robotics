@@ -84,6 +84,12 @@ function window_resize_callback() {
     gMiniRenderer.setSize(0.25 * width, 0.25 * height);
 }
 
+let mx = 0, my = 0;
+function mousemove_callback(event) {
+    mx = event.clientX;
+    my = event.clientY;
+}
+
 function keydown_input_callback(event) {
     let key = event.key;
     switch (key) {
@@ -94,13 +100,35 @@ function keydown_input_callback(event) {
         case 'M': toggleRenderMode(); break;
         case 'P': console.log(gRenderer.domElement); break;
         case '`': gDevGui.show(); break;
+        case `c`: selectModule(mx, my); break;
         default: break;
     }
 }
 
+// Register callbacks only after page loads
+document.addEventListener("DOMContentLoaded", async function () {
+    window.addEventListener('resize', window_resize_callback);
+    window.addEventListener('keydown', keydown_input_callback);
+    gCanvas.addEventListener('mousemove', mousemove_callback);
+});
+
 /* ****************************** */
 /* Global function definitions */
 /* ****************************** */
+// Unused for now
+function selectModule(viewportX, viewportY) {
+    let clipPoint = new THREE.Vector4(viewportX / gCanvas.clientWidth * 2.0 - 1.0, viewportY / gCanvas.clientHeight * 2.0 - 1.0, 0.0, 1.0);
+    let viewPoint = clipPoint.clone().applyMatrix4(gUser.camera.projectionMatrixInverse);
+    let worldPoint = viewPoint.clone().applyMatrix4(gUser.camera.matrixWorldInverse);
+    worldPoint.multiplyScalar(1.0 / worldPoint.w);
+
+    console.log(viewportX, viewportY);
+    console.log(clipPoint);
+    console.log(viewPoint);
+    console.log(worldPoint);
+    console.log(gUser.camera.position);
+}
+
 window._requestForwardAnim = function () {
     window.gwNextAnimationRequested = true; 
     window.gwForward = true;
@@ -109,7 +137,4 @@ window._requestBackwardAnim = function () {
     window.gwNextAnimationRequested = true; 
     window.gwForward = false;
 }
-
-window.addEventListener('resize', window_resize_callback);
-window.addEventListener('keydown', keydown_input_callback);
 
