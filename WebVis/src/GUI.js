@@ -3,6 +3,7 @@ import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
 import { Scenario } from './Scenario.js';
 import { gScene, gLights } from './main.js';
 import { moduleBrush, pathfinderData } from './utils.js';
+import { CameraType } from "./utils.js";
 
 // Exact filenames of example scenarios in /Scenarios/
 let EXAMPLE_SCENARIOS = [
@@ -65,10 +66,21 @@ window._toggleFullbright = function() {
 
 // MRWT Mode Toggle
 window._toggleMRWTMode = function() {
+    window._isMRWTModeActive = !window._isMRWTModeActive;
+    
+    // Toggle GUI elements visibility
     gAnimGui.show(gAnimGui._hidden);
     gScenGui.show(gScenGui._hidden);
     gModuleBrushGui.show(gModuleBrushGui._hidden);
     gLayerGui.show(gLayerGui._hidden);
+    
+    if (window._isMRWTModeActive) {
+        gwUser.cameraStyle = CameraType.ORTHOGRAPHIC;
+        gwUser.resetCamera();
+    }
+    
+    // Toggle camera movement
+    gwUser.controls.enabled = !gwUser.controls.enabled;
 }
 
 
