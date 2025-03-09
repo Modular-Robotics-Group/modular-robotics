@@ -4,6 +4,7 @@ import { Scenario } from './Scenario.js';
 import { gScene, gLights } from './main.js';
 import { moduleBrush, pathfinderData } from './utils.js';
 import { CameraType } from "./utils.js";
+import { gModules } from './main.js';
 
 // Exact filenames of example scenarios in /Scenarios/
 let EXAMPLE_SCENARIOS = [
@@ -19,6 +20,16 @@ let EXAMPLE_SCENARIOS = [
     'Parallel Monkey Move',
     'Catom Debugging'
 ]
+
+// Opacity settings for changing layers / visualizing adjacent layers
+const OPACITY_SETTINGS = Object.freeze({
+    FULLY_OPAQUE: 1.0,
+    ADJACENT_SLICE: 0.4
+});
+
+const LAYER_SETTINGS = Object.freeze({
+    ADJACENT_DISTANCE: 1  // Number of layers to show above/below current slice
+});
 
 /* ****************************** */
 /* Helpers */
@@ -77,12 +88,16 @@ window._toggleMRWTMode = function() {
     if (window._isMRWTModeActive) {
         gwUser.cameraStyle = CameraType.ORTHOGRAPHIC;
         gwUser.resetCamera();
+        // Update module visibility based on current z-slice
+        updateVisibleModules(moduleBrush.zSlice);
+    } else {
+        // Show all modules when exiting MRWT mode
+        showAllModules();
     }
     
     // Toggle camera movement
-    gwUser.controls.enabled = !gwUser.controls.enabled;
+    gwUser.controls.enabled = !window._isMRWTModeActive;
 }
-
 
 let _exampleLoaders = {};
 async function _loadExampleScenario(name) {
@@ -147,7 +162,12 @@ document.addEventListener("DOMContentLoaded", async function () {
     gModuleBrushGui.add(moduleBrush, 'static').name("Static Module");
     // TODO: set max value for zSlice to highest module z-value in scene
     // TODO: might need to adjust step size for zSlice depending on module type
-    gLayerGui.add(moduleBrush, 'zSlice', 0, 10, 1).name("Layer");
+    const zSliceController = gLayerGui.add(moduleBrush, 'zSlice', 0, 10, 1).name("Layer");
+    zSliceController.onChange((value) => {
+        if (window._isMRWTModeActive) {
+            updateVisibleModules(value);
+        }
+    });
     gLayerGui.add(moduleBrush, 'adjSlicesVisible').name("Visualize Adjacent Layers");
     // Pathfinder and debug Controls
     gPathfinderGui.add(window, '_pathfinderConfigDEBUG').name("Set configurations for Pathfinder");
@@ -179,3 +199,58 @@ document.addEventListener("DOMContentLoaded", async function () {
     //     }
     // });
 });
+
+/**
+ * Updates module visibility to only show modules at the specified z-slice
+ * @param {number} zSlice - The z-slice value to show
+ */
+function updateVisibleModules(zSlice) {
+    const moduleIds = Object.keys(gModules);
+
+    // Update visibility for each module
+    moduleIds.forEach((id) => {
+        const module = gModules[id];
+        const moduleZ = Math.round(module.pos.z);
+        
+        // Get the mesh object to control visibility
+        const moduleMesh = module;
+        
+        // Show adjacent slices if enabled, otherwise show only current slice
+        if (moduleBrush.adjSlicesVisible) {
+            // Show current slice and adjacent slices
+            const distance = Math.abs(moduleZ - zSlice);
+            moduleMesh.visible = (distance <= LAYER_SETTINGS.ADJACENT_DISTANCE);
+            
+            // Make adjacent slices semi-transparent
+            if (moduleMesh.visible) {
+                if (moduleZ === zSlice) {
+                    moduleMesh.mesh.material.opacity = OPACITY_SETTINGS.FULLY_OPAQUE;
+                } else {
+                    moduleMesh.mesh.material.opacity = OPACITY_SETTINGS.ADJACENT_SLICE;
+                }
+            }
+        } else {
+            moduleMesh.visible = (moduleZ === zSlice);
+            moduleMesh.mesh.material.opacity = OPACITY_SETTINGS.FULLY_OPAQUE;
+        }
+    });
+
+    console.log(`Updated visibility for ${moduleIds.length} modules at z-slice ${zSlice}`);
+}
+
+/**
+ * Makes all modules visible again (used when exiting MRWT mode)
+ */
+function showAllModules() {
+    const moduleIds = Object.keys(gModules);
+
+    moduleIds.forEach((id) => {
+        const module = gModules[id];
+        const moduleMesh = module;
+
+        moduleMesh.visible = true;
+        moduleMesh.mesh.material.opacity = OPACITY_SETTINGS.FULLY_OPAQUE;
+    });
+    
+    console.log(`Restored visibility for ${moduleIds.length} modules.`);
+}
