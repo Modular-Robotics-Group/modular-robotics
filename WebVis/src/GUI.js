@@ -228,21 +228,13 @@ function updateModuleVisibility(module, moduleZ, zSlice) {
     let isVisible = false;
     let opacity = OPACITY_SETTINGS.TRANSPARENT;
     
-    if (moduleBrush.adjSlicesVisible) {
-        const distance = Math.abs(moduleZ - zSlice);
-        isVisible = (distance <= LAYER_SETTINGS.ADJACENT_DISTANCE);
-        
-        if (isVisible) {
-            opacity = isCurrentSlice ? 
-                OPACITY_SETTINGS.FULLY_OPAQUE : 
-                OPACITY_SETTINGS.ADJACENT_SLICE;
-        }
-    } else {
-        isVisible = isCurrentSlice;
-        opacity = isVisible ? 
-            OPACITY_SETTINGS.FULLY_OPAQUE : 
-            OPACITY_SETTINGS.TRANSPARENT;
-    }
+    const maxDistance = moduleBrush.adjSlicesVisible ? LAYER_SETTINGS.ADJACENT_DISTANCE : 0;
+    isVisible = (Math.abs(moduleZ - zSlice) <= maxDistance);
+    
+    // Set opacity based on visibility and whether it's the current slice
+    opacity = isVisible ? 
+        (isCurrentSlice ? OPACITY_SETTINGS.FULLY_OPAQUE : OPACITY_SETTINGS.ADJACENT_SLICE) : 
+        OPACITY_SETTINGS.TRANSPARENT;
     
     // Apply visibility and opacity settings
     module.visible = isVisible;
