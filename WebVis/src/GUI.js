@@ -318,7 +318,6 @@ function handleModulePlacement(event) {
         grid: { x: gridX, y: gridY, z: gridZ }
     });
     
-    // Place a module at the grid position
     toggleModuleAtPosition(gridX, gridY, gridZ);
 }
 
@@ -329,33 +328,28 @@ function handleModulePlacement(event) {
  * @param {number} z - Z grid position
  */
 function toggleModuleAtPosition(x, y, z) {
-    // Check if there's already a module at this position
     const existingModule = getModuleAtPosition(x, y, z);
-    
-    // If there's no module, create one
+
     if (!existingModule) {
         // Create a module ID
         const moduleId = `module_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
         
         // Create a new module at the position
         const pos = new THREE.Vector3(x, y, z);
-        
+
         // Convert moduleBrush.color (which is an object with r,g,b properties) to a THREE.Color
         const color = new THREE.Color(
             moduleBrush.color.r,
             moduleBrush.color.g,
             moduleBrush.color.b
         );
-        
-        // Create the module - use ModuleClass instead of Module
+
         const module = new ModuleClass(ModuleType.CUBE, moduleId, pos, color.getHex());
         
-        // Handle static property if your Module class supports it
-        if (moduleBrush.static && typeof module.setStatic === 'function') {
-            module.setStatic(true);
-        }
-        
-        // Update the module's visibility based on current layer settings
+        // TODO: Handle static property
+        // if (moduleBrush.static && typeof module.setStatic === 'function') {
+        //     module.setStatic(true);
+        // }
         updateModuleVisibility(module, z, moduleBrush.zSlice);
     } else {
         gModules[existingModule.id].destroy();
