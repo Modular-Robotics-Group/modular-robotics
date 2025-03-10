@@ -215,8 +215,6 @@ function updateVisibleModules(zSlice) {
         
         updateModuleVisibility(module, moduleZ, zSlice);
     });
-
-    console.log(`Updated visibility for ${moduleIds.length} modules at z-slice ${zSlice}`);
 }
 
 /**
@@ -264,6 +262,4 @@ function showAllModules() {
         moduleMesh.visible = true;
         moduleMesh.mesh.material.opacity = OPACITY_SETTINGS.FULLY_OPAQUE;
     });
-    
-    console.log(`Restored visibility for ${moduleIds.length} modules.`);
 }
