@@ -1,10 +1,11 @@
 import * as THREE from 'three';
 import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
 import { Scenario } from './Scenario.js';
-import { gScene, gLights } from './main.js';
-import { moduleBrush, pathfinderData } from './utils.js';
+import { gScene, gLights, gRenderer } from './main.js';
+import { moduleBrush, pathfinderData, ModuleType, getModuleAtPosition } from './utils.js';
 import { CameraType } from "./utils.js";
 import { gModules } from './main.js';
+import { Module as ModuleClass } from './Module.js';
 
 // Exact filenames of example scenarios in /Scenarios/
 let EXAMPLE_SCENARIOS = [
@@ -178,6 +179,8 @@ document.addEventListener("DOMContentLoaded", async function () {
     gPathfinderGui.add(window, '_pathfinderConfigDEBUG').name("Set configurations for Pathfinder");
     pathfinder_controller = gPathfinderGui.add(window, '_pathfinderRun').name("Run Pathfinder").disable();
     gDevGui.add(window, '_toggleMRWTMode').name("MRWT Mode Toggle");
+    // Add event listener for module placement
+    document.addEventListener('mousedown', handleModulePlacement);
 
     const _folder = gScenGui.addFolder("Example Scenarios");
     for (let i in EXAMPLE_SCENARIOS) {
@@ -258,4 +261,97 @@ function showAllModules() {
         moduleMesh.visible = true;
         moduleMesh.mesh.material.opacity = OPACITY_SETTINGS.FULLY_OPAQUE;
     });
+}
+
+/**
+ * Handles mouse clicks for module placement
+ * @param {MouseEvent} event - The mouse event
+ */
+function handleModulePlacement(event) {
+    // Only process left clicks when in MRWT mode
+    if (!window._isMRWTModeActive || event.button !== 0) return;
+    
+    // Check if the click is on a UI element
+    const path = event.path || (event.composedPath && event.composedPath());
+    for (const element of path || []) {
+        if (element.classList && 
+            (element.classList.contains('lil-gui') || 
+             element.classList.contains('dg'))) {
+            return; // Click was on GUI, don't place a module
+        }
+    }
+
+    // Get the canvas element and its dimensions
+    const canvas = gRenderer.domElement;
+    const rect = canvas.getBoundingClientRect();
+    
+    // Get camera's current view parameters
+    const camera = gwUser.camera;
+    
+    // Calculate the click position relative to the canvas
+    const canvasX = event.clientX - rect.left;
+    const canvasY = event.clientY - rect.top;
+    
+    // Convert to normalized device coordinates (-1 to 1)
+    const ndcX = (canvasX / rect.width) * 2 - 1;
+    const ndcY = -(canvasY / rect.height) * 2 + 1;
+    
+    // For orthographic camera, we can directly map from NDC to world coordinates
+    // based on the camera's current view size
+    const worldX = ndcX * camera.right * camera.zoom;
+    const worldY = ndcY * camera.top * camera.zoom;
+    
+    // Add the camera position to get the final world position
+    const finalX = worldX + camera.position.x;
+    const finalY = worldY + camera.position.y;
+    
+    // Round to the nearest grid position
+    const gridX = Math.round(finalX);
+    const gridY = Math.round(finalY);
+    const gridZ = moduleBrush.zSlice;
+    
+    console.log("Click position:", {
+        canvas: { x: canvasX, y: canvasY },
+        ndc: { x: ndcX, y: ndcY },
+        world: { x: worldX, y: worldY },
+        final: { x: finalX, y: finalY },
+        grid: { x: gridX, y: gridY, z: gridZ }
+    });
+    
+    toggleModuleAtPosition(gridX, gridY, gridZ);
+}
+
+/**
+ * Toggles a module at the specified grid position - places one if none exists, or removes it if one does
+ * @param {number} x - X grid position
+ * @param {number} y - Y grid position
+ * @param {number} z - Z grid position
+ */
+function toggleModuleAtPosition(x, y, z) {
+    const existingModule = getModuleAtPosition(x, y, z);
+
+    if (!existingModule) {
+        // Create a module ID
+        const moduleId = `module_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+        
+        // Create a new module at the position
+        const pos = new THREE.Vector3(x, y, z);
+
+        // Convert moduleBrush.color (which is an object with r,g,b properties) to a THREE.Color
+        const color = new THREE.Color(
+            moduleBrush.color.r,
+            moduleBrush.color.g,
+            moduleBrush.color.b
+        );
+
+        const module = new ModuleClass(ModuleType.CUBE, moduleId, pos, color.getHex());
+        
+        // TODO: Handle static property
+        // if (moduleBrush.static && typeof module.setStatic === 'function') {
+        //     module.setStatic(true);
+        // }
+        updateModuleVisibility(module, z, moduleBrush.zSlice);
+    } else {
+        gModules[existingModule.id].destroy();
+    }
 }
