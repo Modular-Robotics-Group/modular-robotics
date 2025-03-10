@@ -341,10 +341,11 @@ function placeModuleAtPosition(x, y, z) {
         // Create a new module at the position
         const pos = new THREE.Vector3(x, y, z);
         
+        // TODO: Convert moduleBrush.color to THREE.Color
         // Convert moduleBrush.color (which is an object with r,g,b properties) to a THREE.Color
         const color = new THREE.Color(
-            moduleBrush.color.r, 
-            moduleBrush.color.g, 
+            moduleBrush.color.r,
+            moduleBrush.color.g,
             moduleBrush.color.b
         );
         
@@ -358,5 +359,9 @@ function placeModuleAtPosition(x, y, z) {
         
         // Update the module's visibility based on current layer settings
         updateModuleVisibility(module, z, moduleBrush.zSlice);
+    } else {
+        // Remove the existing module
+        console.log("Removing module at", x, y, z);
+        gModules[existingModule.id].destroy();
     }
 }
