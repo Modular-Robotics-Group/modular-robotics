@@ -231,7 +231,12 @@ function updateVisibleModules(zSlice) {
             }
         } else {
             moduleMesh.visible = (moduleZ === zSlice);
-            moduleMesh.mesh.material.opacity = OPACITY_SETTINGS.FULLY_OPAQUE;
+            if (moduleZ === zSlice) {
+                moduleMesh.mesh.material.opacity = OPACITY_SETTINGS.FULLY_OPAQUE;
+            } else {
+                moduleMesh.mesh.material.opacity = 0;
+            }
+            console.log(moduleMesh);
         }
     });
 
