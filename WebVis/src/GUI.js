@@ -77,9 +77,9 @@ window._toggleFullbright = function() {
     gLights.headlamp.intensity = gLights._fullbright ? 0 : gLights._defaultHeadlampIntensity;
 }
 
-// MRWT Mode Toggle
+// Painter Mode Toggle
 window._toggleMRWTMode = function() {
-    window._isMRWTModeActive = !window._isMRWTModeActive;
+    window._isPainterModeActive = !window._isPainterModeActive;
     
     // Toggle GUI elements visibility
     gAnimGui.show(gAnimGui._hidden);
@@ -87,18 +87,18 @@ window._toggleMRWTMode = function() {
     gModuleBrushGui.show(gModuleBrushGui._hidden);
     gLayerGui.show(gLayerGui._hidden);
     
-    if (window._isMRWTModeActive) {
+    if (window._isPainterModeActive) {
         gwUser.cameraStyle = CameraType.ORTHOGRAPHIC;
         gwUser.resetCamera();
         // Update module visibility based on current z-slice
         updateVisibleModules(moduleBrush.zSlice);
     } else {
-        // Show all modules when exiting MRWT mode
+        // Show all modules when exiting painter mode
         showAllModules();
     }
     
     // // Toggle camera movement
-    // gwUser.controls.enabled = !window._isMRWTModeActive;
+    // gwUser.controls.enabled = !window._isPainterModeActive;
     // Enable only panning, disable other controls
     gwUser.controls.enablePan = true;     // Enable panning (right/middle-click + drag)
     gwUser.controls.enableRotate = false; // Disable rotation (left-click + drag)
@@ -170,7 +170,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     // TODO: might need to adjust step size for zSlice depending on module type
     const zSliceController = gLayerGui.add(moduleBrush, 'zSlice', 0, 10, 1).name("Layer");
     zSliceController.onChange((value) => {
-        if (window._isMRWTModeActive) {
+        if (window._isPainterModeActive) {
             updateVisibleModules(value);
         }
     });
@@ -269,7 +269,7 @@ function showAllModules() {
  */
 function handleModulePlacement(event) {
     // Only process left clicks when in MRWT mode
-    if (!window._isMRWTModeActive || event.button !== 0) return;
+    if (!window._isPainterModeActive || event.button !== 0) return;
     
     // Check if the click is on a UI element
     const path = event.path || (event.composedPath && event.composedPath());
