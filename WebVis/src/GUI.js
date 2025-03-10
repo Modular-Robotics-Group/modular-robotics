@@ -229,13 +229,15 @@ function updateVisibleModules(zSlice) {
                 } else {
                     moduleMesh.mesh.material.opacity = OPACITY_SETTINGS.ADJACENT_SLICE;
                 }
+            } else {
+                moduleMesh.mesh.material.opacity = OPACITY_SETTINGS.TRANSPARENT;
             }
         } else {
             moduleMesh.visible = (moduleZ === zSlice);
             if (moduleZ === zSlice) {
                 moduleMesh.mesh.material.opacity = OPACITY_SETTINGS.FULLY_OPAQUE;
             } else {
-                moduleMesh.mesh.material.opacity = 0;
+                moduleMesh.mesh.material.opacity = OPACITY_SETTINGS.TRANSPARENT;
             }
             console.log(moduleMesh);
         }
