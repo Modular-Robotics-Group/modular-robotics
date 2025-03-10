@@ -23,9 +23,9 @@ let EXAMPLE_SCENARIOS = [
 
 // Opacity settings for changing layers / visualizing adjacent layers
 const OPACITY_SETTINGS = Object.freeze({
-    FULLY_OPAQUE: 1.0,
-    ADJACENT_SLICE: 0.4,
-    TRANSPARENT: 0.0
+    FULLY_OPAQUE:       1.0,
+    ADJACENT_SLICE:     0.4,
+    TRANSPARENT:        0.0
 });
 
 const LAYER_SETTINGS = Object.freeze({
