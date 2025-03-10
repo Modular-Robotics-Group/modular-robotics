@@ -33,6 +33,10 @@ const LAYER_SETTINGS = Object.freeze({
     ADJACENT_DISTANCE: 1  // Number of layers to show above/below current slice
 });
 
+const MODULE_SETTINGS = Object.freeze({
+    SCALE:            0.9
+})
+
 /* ****************************** */
 /* Helpers */
 /* ****************************** */
@@ -344,7 +348,7 @@ function toggleModuleAtPosition(x, y, z) {
             moduleBrush.color.b
         );
 
-        const module = new ModuleClass(ModuleType.CUBE, moduleId, pos, color.getHex());
+        const module = new ModuleClass(ModuleType.CUBE, moduleId, pos, color.getHex(), MODULE_SETTINGS.SCALE);
         
         // TODO: Handle static property
         // if (moduleBrush.static && typeof module.setStatic === 'function') {
