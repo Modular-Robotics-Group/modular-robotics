@@ -334,7 +334,6 @@ function toggleModuleAtPosition(x, y, z) {
     
     // If there's no module, create one
     if (!existingModule) {
-        console.log("Placing module at", x, y, z);
         // Create a module ID
         const moduleId = `module_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
         
@@ -359,8 +358,6 @@ function toggleModuleAtPosition(x, y, z) {
         // Update the module's visibility based on current layer settings
         updateModuleVisibility(module, z, moduleBrush.zSlice);
     } else {
-        // Remove the existing module
-        console.log("Removing module at", x, y, z);
         gModules[existingModule.id].destroy();
     }
 }
