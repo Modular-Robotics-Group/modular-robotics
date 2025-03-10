@@ -213,37 +213,42 @@ function updateVisibleModules(zSlice) {
         const module = gModules[id];
         const moduleZ = Math.round(module.pos.z);
         
-        // Get the mesh object to control visibility
-        const moduleMesh = module;
-        
-        // Show adjacent slices if enabled, otherwise show only current slice
-        if (moduleBrush.adjSlicesVisible) {
-            // Show current slice and adjacent slices
-            const distance = Math.abs(moduleZ - zSlice);
-            moduleMesh.visible = (distance <= LAYER_SETTINGS.ADJACENT_DISTANCE);
-            
-            // Make adjacent slices semi-transparent
-            if (moduleMesh.visible) {
-                if (moduleZ === zSlice) {
-                    moduleMesh.mesh.material.opacity = OPACITY_SETTINGS.FULLY_OPAQUE;
-                } else {
-                    moduleMesh.mesh.material.opacity = OPACITY_SETTINGS.ADJACENT_SLICE;
-                }
-            } else {
-                moduleMesh.mesh.material.opacity = OPACITY_SETTINGS.TRANSPARENT;
-            }
-        } else {
-            moduleMesh.visible = (moduleZ === zSlice);
-            if (moduleZ === zSlice) {
-                moduleMesh.mesh.material.opacity = OPACITY_SETTINGS.FULLY_OPAQUE;
-            } else {
-                moduleMesh.mesh.material.opacity = OPACITY_SETTINGS.TRANSPARENT;
-            }
-            console.log(moduleMesh);
-        }
+        updateModuleVisibility(module, moduleZ, zSlice);
     });
 
     console.log(`Updated visibility for ${moduleIds.length} modules at z-slice ${zSlice}`);
+}
+
+/**
+ * Updates the visibility and opacity of a single module based on its position relative to the current z-slice
+ * @param {object} module - The module object to update
+ * @param {number} moduleZ - The z position of the module
+ * @param {number} zSlice - The current z-slice being visualized
+ */
+function updateModuleVisibility(module, moduleZ, zSlice) {
+    const isCurrentSlice = moduleZ === zSlice;
+    let isVisible = false;
+    let opacity = OPACITY_SETTINGS.TRANSPARENT;
+    
+    if (moduleBrush.adjSlicesVisible) {
+        const distance = Math.abs(moduleZ - zSlice);
+        isVisible = (distance <= LAYER_SETTINGS.ADJACENT_DISTANCE);
+        
+        if (isVisible) {
+            opacity = isCurrentSlice ? 
+                OPACITY_SETTINGS.FULLY_OPAQUE : 
+                OPACITY_SETTINGS.ADJACENT_SLICE;
+        }
+    } else {
+        isVisible = isCurrentSlice;
+        opacity = isVisible ? 
+            OPACITY_SETTINGS.FULLY_OPAQUE : 
+            OPACITY_SETTINGS.TRANSPARENT;
+    }
+    
+    // Apply visibility and opacity settings
+    module.visible = isVisible;
+    module.mesh.material.opacity = opacity;
 }
 
 /**
