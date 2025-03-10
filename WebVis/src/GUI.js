@@ -96,8 +96,12 @@ window._toggleMRWTMode = function() {
         showAllModules();
     }
     
-    // Toggle camera movement
-    gwUser.controls.enabled = !window._isMRWTModeActive;
+    // // Toggle camera movement
+    // gwUser.controls.enabled = !window._isMRWTModeActive;
+    // Enable only panning, disable other controls
+    gUser.controls.enablePan = true;     // Enable panning (right/middle-click + drag)
+    gUser.controls.enableRotate = false; // Disable rotation (left-click + drag)
+    gUser.controls.enableZoom = false;   // Disable zooming (scroll wheel)
 }
 
 let _exampleLoaders = {};
