@@ -319,16 +319,16 @@ function handleModulePlacement(event) {
     });
     
     // Place a module at the grid position
-    placeModuleAtPosition(gridX, gridY, gridZ);
+    toggleModuleAtPosition(gridX, gridY, gridZ);
 }
 
 /**
- * Places a module at the specified grid position
+ * Toggles a module at the specified grid position - places one if none exists, or removes it if one does
  * @param {number} x - X grid position
  * @param {number} y - Y grid position
  * @param {number} z - Z grid position
  */
-function placeModuleAtPosition(x, y, z) {
+function toggleModuleAtPosition(x, y, z) {
     // Check if there's already a module at this position
     const existingModule = getModuleAtPosition(x, y, z);
     
@@ -341,7 +341,6 @@ function placeModuleAtPosition(x, y, z) {
         // Create a new module at the position
         const pos = new THREE.Vector3(x, y, z);
         
-        // TODO: Convert moduleBrush.color to THREE.Color
         // Convert moduleBrush.color (which is an object with r,g,b properties) to a THREE.Color
         const color = new THREE.Color(
             moduleBrush.color.r,
