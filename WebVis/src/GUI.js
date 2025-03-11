@@ -4,6 +4,10 @@ import { Scenario } from './Scenario.js';
 import { gScene, gLights, gRenderer } from './main.js';
 import { moduleBrush, pathfinderData, ModuleType, getModuleAtPosition } from './utils.js';
 import { CameraType } from "./utils.js";
+import { 
+    saveConfiguration,
+    downloadConfiguration
+} from './utils.js';
 import { gModules } from './main.js';
 import { Module as ModuleClass } from './Module.js';
 
@@ -185,6 +189,35 @@ document.addEventListener("DOMContentLoaded", async function () {
     gDevGui.add(window, '_toggleMRWTMode').name("MRWT Mode Toggle");
     // Add event listener for module placement
     document.addEventListener('mousedown', handleModulePlacement);
+
+    // Create configuration button controls using object literals
+    gPathfinderGui.add({ 
+        saveInitial: function() {
+            saveConfiguration(true);
+            console.log("Initial configuration saved");
+            pathfinder_controller.enable();
+        }
+    }, 'saveInitial').name("Save Initial Config");
+    
+    gPathfinderGui.add({ 
+        saveFinal: function() {
+            saveConfiguration(false);
+            console.log("Final configuration saved");
+            pathfinder_controller.enable();
+        }
+    }, 'saveFinal').name("Save Final Config");
+    
+    gPathfinderGui.add({ 
+        downloadInitial: function() {
+            downloadConfiguration(true);
+        }
+    }, 'downloadInitial').name("Download Initial");
+    
+    gPathfinderGui.add({ 
+        downloadFinal: function() {
+            downloadConfiguration(false);
+        }
+    }, 'downloadFinal').name("Download Final");
 
     const _folder = gScenGui.addFolder("Example Scenarios");
     for (let i in EXAMPLE_SCENARIOS) {
