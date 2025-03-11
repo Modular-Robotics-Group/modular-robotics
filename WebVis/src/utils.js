@@ -91,6 +91,7 @@ export function createPathfinderConfiguration(name = "Default Configuration", de
     
     // Create configuration object
     const config = {
+        exists: true,
         name: name,
         description: description,
         order: 3, // Default order
