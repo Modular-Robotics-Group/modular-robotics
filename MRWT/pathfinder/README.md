@@ -1,1 +1,0 @@
-NOTE: In order to compile the web version of pathfinder, you will need to download the nlohmann-json repository and move the "single_include" folder into this directory first. Also you need emscripten.
