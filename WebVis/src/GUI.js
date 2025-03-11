@@ -41,6 +41,14 @@ const MODULE_SETTINGS = Object.freeze({
     SCALE:            0.9
 })
 
+/**
+ * Predefined camera control configurations for different application modes
+ */
+const CAMERA_MODES = Object.freeze({
+    PAINTER: { pan: true, rotate: false, zoom: false },
+    NORMAL:  { pan: true, rotate: true, zoom: true }
+});
+
 /* ****************************** */
 /* Helpers */
 /* ****************************** */
@@ -100,17 +108,29 @@ window._toggleMRWTMode = function() {
         gwUser.resetCamera();
         // Update module visibility based on current z-slice
         updateVisibleModules(moduleBrush.zSlice);
+        
+        // Configure controls for painter mode (panning only)
+        setCameraControls(CAMERA_MODES.PAINTER);
     } else {
         // Show all modules when exiting painter mode
         showAllModules();
+
+        // Restore full camera controls for normal mode
+        setCameraControls(CAMERA_MODES.NORMAL);
     }
-    
-    // // Toggle camera movement
-    // gwUser.controls.enabled = !window._isPainterModeActive;
-    // Enable only panning, disable other controls
-    gwUser.controls.enablePan = true;     // Enable panning (right/middle-click + drag)
-    gwUser.controls.enableRotate = false; // Disable rotation (left-click + drag)
-    gwUser.controls.enableZoom = false;   // Disable zooming (scroll wheel)
+}
+
+/**
+ * Helper function to set camera controls with a single configuration object
+ * @param {Object} options - Camera control options
+ * @param {boolean} options.pan - Enable/disable panning
+ * @param {boolean} options.rotate - Enable/disable rotation
+ * @param {boolean} options.zoom - Enable/disable zooming
+ */
+function setCameraControls({ pan = true, rotate = true, zoom = true }) {
+    gwUser.controls.enablePan = pan;        // Panning (right/middle-click + drag)
+    gwUser.controls.enableRotate = rotate;  // Rotation (left-click + drag)
+    gwUser.controls.enableZoom = zoom;      // Zooming (scroll wheel)
 }
 
 let _exampleLoaders = {};
