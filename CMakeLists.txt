@@ -13,10 +13,13 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/Module Properties")
 set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 # Cache entries
 set(INCLUDE_TESTS OFF CACHE BOOL "Whether or not unit tests should be built alongside the Pathfinder.")
+set(LINK_TBB OFF CACHE BOOL "Whether or not TBB should be linked.")
 # Environment variables
 set(ENV{CTEST_OUTPUT_ON_FAILURE} ON)
 
-find_package(TBB REQUIRED COMPONENTS tbb)
+if(${LINK_TBB})
+    find_package(TBB REQUIRED COMPONENTS tbb)
+endif()
 
 find_package(Boost REQUIRED COMPONENTS filesystem system)
 if(Boost_FOUND)
@@ -118,7 +121,11 @@ foreach (TARGET ${Targets})
             pathfinder/utility/color_util.cpp
             pathfinder/utility/color_util.h)
 
-    target_link_libraries(${TARGET} PropertyLib tbb)
+    target_link_libraries(${TARGET} PropertyLib)
+
+    if(${LINK_TBB})
+        target_link_libraries(${TARGET} tbb)
+    endif()
 
     if(WIN32)
         target_link_libraries(${TARGET} unofficial::getopt-win32::getopt)
