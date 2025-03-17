@@ -10,16 +10,35 @@ function _constructBorderedMaterial(texture, color, opacity) {
         transparent: true,
         opacity: opacity,
         onBeforeCompile: shader => { // Manually update the existing material shader to add borders to modules
+            let endOfVert = shader.vertexShader.lastIndexOf('}');
+            
+            // Anything to inject at the top of the shaders (uniforms, macros, etc)
+            let attributesToInject = `
+attribute vec3 edge;
+`;
+            let varyingsToInject = `
+varying vec3 dist;
+`;
+            let uniformsToInject = ``;
+            
+            let codeToInjectToVert = `
+dist = edge;
+`;
+
+            shader.vertexShader =
+                attributesToInject
+                + varyingsToInject
+                + shader.vertexShader.substring(0, endOfVert)
+                + codeToInjectToVert
+                + shader.vertexShader.substring(endOfVert);
+            
             // Extract the index of the start of main
             //  We will declare some helper functions right before main()
-            let beginningOfMain = shader.fragmentShader.indexOf('void main() {');
+            let beginningOfFrag = shader.fragmentShader.indexOf('void main() {');
 
             // Extract the index of the closing curly brace, hack-ily
             //  We will inject code to the end of main
-            let endOfMain = shader.fragmentShader.lastIndexOf('}');
-
-            // Anything to inject at the top of the shader (uniforms, macros, etc)
-            let uniformsToInject = ``;
+            let endOfFrag = shader.fragmentShader.lastIndexOf('}');
 
 /*          let uniformsToInject =
 `uniform vec4 borderAttrs;
@@ -38,7 +57,10 @@ float y = Between(orig.y, orig.y + wh.y, st.y);
 return x*y;
 }
 `;          // We will inject code at the end of main()
-            let codeToInjectToMain = ``;
+            let codeToInjectToFrag = `
+float d = min(min(dist[0], dist[1]), dist[2]);
+gl_FragColor = float(d < 0.1) * vec4(0, 0, 0, 1) + (1.0 - float(d < 0.1)) * gl_FragColor;
+`;
 /*`float borderMask = 1.0 - Rectangle(vec2(borderAttrs.w), vec2(1.0 - 2.0*borderAttrs.w), vMapUv);
 float interiorMask = 1.0 - borderMask;
 vec3 borderColor = borderAttrs.xyz;
@@ -50,11 +72,12 @@ gl_FragColor = vec4(interior + border, gl_FragColor.a);
             // Perform the injection
             shader.fragmentShader = 
                 uniformsToInject
-                + shader.fragmentShader.substring(0, beginningOfMain)
+                + varyingsToInject
+                + shader.fragmentShader.substring(0, beginningOfFrag)
                 + helperFunctions
-                + shader.fragmentShader.substring(beginningOfMain, endOfMain)
-                + codeToInjectToMain
-                + shader.fragmentShader.substring(endOfMain);
+                + shader.fragmentShader.substring(beginningOfFrag, endOfFrag)
+                + codeToInjectToFrag
+                + shader.fragmentShader.substring(endOfFrag);
         }
     });
 }
@@ -73,5 +96,5 @@ export const ModuleMaterialConstructors = new Map([
     //[ModuleType.RHOMBIC_DODECAHEDRON, _constructBasicMaterial],
     [ModuleType.CUBE, _constructBorderedMaterial],
     [ModuleType.RHOMBIC_DODECAHEDRON, _constructBorderedMaterial],
-    [ModuleType.CATOM, _constructBasicMaterial],
+    [ModuleType.CATOM, _constructBorderedMaterial],
 ]);
