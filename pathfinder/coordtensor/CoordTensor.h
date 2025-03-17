@@ -57,6 +57,10 @@ public:
     [[nodiscard]]
     const std::valarray<int>& CoordsFromIndex(int index) const;
 
+    // Get an index from a coordinate vector
+    // (Coordinates do not need to be within bounds)
+    int IndexFromCoords(const std::valarray<int>& coords) const;
+
     // Assign a value to every position in the tensor
     void Fill(const typename std::vector<T>::value_type& value);
 
@@ -126,6 +130,11 @@ const std::valarray<int>& CoordTensor<T>::CoordsFromIndex(int index) const {
     return _coordsInternal[index];
 }
 
+template<typename T>
+int CoordTensor<T>::IndexFromCoords(const std::valarray<int> &coords) const {
+    return (coords * _axisMultipliers).sum();
+}
+
 template <typename T>
 CoordTensor<T>::CoordTensor(int order, int axisSize, const typename std::vector<T>::value_type& value, const std::valarray<int>& originOffset) {
     _order = order;
@@ -176,17 +185,19 @@ CoordTensor<T>::CoordTensor(int order, int axisSize, const typename std::vector<
             DEBUG("3rd order tensor created\n");
             break;
         default:
-            // If the tensor is not 2nd or 3rd order then the
-            // coordinate multiplier cache needs to be set up
-            _axisMultipliers.resize(order);
-            int multiplier = 1;
-            for (int i = 0; i < order; i++) {
-                _axisMultipliers[i] = multiplier;
-                multiplier *= _axisSize;
-            }
+            // Use coordinate multiplier cache for arbitrary dimensions
             IdAtInternal = &CoordTensor::ElemAtNthOrder;
             IdAtInternalConst = &CoordTensor::ElemAtNthOrderConst;
             DEBUG("Tensor of order " << order << " created\n");
+    }
+    // If the tensor is not 2nd or 3rd order then the
+    // coordinate multiplier cache needs to be set up
+    // Also useful for index caching
+    _axisMultipliers.resize(order);
+    int multiplier = 1;
+    for (int i = 0; i < order; i++) {
+        _axisMultipliers[i] = multiplier;
+        multiplier *= _axisSize;
     }
     // Offset setup
     if (originOffset.size() != 0) {
