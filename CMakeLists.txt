@@ -16,6 +16,8 @@ set(INCLUDE_TESTS OFF CACHE BOOL "Whether or not unit tests should be built alon
 # Environment variables
 set(ENV{CTEST_OUTPUT_ON_FAILURE} ON)
 
+find_package(TBB REQUIRED COMPONENTS tbb)
+
 find_package(Boost REQUIRED COMPONENTS filesystem system)
 if(Boost_FOUND)
     include_directories(${Boost_INCLUDE_DIRS})
@@ -116,7 +118,7 @@ foreach (TARGET ${Targets})
             pathfinder/utility/color_util.cpp
             pathfinder/utility/color_util.h)
 
-    target_link_libraries(${TARGET} PropertyLib)
+    target_link_libraries(${TARGET} PropertyLib tbb)
 
     if(WIN32)
         target_link_libraries(${TARGET} unofficial::getopt-win32::getopt)
