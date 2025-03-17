@@ -46,8 +46,16 @@ void Scenario::ExportToScen(const std::vector<const Configuration *>& path, cons
     file << "CUBE\n\n";
 #endif
 #else
-    //TODO: Properly set output scen geometry
-    file << "CUBE\n\n";
+    // TODO: make this part suck less
+    const auto adjIndices = Lattice::adjIndices;
+    Lattice::adjIndices.clear();
+    Lattice::SetAdjIndicesFromOffsets(LatticeUtils::rhomDodAdjOffsets);
+    if (adjIndices == Lattice::adjIndices) {
+        file << "RHOMBIC_DODECAHEDRON\n\n";
+    } else {
+        file << "CUBE\n\n";
+    }
+    Lattice::adjIndices = adjIndices;
 #endif
     if (Lattice::ignoreProperties) {
         file << "0, 244, 244, 0, 95\n";
