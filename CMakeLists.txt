@@ -140,10 +140,10 @@ if(${INCLUDE_TESTS})
             LATTICE_RD_EDGECHECK=false
             CONFIG_PARALLEL_MOVES=false
             MOVEMANAGER_CHECK_BY_OFFSET=true)
-    target_compile_definitions(Pathfinder_Rhombic PUBLIC
-            LATTICE_RD_EDGECHECK=true
-            CONFIG_PARALLEL_MOVES=false
-            MOVEMANAGER_CHECK_BY_OFFSET=true)
+#    target_compile_definitions(Pathfinder_Rhombic PUBLIC
+#            LATTICE_RD_EDGECHECK=true
+#            CONFIG_PARALLEL_MOVES=false
+#            MOVEMANAGER_CHECK_BY_OFFSET=true)
     target_compile_definitions(Pathfinder_Parallel PUBLIC
             LATTICE_RD_EDGECHECK=false
             CONFIG_PARALLEL_MOVES=true
@@ -200,12 +200,13 @@ if(${INCLUDE_TESTS})
 
     set_property(TEST TestColor3D PROPERTY PASS_REGULAR_EXPRESSION "A* Final Depth: 8")
 
-    add_test(NAME TestRhombicDodecahedron COMMAND Pathfinder_Rhombic
+    add_test(NAME TestRhombicDodecahedron COMMAND Pathfinder_Standard
             -I ./Test-Resources/Rhombic-Color_initial.json
             -F ./Test-Resources/Rhombic-Color_final.json
             -e ./Test-Resources/Output/RhombicDodecahedron.scen
             -a ./Test-Resources/Output/RhombicDodecahedron_analysis.json
-            -m ./Test-Resources/Moves_Rhombic)
+            -m ./Test-Resources/Moves_Rhombic
+            -c RD)
 
     set_property(TEST TestRhombicDodecahedron PROPERTY PASS_REGULAR_EXPRESSION "A* Final Depth: 16")
 

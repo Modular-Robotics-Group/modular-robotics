@@ -39,9 +39,14 @@ void Scenario::ExportToScen(const std::vector<const Configuration *>& path, cons
     }
     std::ofstream file(scenInfo.exportFile);
     file << scenInfo.scenName << std::endl << scenInfo.scenDesc << std::endl;
+#if LATTICE_OLD_EDGECHECK
 #if LATTICE_RD_EDGECHECK
     file << "RHOMBIC_DODECAHEDRON\n\n";
 #else
+    file << "CUBE\n\n";
+#endif
+#else
+    //TODO: Properly set output scen geometry
     file << "CUBE\n\n";
 #endif
     if (Lattice::ignoreProperties) {

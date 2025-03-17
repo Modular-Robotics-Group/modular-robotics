@@ -21,8 +21,12 @@
 #endif
 
 /* Edge Check Configuration
- * Set this to true to check for all edges of a rhombic dodecahedron instead of a cube
+ * OLD_EDGECHECK: Set this to true to use legacy edge checking functions
+ * RD_EDGECHECK: Set this to true to check for all edges of a rhombic dodecahedron instead of a cube
  */
+#ifndef LATTICE_OLD_EDGECHECK
+#define LATTICE_OLD_EDGECHECK false
+#endif
 #ifndef LATTICE_RD_EDGECHECK
 #define LATTICE_RD_EDGECHECK false
 #endif
@@ -32,6 +36,12 @@ enum TensorContents {
     FREE_SPACE = -1,
     OCCUPIED_NO_ANCHOR = std::numeric_limits<int>::max()
 };
+
+namespace LatticeUtils {
+    extern const std::vector<std::valarray<int>> cubeAdjOffsets;
+
+    extern const std::vector<std::valarray<int>> rhomDodAdjOffsets;
+}
 
 class Lattice {
 private:
@@ -78,8 +88,13 @@ public:
 
     static bool CheckConnected(int permitMissing = 0);
 
-    // Adjacency Check
+    // General Adjacency Check + Adjacency index helper function
+    static std::vector<int> adjIndices;
     static void EdgeCheck(const Module& mod);
+    static void SetAdjIndicesFromOffsets(const std::vector<std::valarray<int>>& offsets);
+
+    // Cube Adjacency Check
+    static void CubeEdgeCheck(const Module& mod);
 
     // Rhombic Dodecahedra Adjacency Check
     static void RDEdgeCheck(const Module& mod);

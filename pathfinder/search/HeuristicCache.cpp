@@ -99,6 +99,16 @@ void ChebyshevEnqueueAdjacentInternal(std::queue<SearchCoord>& coordQueue, const
     }
 }
 
+void EnqueueAdjacentInternal(std::queue<SearchCoord>& coordQueue, const SearchCoord& coordInfo) {
+    static const int maxIdx = static_cast<int>(Lattice::coordTensor.GetArrayInternal().size()) - 1;
+    const int coordIdx = Lattice::coordTensor.IndexFromCoords(coordInfo.coords);
+    for (const int idx : Lattice::adjIndices) {
+        if (coordIdx + idx < 0 || coordIdx + idx > maxIdx ||
+            Lattice::coordTensor.GetElementDirect(coordIdx + idx) == OUT_OF_BOUNDS) continue;
+        coordQueue.push({Lattice::coordTensor.CoordsFromIndex(coordIdx + idx), coordInfo.depth + 1});
+    }
+}
+
 CoordTensor<int> BuildInternalDistanceCache() {
     if (ModuleIdManager::StaticModules().empty()) {
         // No static modules to use in distance cache
@@ -123,12 +133,16 @@ CoordTensor<int> BuildInternalDistanceCache() {
                 coordQueue.pop();
                 continue;
             }
+#if LATTICE_OLD_EDGECHECK
 #if LATTICE_RD_EDGECHECK
             // 90% sure Chebyshev distance should work for rhombic dodecahedra edge checking
             ChebyshevEnqueueAdjacentInternal(coordQueue, coordQueue.front());
 #else
             // Manhattan distance works for regular edge checking
             ManhattanEnqueueAdjacentInternal(coordQueue, coordQueue.front());
+#endif
+#else
+            EnqueueAdjacentInternal(coordQueue, coordQueue.front());
 #endif
             coordQueue.pop();
         }

@@ -9,6 +9,8 @@
 
 #define FLIP_Y_COORD true
 
+AdjOverride LatticeSetup::adjCheckOverride = NONE;
+
 void LatticeSetup::SetupFromJson(const std::string& filename) {
     if (ModuleProperties::PropertyCount() == 0) {
         Lattice::ignoreProperties = true;
@@ -25,6 +27,27 @@ void LatticeSetup::SetupFromJson(const std::string& filename) {
         Lattice::InitLattice(j["order"], j["axisSize"], j["tensorPadding"]);
     } else {
         Lattice::InitLattice(j["order"], j["axisSize"]);
+    }
+    std::cout << "Done." << std::endl << "\tConfiguring Adjacency Checks...   ";
+    if (adjCheckOverride == NONE) {
+        if (j.contains("adjacencyOffsets")) {
+            std::vector<std::valarray<int>> offsets;
+            for (const auto& offset_in : j["adjacencyOffsets"]) {
+                std::valarray<int> offset(0, Lattice::Order());
+                for (int i = 0; i < Lattice::Order() && i < offset_in.size(); i++) {
+                    offset[i] = offset_in[i];
+                }
+                offsets.push_back(offset);
+            }
+            Lattice::SetAdjIndicesFromOffsets(offsets);
+        } else {
+            // Cube adjacency as fallback, might be worth looking into some way to auto-choose between cube and rd
+            Lattice::SetAdjIndicesFromOffsets(LatticeUtils::cubeAdjOffsets);
+        }
+    } else if (adjCheckOverride == CUBE) {
+        Lattice::SetAdjIndicesFromOffsets(LatticeUtils::cubeAdjOffsets);
+    } else {
+        Lattice::SetAdjIndicesFromOffsets(LatticeUtils::rhomDodAdjOffsets);
     }
     std::cout << "Done." << std::endl << "\tConstructing Non-Static Modules...   ";
     for (const auto& module : j["modules"]) {

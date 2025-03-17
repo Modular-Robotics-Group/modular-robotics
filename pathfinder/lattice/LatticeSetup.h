@@ -5,7 +5,15 @@
 #include "../search/ConfigurationSpace.h"
 #include <nlohmann/json.hpp>
 
+enum AdjOverride {
+    NONE,
+    CUBE,
+    RHOMDOD
+};
+
 namespace LatticeSetup {
+    extern AdjOverride adjCheckOverride;
+
     void SetupFromJson(const std::string& filename);
 
     Configuration SetupFinalFromJson(const std::string& filename);

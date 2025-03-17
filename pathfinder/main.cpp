@@ -28,6 +28,7 @@ int main(int argc, char* argv[]) {
     std::string movesFolder;
     std::string searchMethod;
     std::string heuristic;
+    std::string edgeCheck;
 
     // Define the long options
     static option long_options[] = {
@@ -39,12 +40,13 @@ int main(int argc, char* argv[]) {
         {"moves-folder", required_argument, nullptr, 'm'},
         {"search-method", required_argument, nullptr, 's'},
         {"heuristic", required_argument, nullptr, 'h'},
+        {"edge-check", required_argument, nullptr, 'c'},
         {nullptr, 0, nullptr, 0}
     };
 
     int option_index = 0;
     int c;
-    while ((c = getopt_long(argc, argv, "iI:F:e:a:m:s:h:", long_options, &option_index)) != -1) {
+    while ((c = getopt_long(argc, argv, "iI:F:e:a:m:s:h:c:", long_options, &option_index)) != -1) {
         switch (c) {
             case 'i':
                 ignoreColors = true;
@@ -69,6 +71,9 @@ int main(int argc, char* argv[]) {
                 break;
             case 'h':
                 heuristic = optarg;
+                break;
+            case 'c':
+                edgeCheck = optarg;
                 break;
             case '?':
                 break;
@@ -154,6 +159,21 @@ int main(int argc, char* argv[]) {
 
     // Set up Lattice
     std::cout << "Initializing Lattice..." << std::endl;
+    // Set up edge-check override if needed
+#if !LATTICE_OLD_EDGECHECK
+    if (!edgeCheck.empty()) {
+        std::cout << "Setting Adjacency Check Override..." << std::endl;
+        if (edgeCheck == "cube" || edgeCheck == "Cube" || edgeCheck == "manhattan" || edgeCheck == "Manhattan") {
+            LatticeSetup::adjCheckOverride = CUBE;
+        } else if (edgeCheck == "rhombic dodecahedron" || edgeCheck == "Rhombic Dodecahedron" || edgeCheck == "rd" || edgeCheck == "RD") {
+            LatticeSetup::adjCheckOverride = RHOMDOD;
+        } else {
+            std::cerr << "Received invalid adjacency check option: " << edgeCheck << ", using cube adjacency." << std::endl;
+            LatticeSetup::adjCheckOverride = CUBE;
+        }
+        std::cout << "Adjacency check override set." << std::endl;
+    }
+#endif
     Lattice::SetFlags(ignoreColors);
     LatticeSetup::SetupFromJson(initialFile);
     std::cout << "Lattice initialized." << std::endl;
@@ -191,10 +211,14 @@ int main(int argc, char* argv[]) {
     std::cout << "DISABLED" << std::endl;
 #endif
     std::cout << "Edge Check Mode:       ";
+#if LATTICE_OLD_EDGECHECK
 #if LATTICE_RD_EDGECHECK
     std::cout << "RHOMBIC DODECAHEDRON FACE" << std::endl;
 #else
     std::cout << "CUBE FACE" << std::endl;
+#endif
+#else
+    std::cout << "GENERAL" << std::endl;
 #endif
     std::cout << "Parallel Pathfinding:  ";
 #if CONFIG_PARALLEL_MOVES

@@ -7,6 +7,30 @@
 #include "../utility/color_util.h"
 #include "Lattice.h"
 
+const std::vector<std::valarray<int>> LatticeUtils::cubeAdjOffsets = {
+    { 1,  0,  0},
+    { 0,  1,  0},
+    { 0,  0,  1},
+    {-1,  0,  0},
+    { 0, -1,  0},
+    { 0,  0, -1}
+};
+
+const std::vector<std::valarray<int>> LatticeUtils::rhomDodAdjOffsets = {
+    { 1,  1,  0},
+    { 1, -1,  0},
+    {-1,  1,  0},
+    {-1, -1,  0},
+    { 1,  0,  1},
+    { 1,  0, -1},
+    {-1,  0,  1},
+    {-1,  0, -1},
+    { 0,  1,  1},
+    { 0,  1, -1},
+    { 0, -1,  1},
+    { 0, -1, -1}
+};
+
 std::vector<std::vector<int>> Lattice::adjList;
 int Lattice::order;
 int Lattice::axisSize;
@@ -55,8 +79,12 @@ void Lattice::AddModule(const Module& mod) {
     // Update coord tensor
     coordTensor[mod.coords] = mod.id;
     // Adjacency check
+#if LATTICE_OLD_EDGECHECK
 #if LATTICE_RD_EDGECHECK
     RDEdgeCheck(mod);
+#else
+    CubeEdgeCheck(mod);
+#endif
 #else
     EdgeCheck(mod);
 #endif
@@ -89,7 +117,33 @@ bool Lattice::CheckConnected(int permitMissing) {
     return visitedCount >= moduleCount - permitMissing;
 }
 
+std::vector<int> Lattice::adjIndices;
+
 void Lattice::EdgeCheck(const Module& mod) {
+    static const int maxIdx = coordTensor.GetArrayInternal().size() - 1;
+    const int modIdx = coordTensor.IndexFromCoords(mod.coords);
+    for (const int idx : adjIndices) {
+        if (modIdx + idx < 0 || modIdx + idx > maxIdx) continue;
+        if (coordTensor.GetElementDirect(modIdx + idx) >= 0) {
+            AddEdge(mod.id, coordTensor.GetElementDirect(modIdx + idx));
+        }
+    }
+}
+
+void Lattice::SetAdjIndicesFromOffsets(const std::vector<std::valarray<int>>& offsets) {
+    for (const std::valarray<int>& offset_in : offsets) {
+        std::valarray<int> offset(0, order);
+        for (int i = 0; i < order && i < offset_in.size(); i++) {
+            offset[i] = offset_in[i];
+        }
+        if (int idx = coordTensor.IndexFromCoords(offset); idx != 0) {
+            adjIndices.push_back(idx);
+        }
+    }
+}
+
+
+void Lattice::CubeEdgeCheck(const Module& mod) {
     // Copy module coordinates to adjCoords
     auto adjCoords = mod.coords;
     for (int i = 0; i < order; i++) {
@@ -421,8 +475,12 @@ void Lattice::UpdateFromModuleInfo(const std::set<ModuleData>& moduleInfo) {
         Lattice::coordTensor[mod.coords] = FREE_SPACE;
         mod.coords = destinations.front()->Coords();
         ClearAdjacencies(id);
+#if LATTICE_OLD_EDGECHECK
 #if LATTICE_RD_EDGECHECK
         RDEdgeCheck(mod);
+#else
+        CubeEdgeCheck(mod);
+#endif
 #else
         EdgeCheck(mod);
 #endif

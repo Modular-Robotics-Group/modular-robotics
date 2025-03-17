@@ -714,8 +714,12 @@ void MoveManager::MoveModule(Module& mod, const MoveBase* move) {
     Lattice::coordTensor[mod.coords] = FREE_SPACE;
     mod.coords += ModuleProperties::IsReversing() ? -move->MoveOffset() : move->MoveOffset();
     Lattice::coordTensor[mod.coords] = mod.id;
+#if LATTICE_OLD_EDGECHECK
 #if LATTICE_RD_EDGECHECK
     Lattice::RDEdgeCheck(mod);
+#else
+    Lattice::CubeEdgeCheck(mod);
+#endif
 #else
     Lattice::EdgeCheck(mod);
 #endif
@@ -918,8 +922,12 @@ std::vector<std::set<ModuleData>> MoveManager::MakeAllParallelMoves(std::unorder
         }
         for (const auto& mod : mods) {
             Lattice::ClearAdjacencies(mod->id);
+#if LATTICE_OLD_EDGECHECK
 #if LATTICE_RD_EDGECHECK
             Lattice::RDEdgeCheck(*mod);
+#else
+            Lattice::CubeEdgeCheck(*mod);
+#endif
 #else
             Lattice::EdgeCheck(*mod);
 #endif
