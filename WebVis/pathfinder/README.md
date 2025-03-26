@@ -1,1 +1,5 @@
-NOTE: In order to compile the web version of pathfinder, you will need to download the nlohmann-json repository and move the "single_include" folder into this directory first. Also you need emscripten.
+# WebMRS Pathfinder
+
+This section of the site holds assets for WebMRS Pathfinder.
+
+Also some source code is here, but it's probably not the best way to view it.

@@ -1189,215 +1189,17 @@ async function createWasm() {
   var ___cxa_uncaught_exceptions = () => uncaughtExceptionCount;
 
 
-  var __abort_js = () =>
-      abort('native code called abort()');
-
-  var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
-      assert(typeof str === 'string', `stringToUTF8Array expects a string (got ${typeof str})`);
-      // Parameter maxBytesToWrite is not optional. Negative values, 0, null,
-      // undefined and false each don't write out any bytes.
-      if (!(maxBytesToWrite > 0))
-        return 0;
-  
-      var startIdx = outIdx;
-      var endIdx = outIdx + maxBytesToWrite - 1; // -1 for string null terminator.
-      for (var i = 0; i < str.length; ++i) {
-        // Gotcha: charCodeAt returns a 16-bit word that is a UTF-16 encoded code
-        // unit, not a Unicode code point of the character! So decode
-        // UTF16->UTF32->UTF8.
-        // See http://unicode.org/faq/utf_bom.html#utf16-3
-        // For UTF8 byte structure, see http://en.wikipedia.org/wiki/UTF-8#Description
-        // and https://www.ietf.org/rfc/rfc2279.txt
-        // and https://tools.ietf.org/html/rfc3629
-        var u = str.charCodeAt(i); // possibly a lead surrogate
-        if (u >= 0xD800 && u <= 0xDFFF) {
-          var u1 = str.charCodeAt(++i);
-          u = 0x10000 + ((u & 0x3FF) << 10) | (u1 & 0x3FF);
-        }
-        if (u <= 0x7F) {
-          if (outIdx >= endIdx) break;
-          heap[outIdx++] = u;
-        } else if (u <= 0x7FF) {
-          if (outIdx + 1 >= endIdx) break;
-          heap[outIdx++] = 0xC0 | (u >> 6);
-          heap[outIdx++] = 0x80 | (u & 63);
-        } else if (u <= 0xFFFF) {
-          if (outIdx + 2 >= endIdx) break;
-          heap[outIdx++] = 0xE0 | (u >> 12);
-          heap[outIdx++] = 0x80 | ((u >> 6) & 63);
-          heap[outIdx++] = 0x80 | (u & 63);
-        } else {
-          if (outIdx + 3 >= endIdx) break;
-          if (u > 0x10FFFF) warnOnce('Invalid Unicode code point ' + ptrToString(u) + ' encountered when serializing a JS string to a UTF-8 string in wasm memory! (Valid unicode code points should be in range 0-0x10FFFF).');
-          heap[outIdx++] = 0xF0 | (u >> 18);
-          heap[outIdx++] = 0x80 | ((u >> 12) & 63);
-          heap[outIdx++] = 0x80 | ((u >> 6) & 63);
-          heap[outIdx++] = 0x80 | (u & 63);
-        }
-      }
-      // Null-terminate the pointer to the buffer.
-      heap[outIdx] = 0;
-      return outIdx - startIdx;
+  /** @suppress {duplicate } */
+  var syscallGetVarargI = () => {
+      assert(SYSCALLS.varargs != undefined);
+      // the `+` prepended here is necessary to convince the JSCompiler that varargs is indeed a number.
+      var ret = HEAP32[((+SYSCALLS.varargs)>>2)];
+      SYSCALLS.varargs += 4;
+      return ret;
     };
-  var stringToUTF8 = (str, outPtr, maxBytesToWrite) => {
-      assert(typeof maxBytesToWrite == 'number', 'stringToUTF8(str, outPtr, maxBytesToWrite) is missing the third parameter that specifies the length of the output buffer!');
-      return stringToUTF8Array(str, HEAPU8, outPtr, maxBytesToWrite);
-    };
+  var syscallGetVarargP = syscallGetVarargI;
   
-  var lengthBytesUTF8 = (str) => {
-      var len = 0;
-      for (var i = 0; i < str.length; ++i) {
-        // Gotcha: charCodeAt returns a 16-bit word that is a UTF-16 encoded code
-        // unit, not a Unicode code point of the character! So decode
-        // UTF16->UTF32->UTF8.
-        // See http://unicode.org/faq/utf_bom.html#utf16-3
-        var c = str.charCodeAt(i); // possibly a lead surrogate
-        if (c <= 0x7F) {
-          len++;
-        } else if (c <= 0x7FF) {
-          len += 2;
-        } else if (c >= 0xD800 && c <= 0xDFFF) {
-          len += 4; ++i;
-        } else {
-          len += 3;
-        }
-      }
-      return len;
-    };
-  var __tzset_js = (timezone, daylight, std_name, dst_name) => {
-      // TODO: Use (malleable) environment variables instead of system settings.
-      var currentYear = new Date().getFullYear();
-      var winter = new Date(currentYear, 0, 1);
-      var summer = new Date(currentYear, 6, 1);
-      var winterOffset = winter.getTimezoneOffset();
-      var summerOffset = summer.getTimezoneOffset();
   
-      // Local standard timezone offset. Local standard time is not adjusted for
-      // daylight savings.  This code uses the fact that getTimezoneOffset returns
-      // a greater value during Standard Time versus Daylight Saving Time (DST).
-      // Thus it determines the expected output during Standard Time, and it
-      // compares whether the output of the given date the same (Standard) or less
-      // (DST).
-      var stdTimezoneOffset = Math.max(winterOffset, summerOffset);
-  
-      // timezone is specified as seconds west of UTC ("The external variable
-      // `timezone` shall be set to the difference, in seconds, between
-      // Coordinated Universal Time (UTC) and local standard time."), the same
-      // as returned by stdTimezoneOffset.
-      // See http://pubs.opengroup.org/onlinepubs/009695399/functions/tzset.html
-      HEAPU32[((timezone)>>2)] = stdTimezoneOffset * 60;
-  
-      HEAP32[((daylight)>>2)] = Number(winterOffset != summerOffset);
-  
-      var extractZone = (timezoneOffset) => {
-        // Why inverse sign?
-        // Read here https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/getTimezoneOffset
-        var sign = timezoneOffset >= 0 ? "-" : "+";
-  
-        var absOffset = Math.abs(timezoneOffset)
-        var hours = String(Math.floor(absOffset / 60)).padStart(2, "0");
-        var minutes = String(absOffset % 60).padStart(2, "0");
-  
-        return `UTC${sign}${hours}${minutes}`;
-      }
-  
-      var winterName = extractZone(winterOffset);
-      var summerName = extractZone(summerOffset);
-      assert(winterName);
-      assert(summerName);
-      assert(lengthBytesUTF8(winterName) <= 16, `timezone name truncated to fit in TZNAME_MAX (${winterName})`);
-      assert(lengthBytesUTF8(summerName) <= 16, `timezone name truncated to fit in TZNAME_MAX (${summerName})`);
-      if (summerOffset < winterOffset) {
-        // Northern hemisphere
-        stringToUTF8(winterName, std_name, 17);
-        stringToUTF8(summerName, dst_name, 17);
-      } else {
-        stringToUTF8(winterName, dst_name, 17);
-        stringToUTF8(summerName, std_name, 17);
-      }
-    };
-
-  var getHeapMax = () =>
-      HEAPU8.length;
-  
-  var alignMemory = (size, alignment) => {
-      assert(alignment, "alignment argument is required");
-      return Math.ceil(size / alignment) * alignment;
-    };
-  
-  var abortOnCannotGrowMemory = (requestedSize) => {
-      abort(`Cannot enlarge memory arrays to size ${requestedSize} bytes (OOM). Either (1) compile with -sINITIAL_MEMORY=X with X higher than the current value ${HEAP8.length}, (2) compile with -sALLOW_MEMORY_GROWTH which allows increasing the size at runtime, or (3) if you want malloc to return NULL (0) instead of this abort, compile with -sABORTING_MALLOC=0`);
-    };
-  var _emscripten_resize_heap = (requestedSize) => {
-      var oldSize = HEAPU8.length;
-      // With CAN_ADDRESS_2GB or MEMORY64, pointers are already unsigned.
-      requestedSize >>>= 0;
-      abortOnCannotGrowMemory(requestedSize);
-    };
-
-  var ENV = {
-  };
-  
-  var getExecutableName = () => thisProgram || './this.program';
-  var getEnvStrings = () => {
-      if (!getEnvStrings.strings) {
-        // Default values.
-        // Browser language detection #8751
-        var lang = ((typeof navigator == 'object' && navigator.languages && navigator.languages[0]) || 'C').replace('-', '_') + '.UTF-8';
-        var env = {
-          'USER': 'web_user',
-          'LOGNAME': 'web_user',
-          'PATH': '/',
-          'PWD': '/',
-          'HOME': '/home/web_user',
-          'LANG': lang,
-          '_': getExecutableName()
-        };
-        // Apply the user-provided values, if any.
-        for (var x in ENV) {
-          // x is a key in ENV; if ENV[x] is undefined, that means it was
-          // explicitly set to be so. We allow user code to do that to
-          // force variables with default values to remain unset.
-          if (ENV[x] === undefined) delete env[x];
-          else env[x] = ENV[x];
-        }
-        var strings = [];
-        for (var x in env) {
-          strings.push(`${x}=${env[x]}`);
-        }
-        getEnvStrings.strings = strings;
-      }
-      return getEnvStrings.strings;
-    };
-  
-  var stringToAscii = (str, buffer) => {
-      for (var i = 0; i < str.length; ++i) {
-        assert(str.charCodeAt(i) === (str.charCodeAt(i) & 0xff));
-        HEAP8[buffer++] = str.charCodeAt(i);
-      }
-      // Null-terminate the string
-      HEAP8[buffer] = 0;
-    };
-  var _environ_get = (__environ, environ_buf) => {
-      var bufSize = 0;
-      getEnvStrings().forEach((string, i) => {
-        var ptr = environ_buf + bufSize;
-        HEAPU32[(((__environ)+(i*4))>>2)] = ptr;
-        stringToAscii(string, ptr);
-        bufSize += string.length + 1;
-      });
-      return 0;
-    };
-
-  var _environ_sizes_get = (penviron_count, penviron_buf_size) => {
-      var strings = getEnvStrings();
-      HEAPU32[((penviron_count)>>2)] = strings.length;
-      var bufSize = 0;
-      strings.forEach((string) => bufSize += string.length + 1);
-      HEAPU32[((penviron_buf_size)>>2)] = bufSize;
-      return 0;
-    };
-
   var PATH = {
   isAbs:(path) => path.charAt(0) === '/',
   splitPath:(filename) => {
@@ -1533,7 +1335,74 @@ async function createWasm() {
   
   var FS_stdin_getChar_buffer = [];
   
+  var lengthBytesUTF8 = (str) => {
+      var len = 0;
+      for (var i = 0; i < str.length; ++i) {
+        // Gotcha: charCodeAt returns a 16-bit word that is a UTF-16 encoded code
+        // unit, not a Unicode code point of the character! So decode
+        // UTF16->UTF32->UTF8.
+        // See http://unicode.org/faq/utf_bom.html#utf16-3
+        var c = str.charCodeAt(i); // possibly a lead surrogate
+        if (c <= 0x7F) {
+          len++;
+        } else if (c <= 0x7FF) {
+          len += 2;
+        } else if (c >= 0xD800 && c <= 0xDFFF) {
+          len += 4; ++i;
+        } else {
+          len += 3;
+        }
+      }
+      return len;
+    };
   
+  var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
+      assert(typeof str === 'string', `stringToUTF8Array expects a string (got ${typeof str})`);
+      // Parameter maxBytesToWrite is not optional. Negative values, 0, null,
+      // undefined and false each don't write out any bytes.
+      if (!(maxBytesToWrite > 0))
+        return 0;
+  
+      var startIdx = outIdx;
+      var endIdx = outIdx + maxBytesToWrite - 1; // -1 for string null terminator.
+      for (var i = 0; i < str.length; ++i) {
+        // Gotcha: charCodeAt returns a 16-bit word that is a UTF-16 encoded code
+        // unit, not a Unicode code point of the character! So decode
+        // UTF16->UTF32->UTF8.
+        // See http://unicode.org/faq/utf_bom.html#utf16-3
+        // For UTF8 byte structure, see http://en.wikipedia.org/wiki/UTF-8#Description
+        // and https://www.ietf.org/rfc/rfc2279.txt
+        // and https://tools.ietf.org/html/rfc3629
+        var u = str.charCodeAt(i); // possibly a lead surrogate
+        if (u >= 0xD800 && u <= 0xDFFF) {
+          var u1 = str.charCodeAt(++i);
+          u = 0x10000 + ((u & 0x3FF) << 10) | (u1 & 0x3FF);
+        }
+        if (u <= 0x7F) {
+          if (outIdx >= endIdx) break;
+          heap[outIdx++] = u;
+        } else if (u <= 0x7FF) {
+          if (outIdx + 1 >= endIdx) break;
+          heap[outIdx++] = 0xC0 | (u >> 6);
+          heap[outIdx++] = 0x80 | (u & 63);
+        } else if (u <= 0xFFFF) {
+          if (outIdx + 2 >= endIdx) break;
+          heap[outIdx++] = 0xE0 | (u >> 12);
+          heap[outIdx++] = 0x80 | ((u >> 6) & 63);
+          heap[outIdx++] = 0x80 | (u & 63);
+        } else {
+          if (outIdx + 3 >= endIdx) break;
+          if (u > 0x10FFFF) warnOnce('Invalid Unicode code point ' + ptrToString(u) + ' encountered when serializing a JS string to a UTF-8 string in wasm memory! (Valid unicode code points should be in range 0-0x10FFFF).');
+          heap[outIdx++] = 0xF0 | (u >> 18);
+          heap[outIdx++] = 0x80 | ((u >> 12) & 63);
+          heap[outIdx++] = 0x80 | ((u >> 6) & 63);
+          heap[outIdx++] = 0x80 | (u & 63);
+        }
+      }
+      // Null-terminate the pointer to the buffer.
+      heap[outIdx] = 0;
+      return outIdx - startIdx;
+    };
   /** @type {function(string, boolean=, number=)} */
   var intArrayFromString = (stringy, dontAddNull, length) => {
       var len = length > 0 ? length : lengthBytesUTF8(stringy)+1;
@@ -1737,6 +1606,10 @@ async function createWasm() {
       HEAPU8.fill(0, address, address + size);
     };
   
+  var alignMemory = (size, alignment) => {
+      assert(alignment, "alignment argument is required");
+      return Math.ceil(size / alignment) * alignment;
+    };
   var mmapAlloc = (size) => {
       abort('internal error: mmapAlloc called but `emscripten_builtin_memalign` native symbol not exported');
     };
@@ -4021,6 +3894,491 @@ async function createWasm() {
         return ret;
       },
   };
+  function ___syscall_fcntl64(fd, cmd, varargs) {
+  SYSCALLS.varargs = varargs;
+  try {
+  
+      var stream = SYSCALLS.getStreamFromFD(fd);
+      switch (cmd) {
+        case 0: {
+          var arg = syscallGetVarargI();
+          if (arg < 0) {
+            return -28;
+          }
+          while (FS.streams[arg]) {
+            arg++;
+          }
+          var newStream;
+          newStream = FS.dupStream(stream, arg);
+          return newStream.fd;
+        }
+        case 1:
+        case 2:
+          return 0;  // FD_CLOEXEC makes no sense for a single process.
+        case 3:
+          return stream.flags;
+        case 4: {
+          var arg = syscallGetVarargI();
+          stream.flags |= arg;
+          return 0;
+        }
+        case 12: {
+          var arg = syscallGetVarargP();
+          var offset = 0;
+          // We're always unlocked.
+          HEAP16[(((arg)+(offset))>>1)] = 2;
+          return 0;
+        }
+        case 13:
+        case 14:
+          return 0; // Pretend that the locking is successful.
+      }
+      return -28;
+    } catch (e) {
+    if (typeof FS == 'undefined' || !(e.name === 'ErrnoError')) throw e;
+    return -e.errno;
+  }
+  }
+
+  function ___syscall_fstat64(fd, buf) {
+  try {
+  
+      return SYSCALLS.writeStat(buf, FS.fstat(fd));
+    } catch (e) {
+    if (typeof FS == 'undefined' || !(e.name === 'ErrnoError')) throw e;
+    return -e.errno;
+  }
+  }
+
+  var stringToUTF8 = (str, outPtr, maxBytesToWrite) => {
+      assert(typeof maxBytesToWrite == 'number', 'stringToUTF8(str, outPtr, maxBytesToWrite) is missing the third parameter that specifies the length of the output buffer!');
+      return stringToUTF8Array(str, HEAPU8, outPtr, maxBytesToWrite);
+    };
+  
+  function ___syscall_getdents64(fd, dirp, count) {
+  try {
+  
+      var stream = SYSCALLS.getStreamFromFD(fd)
+      stream.getdents ||= FS.readdir(stream.path);
+  
+      var struct_size = 280;
+      var pos = 0;
+      var off = FS.llseek(stream, 0, 1);
+  
+      var startIdx = Math.floor(off / struct_size);
+      var endIdx = Math.min(stream.getdents.length, startIdx + Math.floor(count/struct_size))
+      for (var idx = startIdx; idx < endIdx; idx++) {
+        var id;
+        var type;
+        var name = stream.getdents[idx];
+        if (name === '.') {
+          id = stream.node.id;
+          type = 4; // DT_DIR
+        }
+        else if (name === '..') {
+          var lookup = FS.lookupPath(stream.path, { parent: true });
+          id = lookup.node.id;
+          type = 4; // DT_DIR
+        }
+        else {
+          var child;
+          try {
+            child = FS.lookupNode(stream.node, name);
+          } catch (e) {
+            // If the entry is not a directory, file, or symlink, nodefs
+            // lookupNode will raise EINVAL. Skip these and continue.
+            if (e?.errno === 28) {
+              continue;
+            }
+            throw e;
+          }
+          id = child.id;
+          type = FS.isChrdev(child.mode) ? 2 :  // DT_CHR, character device.
+                 FS.isDir(child.mode) ? 4 :     // DT_DIR, directory.
+                 FS.isLink(child.mode) ? 10 :   // DT_LNK, symbolic link.
+                 8;                             // DT_REG, regular file.
+        }
+        assert(id);
+        HEAP64[((dirp + pos)>>3)] = BigInt(id);
+        HEAP64[(((dirp + pos)+(8))>>3)] = BigInt((idx + 1) * struct_size);
+        HEAP16[(((dirp + pos)+(16))>>1)] = 280;
+        HEAP8[(dirp + pos)+(18)] = type;
+        stringToUTF8(name, dirp + pos + 19, 256);
+        pos += struct_size;
+      }
+      FS.llseek(stream, idx * struct_size, 0);
+      return pos;
+    } catch (e) {
+    if (typeof FS == 'undefined' || !(e.name === 'ErrnoError')) throw e;
+    return -e.errno;
+  }
+  }
+
+  
+  function ___syscall_ioctl(fd, op, varargs) {
+  SYSCALLS.varargs = varargs;
+  try {
+  
+      var stream = SYSCALLS.getStreamFromFD(fd);
+      switch (op) {
+        case 21509: {
+          if (!stream.tty) return -59;
+          return 0;
+        }
+        case 21505: {
+          if (!stream.tty) return -59;
+          if (stream.tty.ops.ioctl_tcgets) {
+            var termios = stream.tty.ops.ioctl_tcgets(stream);
+            var argp = syscallGetVarargP();
+            HEAP32[((argp)>>2)] = termios.c_iflag || 0;
+            HEAP32[(((argp)+(4))>>2)] = termios.c_oflag || 0;
+            HEAP32[(((argp)+(8))>>2)] = termios.c_cflag || 0;
+            HEAP32[(((argp)+(12))>>2)] = termios.c_lflag || 0;
+            for (var i = 0; i < 32; i++) {
+              HEAP8[(argp + i)+(17)] = termios.c_cc[i] || 0;
+            }
+            return 0;
+          }
+          return 0;
+        }
+        case 21510:
+        case 21511:
+        case 21512: {
+          if (!stream.tty) return -59;
+          return 0; // no-op, not actually adjusting terminal settings
+        }
+        case 21506:
+        case 21507:
+        case 21508: {
+          if (!stream.tty) return -59;
+          if (stream.tty.ops.ioctl_tcsets) {
+            var argp = syscallGetVarargP();
+            var c_iflag = HEAP32[((argp)>>2)];
+            var c_oflag = HEAP32[(((argp)+(4))>>2)];
+            var c_cflag = HEAP32[(((argp)+(8))>>2)];
+            var c_lflag = HEAP32[(((argp)+(12))>>2)];
+            var c_cc = []
+            for (var i = 0; i < 32; i++) {
+              c_cc.push(HEAP8[(argp + i)+(17)]);
+            }
+            return stream.tty.ops.ioctl_tcsets(stream.tty, op, { c_iflag, c_oflag, c_cflag, c_lflag, c_cc });
+          }
+          return 0; // no-op, not actually adjusting terminal settings
+        }
+        case 21519: {
+          if (!stream.tty) return -59;
+          var argp = syscallGetVarargP();
+          HEAP32[((argp)>>2)] = 0;
+          return 0;
+        }
+        case 21520: {
+          if (!stream.tty) return -59;
+          return -28; // not supported
+        }
+        case 21531: {
+          var argp = syscallGetVarargP();
+          return FS.ioctl(stream, op, argp);
+        }
+        case 21523: {
+          // TODO: in theory we should write to the winsize struct that gets
+          // passed in, but for now musl doesn't read anything on it
+          if (!stream.tty) return -59;
+          if (stream.tty.ops.ioctl_tiocgwinsz) {
+            var winsize = stream.tty.ops.ioctl_tiocgwinsz(stream.tty);
+            var argp = syscallGetVarargP();
+            HEAP16[((argp)>>1)] = winsize[0];
+            HEAP16[(((argp)+(2))>>1)] = winsize[1];
+          }
+          return 0;
+        }
+        case 21524: {
+          // TODO: technically, this ioctl call should change the window size.
+          // but, since emscripten doesn't have any concept of a terminal window
+          // yet, we'll just silently throw it away as we do TIOCGWINSZ
+          if (!stream.tty) return -59;
+          return 0;
+        }
+        case 21515: {
+          if (!stream.tty) return -59;
+          return 0;
+        }
+        default: return -28; // not supported
+      }
+    } catch (e) {
+    if (typeof FS == 'undefined' || !(e.name === 'ErrnoError')) throw e;
+    return -e.errno;
+  }
+  }
+
+  function ___syscall_lstat64(path, buf) {
+  try {
+  
+      path = SYSCALLS.getStr(path);
+      return SYSCALLS.writeStat(buf, FS.lstat(path));
+    } catch (e) {
+    if (typeof FS == 'undefined' || !(e.name === 'ErrnoError')) throw e;
+    return -e.errno;
+  }
+  }
+
+  function ___syscall_newfstatat(dirfd, path, buf, flags) {
+  try {
+  
+      path = SYSCALLS.getStr(path);
+      var nofollow = flags & 256;
+      var allowEmpty = flags & 4096;
+      flags = flags & (~6400);
+      assert(!flags, `unknown flags in __syscall_newfstatat: ${flags}`);
+      path = SYSCALLS.calculateAt(dirfd, path, allowEmpty);
+      return SYSCALLS.writeStat(buf, nofollow ? FS.lstat(path) : FS.stat(path));
+    } catch (e) {
+    if (typeof FS == 'undefined' || !(e.name === 'ErrnoError')) throw e;
+    return -e.errno;
+  }
+  }
+
+  
+  function ___syscall_openat(dirfd, path, flags, varargs) {
+  SYSCALLS.varargs = varargs;
+  try {
+  
+      path = SYSCALLS.getStr(path);
+      path = SYSCALLS.calculateAt(dirfd, path);
+      var mode = varargs ? syscallGetVarargI() : 0;
+      return FS.open(path, flags, mode).fd;
+    } catch (e) {
+    if (typeof FS == 'undefined' || !(e.name === 'ErrnoError')) throw e;
+    return -e.errno;
+  }
+  }
+
+  function ___syscall_stat64(path, buf) {
+  try {
+  
+      path = SYSCALLS.getStr(path);
+      return SYSCALLS.writeStat(buf, FS.stat(path));
+    } catch (e) {
+    if (typeof FS == 'undefined' || !(e.name === 'ErrnoError')) throw e;
+    return -e.errno;
+  }
+  }
+
+  var __abort_js = () =>
+      abort('native code called abort()');
+
+  
+  
+  var __emscripten_fs_load_embedded_files = (ptr) => {
+      do {
+        var name_addr = HEAPU32[((ptr)>>2)];
+        ptr += 4;
+        var len = HEAPU32[((ptr)>>2)];
+        ptr += 4;
+        var content = HEAPU32[((ptr)>>2)];
+        ptr += 4;
+        var name = UTF8ToString(name_addr)
+        FS.createPath('/', PATH.dirname(name), true, true);
+        // canOwn this data in the filesystem, it is a slice of wasm memory that will never change
+        FS.createDataFile(name, null, HEAP8.subarray(content, content + len), true, true, true);
+      } while (HEAPU32[((ptr)>>2)]);
+    };
+
+  
+  var __tzset_js = (timezone, daylight, std_name, dst_name) => {
+      // TODO: Use (malleable) environment variables instead of system settings.
+      var currentYear = new Date().getFullYear();
+      var winter = new Date(currentYear, 0, 1);
+      var summer = new Date(currentYear, 6, 1);
+      var winterOffset = winter.getTimezoneOffset();
+      var summerOffset = summer.getTimezoneOffset();
+  
+      // Local standard timezone offset. Local standard time is not adjusted for
+      // daylight savings.  This code uses the fact that getTimezoneOffset returns
+      // a greater value during Standard Time versus Daylight Saving Time (DST).
+      // Thus it determines the expected output during Standard Time, and it
+      // compares whether the output of the given date the same (Standard) or less
+      // (DST).
+      var stdTimezoneOffset = Math.max(winterOffset, summerOffset);
+  
+      // timezone is specified as seconds west of UTC ("The external variable
+      // `timezone` shall be set to the difference, in seconds, between
+      // Coordinated Universal Time (UTC) and local standard time."), the same
+      // as returned by stdTimezoneOffset.
+      // See http://pubs.opengroup.org/onlinepubs/009695399/functions/tzset.html
+      HEAPU32[((timezone)>>2)] = stdTimezoneOffset * 60;
+  
+      HEAP32[((daylight)>>2)] = Number(winterOffset != summerOffset);
+  
+      var extractZone = (timezoneOffset) => {
+        // Why inverse sign?
+        // Read here https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/getTimezoneOffset
+        var sign = timezoneOffset >= 0 ? "-" : "+";
+  
+        var absOffset = Math.abs(timezoneOffset)
+        var hours = String(Math.floor(absOffset / 60)).padStart(2, "0");
+        var minutes = String(absOffset % 60).padStart(2, "0");
+  
+        return `UTC${sign}${hours}${minutes}`;
+      }
+  
+      var winterName = extractZone(winterOffset);
+      var summerName = extractZone(summerOffset);
+      assert(winterName);
+      assert(summerName);
+      assert(lengthBytesUTF8(winterName) <= 16, `timezone name truncated to fit in TZNAME_MAX (${winterName})`);
+      assert(lengthBytesUTF8(summerName) <= 16, `timezone name truncated to fit in TZNAME_MAX (${summerName})`);
+      if (summerOffset < winterOffset) {
+        // Northern hemisphere
+        stringToUTF8(winterName, std_name, 17);
+        stringToUTF8(summerName, dst_name, 17);
+      } else {
+        stringToUTF8(winterName, dst_name, 17);
+        stringToUTF8(summerName, std_name, 17);
+      }
+    };
+
+  var _emscripten_get_now = () => performance.now();
+  
+  var _emscripten_date_now = () => Date.now();
+  
+  var nowIsMonotonic = 1;
+  
+  var checkWasiClock = (clock_id) => clock_id >= 0 && clock_id <= 3;
+  
+  var INT53_MAX = 9007199254740992;
+  
+  var INT53_MIN = -9007199254740992;
+  var bigintToI53Checked = (num) => (num < INT53_MIN || num > INT53_MAX) ? NaN : Number(num);
+  function _clock_time_get(clk_id, ignored_precision, ptime) {
+    ignored_precision = bigintToI53Checked(ignored_precision);
+  
+    
+      if (!checkWasiClock(clk_id)) {
+        return 28;
+      }
+      var now;
+      // all wasi clocks but realtime are monotonic
+      if (clk_id === 0) {
+        now = _emscripten_date_now();
+      } else if (nowIsMonotonic) {
+        now = _emscripten_get_now();
+      } else {
+        return 52;
+      }
+      // "now" is in ms, and wasi times are in ns.
+      var nsec = Math.round(now * 1000 * 1000);
+      HEAP64[((ptime)>>3)] = BigInt(nsec);
+      return 0;
+    ;
+  }
+
+  var getHeapMax = () =>
+      HEAPU8.length;
+  
+  
+  var abortOnCannotGrowMemory = (requestedSize) => {
+      abort(`Cannot enlarge memory arrays to size ${requestedSize} bytes (OOM). Either (1) compile with -sINITIAL_MEMORY=X with X higher than the current value ${HEAP8.length}, (2) compile with -sALLOW_MEMORY_GROWTH which allows increasing the size at runtime, or (3) if you want malloc to return NULL (0) instead of this abort, compile with -sABORTING_MALLOC=0`);
+    };
+  var _emscripten_resize_heap = (requestedSize) => {
+      var oldSize = HEAPU8.length;
+      // With CAN_ADDRESS_2GB or MEMORY64, pointers are already unsigned.
+      requestedSize >>>= 0;
+      abortOnCannotGrowMemory(requestedSize);
+    };
+
+  var ENV = {
+  };
+  
+  var getExecutableName = () => thisProgram || './this.program';
+  var getEnvStrings = () => {
+      if (!getEnvStrings.strings) {
+        // Default values.
+        // Browser language detection #8751
+        var lang = ((typeof navigator == 'object' && navigator.languages && navigator.languages[0]) || 'C').replace('-', '_') + '.UTF-8';
+        var env = {
+          'USER': 'web_user',
+          'LOGNAME': 'web_user',
+          'PATH': '/',
+          'PWD': '/',
+          'HOME': '/home/web_user',
+          'LANG': lang,
+          '_': getExecutableName()
+        };
+        // Apply the user-provided values, if any.
+        for (var x in ENV) {
+          // x is a key in ENV; if ENV[x] is undefined, that means it was
+          // explicitly set to be so. We allow user code to do that to
+          // force variables with default values to remain unset.
+          if (ENV[x] === undefined) delete env[x];
+          else env[x] = ENV[x];
+        }
+        var strings = [];
+        for (var x in env) {
+          strings.push(`${x}=${env[x]}`);
+        }
+        getEnvStrings.strings = strings;
+      }
+      return getEnvStrings.strings;
+    };
+  
+  var stringToAscii = (str, buffer) => {
+      for (var i = 0; i < str.length; ++i) {
+        assert(str.charCodeAt(i) === (str.charCodeAt(i) & 0xff));
+        HEAP8[buffer++] = str.charCodeAt(i);
+      }
+      // Null-terminate the string
+      HEAP8[buffer] = 0;
+    };
+  var _environ_get = (__environ, environ_buf) => {
+      var bufSize = 0;
+      getEnvStrings().forEach((string, i) => {
+        var ptr = environ_buf + bufSize;
+        HEAPU32[(((__environ)+(i*4))>>2)] = ptr;
+        stringToAscii(string, ptr);
+        bufSize += string.length + 1;
+      });
+      return 0;
+    };
+
+  var _environ_sizes_get = (penviron_count, penviron_buf_size) => {
+      var strings = getEnvStrings();
+      HEAPU32[((penviron_count)>>2)] = strings.length;
+      var bufSize = 0;
+      strings.forEach((string) => bufSize += string.length + 1);
+      HEAPU32[((penviron_buf_size)>>2)] = bufSize;
+      return 0;
+    };
+
+  
+  var runtimeKeepaliveCounter = 0;
+  var keepRuntimeAlive = () => noExitRuntime || runtimeKeepaliveCounter > 0;
+  var _proc_exit = (code) => {
+      EXITSTATUS = code;
+      if (!keepRuntimeAlive()) {
+        Module['onExit']?.(code);
+        ABORT = true;
+      }
+      quit_(code, new ExitStatus(code));
+    };
+  
+  
+  /** @suppress {duplicate } */
+  /** @param {boolean|number=} implicit */
+  var exitJS = (status, implicit) => {
+      EXITSTATUS = status;
+  
+      checkUnflushedContent();
+  
+      // if exit() was called explicitly, warn the user if the runtime isn't actually being shut down
+      if (keepRuntimeAlive() && !implicit) {
+        var msg = `program exited (with status: ${status}), but keepRuntimeAlive() is set (counter=${runtimeKeepaliveCounter}) due to an async operation, so halting execution but not exiting the runtime or preventing further async execution (you can use emscripten_force_exit, if you want to force a true shutdown)`;
+        err(msg);
+      }
+  
+      _proc_exit(status);
+    };
+  var _exit = exitJS;
+
   function _fd_close(fd) {
   try {
   
@@ -4065,10 +4423,6 @@ async function createWasm() {
   }
 
   
-  var INT53_MAX = 9007199254740992;
-  
-  var INT53_MIN = -9007199254740992;
-  var bigintToI53Checked = (num) => (num < INT53_MIN || num > INT53_MAX) ? NaN : Number(num);
   function _fd_seek(fd, offset, whence, newOffset) {
     offset = bigintToI53Checked(offset);
   
@@ -4122,6 +4476,8 @@ async function createWasm() {
   }
   }
 
+  var _llvm_eh_typeid_for = (type) => type;
+
   var wasmTableMirror = [];
   
   /** @type {WebAssembly.Table} */
@@ -4137,6 +4493,7 @@ async function createWasm() {
       assert(wasmTable.get(funcPtr) == func, 'JavaScript-side Wasm function table mirror is out of date!');
       return func;
     };
+
 
   var getCFunc = (ident) => {
       var func = Module['_' + ident]; // closure exported function
@@ -4239,6 +4596,16 @@ async function createWasm() {
       return ret;
     };
 
+  var FS_createPath = FS.createPath;
+
+
+
+  var FS_unlink = (path) => FS.unlink(path);
+
+  var FS_createLazyFile = FS.createLazyFile;
+
+  var FS_createDevice = FS.createDevice;
+
   var incrementExceptionRefcount = (ptr) => ___cxa_increment_exception_refcount(ptr);
   Module['incrementExceptionRefcount'] = incrementExceptionRefcount;
 
@@ -4273,6 +4640,12 @@ async function createWasm() {
   FS.createPreloadedFile = FS_createPreloadedFile;
   FS.staticInit();
   // Set module methods based on EXPORTED_RUNTIME_METHODS
+  Module["FS_createPath"] = FS.createPath;
+  Module["FS_createDataFile"] = FS.createDataFile;
+  Module["FS_createPreloadedFile"] = FS.createPreloadedFile;
+  Module["FS_unlink"] = FS.unlink;
+  Module["FS_createLazyFile"] = FS.createLazyFile;
+  Module["FS_createDevice"] = FS.createDevice;
   ;
 function checkIncomingModuleAPI() {
   ignoredModuleProp('fetchSettings');
@@ -4297,15 +4670,37 @@ var wasmImports = {
   /** @export */
   __resumeException: ___resumeException,
   /** @export */
+  __syscall_fcntl64: ___syscall_fcntl64,
+  /** @export */
+  __syscall_fstat64: ___syscall_fstat64,
+  /** @export */
+  __syscall_getdents64: ___syscall_getdents64,
+  /** @export */
+  __syscall_ioctl: ___syscall_ioctl,
+  /** @export */
+  __syscall_lstat64: ___syscall_lstat64,
+  /** @export */
+  __syscall_newfstatat: ___syscall_newfstatat,
+  /** @export */
+  __syscall_openat: ___syscall_openat,
+  /** @export */
+  __syscall_stat64: ___syscall_stat64,
+  /** @export */
   _abort_js: __abort_js,
   /** @export */
+  _emscripten_fs_load_embedded_files: __emscripten_fs_load_embedded_files,
+  /** @export */
   _tzset_js: __tzset_js,
+  /** @export */
+  clock_time_get: _clock_time_get,
   /** @export */
   emscripten_resize_heap: _emscripten_resize_heap,
   /** @export */
   environ_get: _environ_get,
   /** @export */
   environ_sizes_get: _environ_sizes_get,
+  /** @export */
+  exit: _exit,
   /** @export */
   fd_close: _fd_close,
   /** @export */
@@ -4319,6 +4714,8 @@ var wasmImports = {
   /** @export */
   invoke_diii,
   /** @export */
+  invoke_fii,
+  /** @export */
   invoke_fiii,
   /** @export */
   invoke_i,
@@ -4327,11 +4724,15 @@ var wasmImports = {
   /** @export */
   invoke_iidi,
   /** @export */
+  invoke_iif,
+  /** @export */
   invoke_iii,
   /** @export */
   invoke_iiii,
   /** @export */
   invoke_iiiii,
+  /** @export */
+  invoke_iiiiid,
   /** @export */
   invoke_iiiiii,
   /** @export */
@@ -4345,7 +4746,15 @@ var wasmImports = {
   /** @export */
   invoke_iiiiiiiiiiiii,
   /** @export */
+  invoke_iiiiij,
+  /** @export */
   invoke_iij,
+  /** @export */
+  invoke_j,
+  /** @export */
+  invoke_ji,
+  /** @export */
+  invoke_jii,
   /** @export */
   invoke_jiiii,
   /** @export */
@@ -4365,19 +4774,23 @@ var wasmImports = {
   /** @export */
   invoke_viiiiiii,
   /** @export */
+  invoke_viiiiiiii,
+  /** @export */
   invoke_viiiiiiiiii,
   /** @export */
-  invoke_viiiiiiiiiiiiiii
+  invoke_viiiiiiiiiiiiiii,
+  /** @export */
+  llvm_eh_typeid_for: _llvm_eh_typeid_for
 };
 var wasmExports;
 createWasm();
 var ___wasm_call_ctors = createExportWrapper('__wasm_call_ctors', 0);
-var _pathfinder = Module['_pathfinder'] = createExportWrapper('pathfinder', 2);
 var ___cxa_free_exception = createExportWrapper('__cxa_free_exception', 1);
-var _fflush = createExportWrapper('fflush', 1);
 var _strerror = createExportWrapper('strerror', 1);
-var _malloc = createExportWrapper('malloc', 1);
 var _free = createExportWrapper('free', 1);
+var _pathfinder = Module['_pathfinder'] = createExportWrapper('pathfinder', 2);
+var _fflush = createExportWrapper('fflush', 1);
+var _malloc = createExportWrapper('malloc', 1);
 var _setThrew = createExportWrapper('setThrew', 2);
 var __emscripten_tempret_set = createExportWrapper('_emscripten_tempret_set', 1);
 var _emscripten_stack_init = () => (_emscripten_stack_init = wasmExports['emscripten_stack_init'])();
@@ -4392,11 +4805,11 @@ var ___cxa_increment_exception_refcount = createExportWrapper('__cxa_increment_e
 var ___get_exception_message = createExportWrapper('__get_exception_message', 3);
 var ___cxa_can_catch = createExportWrapper('__cxa_can_catch', 3);
 var ___cxa_get_exception_ptr = createExportWrapper('__cxa_get_exception_ptr', 1);
-
-function invoke_viiiii(index,a1,a2,a3,a4,a5) {
+var ___emscripten_embedded_file_data = Module['___emscripten_embedded_file_data'] = 5866196;
+function invoke_viiii(index,a1,a2,a3,a4) {
   var sp = stackSave();
   try {
-    getWasmTableEntry(index)(a1,a2,a3,a4,a5);
+    getWasmTableEntry(index)(a1,a2,a3,a4);
   } catch(e) {
     stackRestore(sp);
     if (!(e instanceof EmscriptenEH)) throw e;
@@ -4408,6 +4821,28 @@ function invoke_iii(index,a1,a2) {
   var sp = stackSave();
   try {
     return getWasmTableEntry(index)(a1,a2);
+  } catch(e) {
+    stackRestore(sp);
+    if (!(e instanceof EmscriptenEH)) throw e;
+    _setThrew(1, 0);
+  }
+}
+
+function invoke_ii(index,a1) {
+  var sp = stackSave();
+  try {
+    return getWasmTableEntry(index)(a1);
+  } catch(e) {
+    stackRestore(sp);
+    if (!(e instanceof EmscriptenEH)) throw e;
+    _setThrew(1, 0);
+  }
+}
+
+function invoke_viii(index,a1,a2,a3) {
+  var sp = stackSave();
+  try {
+    getWasmTableEntry(index)(a1,a2,a3);
   } catch(e) {
     stackRestore(sp);
     if (!(e instanceof EmscriptenEH)) throw e;
@@ -4437,43 +4872,10 @@ function invoke_iiii(index,a1,a2,a3) {
   }
 }
 
-function invoke_viii(index,a1,a2,a3) {
+function invoke_viiiii(index,a1,a2,a3,a4,a5) {
   var sp = stackSave();
   try {
-    getWasmTableEntry(index)(a1,a2,a3);
-  } catch(e) {
-    stackRestore(sp);
-    if (!(e instanceof EmscriptenEH)) throw e;
-    _setThrew(1, 0);
-  }
-}
-
-function invoke_ii(index,a1) {
-  var sp = stackSave();
-  try {
-    return getWasmTableEntry(index)(a1);
-  } catch(e) {
-    stackRestore(sp);
-    if (!(e instanceof EmscriptenEH)) throw e;
-    _setThrew(1, 0);
-  }
-}
-
-function invoke_iiiiii(index,a1,a2,a3,a4,a5) {
-  var sp = stackSave();
-  try {
-    return getWasmTableEntry(index)(a1,a2,a3,a4,a5);
-  } catch(e) {
-    stackRestore(sp);
-    if (!(e instanceof EmscriptenEH)) throw e;
-    _setThrew(1, 0);
-  }
-}
-
-function invoke_viiii(index,a1,a2,a3,a4) {
-  var sp = stackSave();
-  try {
-    getWasmTableEntry(index)(a1,a2,a3,a4);
+    getWasmTableEntry(index)(a1,a2,a3,a4,a5);
   } catch(e) {
     stackRestore(sp);
     if (!(e instanceof EmscriptenEH)) throw e;
@@ -4492,10 +4894,10 @@ function invoke_vi(index,a1) {
   }
 }
 
-function invoke_iiiiiii(index,a1,a2,a3,a4,a5,a6) {
+function invoke_i(index) {
   var sp = stackSave();
   try {
-    return getWasmTableEntry(index)(a1,a2,a3,a4,a5,a6);
+    return getWasmTableEntry(index)();
   } catch(e) {
     stackRestore(sp);
     if (!(e instanceof EmscriptenEH)) throw e;
@@ -4503,10 +4905,21 @@ function invoke_iiiiiii(index,a1,a2,a3,a4,a5,a6) {
   }
 }
 
-function invoke_v(index) {
+function invoke_viiiiii(index,a1,a2,a3,a4,a5,a6) {
   var sp = stackSave();
   try {
-    getWasmTableEntry(index)();
+    getWasmTableEntry(index)(a1,a2,a3,a4,a5,a6);
+  } catch(e) {
+    stackRestore(sp);
+    if (!(e instanceof EmscriptenEH)) throw e;
+    _setThrew(1, 0);
+  }
+}
+
+function invoke_iiiiii(index,a1,a2,a3,a4,a5) {
+  var sp = stackSave();
+  try {
+    return getWasmTableEntry(index)(a1,a2,a3,a4,a5);
   } catch(e) {
     stackRestore(sp);
     if (!(e instanceof EmscriptenEH)) throw e;
@@ -4518,17 +4931,6 @@ function invoke_iiiii(index,a1,a2,a3,a4) {
   var sp = stackSave();
   try {
     return getWasmTableEntry(index)(a1,a2,a3,a4);
-  } catch(e) {
-    stackRestore(sp);
-    if (!(e instanceof EmscriptenEH)) throw e;
-    _setThrew(1, 0);
-  }
-}
-
-function invoke_i(index) {
-  var sp = stackSave();
-  try {
-    return getWasmTableEntry(index)();
   } catch(e) {
     stackRestore(sp);
     if (!(e instanceof EmscriptenEH)) throw e;
@@ -4580,10 +4982,112 @@ function invoke_viiiiiii(index,a1,a2,a3,a4,a5,a6,a7) {
   }
 }
 
-function invoke_viiiiii(index,a1,a2,a3,a4,a5,a6) {
+function invoke_iiiiiii(index,a1,a2,a3,a4,a5,a6) {
   var sp = stackSave();
   try {
-    getWasmTableEntry(index)(a1,a2,a3,a4,a5,a6);
+    return getWasmTableEntry(index)(a1,a2,a3,a4,a5,a6);
+  } catch(e) {
+    stackRestore(sp);
+    if (!(e instanceof EmscriptenEH)) throw e;
+    _setThrew(1, 0);
+  }
+}
+
+function invoke_v(index) {
+  var sp = stackSave();
+  try {
+    getWasmTableEntry(index)();
+  } catch(e) {
+    stackRestore(sp);
+    if (!(e instanceof EmscriptenEH)) throw e;
+    _setThrew(1, 0);
+  }
+}
+
+function invoke_jii(index,a1,a2) {
+  var sp = stackSave();
+  try {
+    return getWasmTableEntry(index)(a1,a2);
+  } catch(e) {
+    stackRestore(sp);
+    if (!(e instanceof EmscriptenEH)) throw e;
+    _setThrew(1, 0);
+    return 0n;
+  }
+}
+
+function invoke_ji(index,a1) {
+  var sp = stackSave();
+  try {
+    return getWasmTableEntry(index)(a1);
+  } catch(e) {
+    stackRestore(sp);
+    if (!(e instanceof EmscriptenEH)) throw e;
+    _setThrew(1, 0);
+    return 0n;
+  }
+}
+
+function invoke_viiiiiiii(index,a1,a2,a3,a4,a5,a6,a7,a8) {
+  var sp = stackSave();
+  try {
+    getWasmTableEntry(index)(a1,a2,a3,a4,a5,a6,a7,a8);
+  } catch(e) {
+    stackRestore(sp);
+    if (!(e instanceof EmscriptenEH)) throw e;
+    _setThrew(1, 0);
+  }
+}
+
+function invoke_fii(index,a1,a2) {
+  var sp = stackSave();
+  try {
+    return getWasmTableEntry(index)(a1,a2);
+  } catch(e) {
+    stackRestore(sp);
+    if (!(e instanceof EmscriptenEH)) throw e;
+    _setThrew(1, 0);
+  }
+}
+
+function invoke_iif(index,a1,a2) {
+  var sp = stackSave();
+  try {
+    return getWasmTableEntry(index)(a1,a2);
+  } catch(e) {
+    stackRestore(sp);
+    if (!(e instanceof EmscriptenEH)) throw e;
+    _setThrew(1, 0);
+  }
+}
+
+function invoke_j(index) {
+  var sp = stackSave();
+  try {
+    return getWasmTableEntry(index)();
+  } catch(e) {
+    stackRestore(sp);
+    if (!(e instanceof EmscriptenEH)) throw e;
+    _setThrew(1, 0);
+    return 0n;
+  }
+}
+
+function invoke_iiiiij(index,a1,a2,a3,a4,a5) {
+  var sp = stackSave();
+  try {
+    return getWasmTableEntry(index)(a1,a2,a3,a4,a5);
+  } catch(e) {
+    stackRestore(sp);
+    if (!(e instanceof EmscriptenEH)) throw e;
+    _setThrew(1, 0);
+  }
+}
+
+function invoke_iiiiid(index,a1,a2,a3,a4,a5) {
+  var sp = stackSave();
+  try {
+    return getWasmTableEntry(index)(a1,a2,a3,a4,a5);
   } catch(e) {
     stackRestore(sp);
     if (!(e instanceof EmscriptenEH)) throw e;
@@ -4695,9 +5199,17 @@ function invoke_viiiiiiiiiiiiiii(index,a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,a11,a12,a1
 // include: postamble.js
 // === Auto-generated postamble setup entry stuff ===
 
+Module['addRunDependency'] = addRunDependency;
+Module['removeRunDependency'] = removeRunDependency;
 Module['ccall'] = ccall;
 Module['cwrap'] = cwrap;
 Module['stringToNewUTF8'] = stringToNewUTF8;
+Module['FS_createPreloadedFile'] = FS_createPreloadedFile;
+Module['FS_unlink'] = FS_unlink;
+Module['FS_createPath'] = FS_createPath;
+Module['FS_createDevice'] = FS_createDevice;
+Module['FS_createDataFile'] = FS_createDataFile;
+Module['FS_createLazyFile'] = FS_createLazyFile;
 var missingLibrarySymbols = [
   'writeI53ToI64',
   'writeI53ToI64Clamped',
@@ -4710,7 +5222,6 @@ var missingLibrarySymbols = [
   'convertI32PairToI53Checked',
   'convertU32PairToI53',
   'getTempRet0',
-  'exitJS',
   'growMemory',
   'inetPton4',
   'inetNtop4',
@@ -4726,7 +5237,6 @@ var missingLibrarySymbols = [
   'getDynCaller',
   'dynCall',
   'handleException',
-  'keepRuntimeAlive',
   'runtimeKeepalivePush',
   'runtimeKeepalivePop',
   'callUserCallback',
@@ -4804,7 +5314,6 @@ var missingLibrarySymbols = [
   'jsStackTrace',
   'getCallstack',
   'convertPCtoSourceLocation',
-  'checkWasiClock',
   'wasiRightsToMuslOFlags',
   'wasiOFlagsToMuslOFlags',
   'safeSetTimeout',
@@ -4824,7 +5333,6 @@ var missingLibrarySymbols = [
   'addDays',
   'getSocketFromFD',
   'getSocketAddress',
-  'FS_unlink',
   'FS_mkdirTree',
   '_setNetworkCallback',
   'heapObjectForWebGLType',
@@ -4867,8 +5375,6 @@ var unexportedSymbols = [
   'addOnPreMain',
   'addOnExit',
   'addOnPostRun',
-  'addRunDependency',
-  'removeRunDependency',
   'out',
   'err',
   'callMain',
@@ -4886,6 +5392,7 @@ var unexportedSymbols = [
   'setTempRet0',
   'ptrToString',
   'zeroMemory',
+  'exitJS',
   'getHeapMax',
   'abortOnCannotGrowMemory',
   'ENV',
@@ -4899,6 +5406,7 @@ var unexportedSymbols = [
   'readEmAsmArgsArray',
   'jstoi_s',
   'getExecutableName',
+  'keepRuntimeAlive',
   'asyncLoad',
   'alignMemory',
   'mmapAlloc',
@@ -4930,6 +5438,7 @@ var unexportedSymbols = [
   'UNWIND_CACHE',
   'ExitStatus',
   'getEnvStrings',
+  'checkWasiClock',
   'doReadv',
   'doWritev',
   'initRandomFill',
@@ -4956,17 +5465,12 @@ var unexportedSymbols = [
   'MONTH_DAYS_LEAP_CUMULATIVE',
   'SYSCALLS',
   'preloadPlugins',
-  'FS_createPreloadedFile',
   'FS_modeStringToFlags',
   'FS_getMode',
   'FS_stdin_getChar_buffer',
   'FS_stdin_getChar',
-  'FS_createPath',
-  'FS_createDevice',
   'FS_readFile',
   'FS',
-  'FS_createDataFile',
-  'FS_createLazyFile',
   'MEMFS',
   'TTY',
   'PIPEFS',
