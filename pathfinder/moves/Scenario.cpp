@@ -32,7 +32,8 @@ std::string Scenario::TryGetScenDesc(const std::string& initialFile) {
 }
 
 void Scenario::ExportToScenFile(const std::vector<const Configuration*>& path, const ScenInfo& scenInfo) {
-    std::ofstream file(scenInfo.exportFile);
+    std::ofstream file;
+    file.open(scenInfo.exportFile);
     if (!file.is_open()) {
         std::cerr << "Unable to open file " << scenInfo.exportFile << std::endl;
         throw std::ios_base::failure("Unable to open file " + scenInfo.exportFile + "\n");
