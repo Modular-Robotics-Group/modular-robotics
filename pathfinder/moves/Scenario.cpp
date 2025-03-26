@@ -49,9 +49,9 @@ void Scenario::ExportToScen(const std::vector<const Configuration*>& path, const
     os << scenInfo.scenName << std::endl << scenInfo.scenDesc << std::endl;
 #if LATTICE_OLD_EDGECHECK
 #if LATTICE_RD_EDGECHECK
-    file << "RHOMBIC_DODECAHEDRON\n\n";
+    os << "RHOMBIC_DODECAHEDRON\n\n";
 #else
-    file << "CUBE\n\n";
+    os << "CUBE\n\n";
 #endif
 #else
     // TODO: make this part suck less
@@ -119,12 +119,12 @@ void Scenario::ExportToScen(const std::vector<const Configuration*>& path, const
                 if (parallelAnimQueues[id].empty()) continue;
                 auto [type, offset] = parallelAnimQueues[id].front();
                 modDef % (checkpoint ? '*' : ' ') % id % type % offset[0] % offset[1] % offset[2];
-                file << modDef.str() << std::endl;
+                os << modDef.str() << std::endl;
                 checkpoint = false;
                 parallelAnimQueues[id].pop();
                 animsToExport--;
             }
-            file << std::endl;
+            os << std::endl;
         }
         // Make moves
         for (auto [mod, move] : parallelMoves) {
