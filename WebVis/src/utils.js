@@ -10,6 +10,58 @@ export let moduleBrush = {
     adjSlicesVisible: true
 };
 
+export let VisConfigData = {
+    bounds: {
+        empty: true,
+        x: {
+            max: 0,
+            min: 0
+        },
+        y: {
+            max: 0,
+            min: 0
+        },
+        z: {
+            max: 0,
+            min: 0
+        }
+    },
+    updateBounds: (pos) => {
+        // There's definitely a nicer way to do this, but it works, and it's easy enough to read
+        if (VisConfigData.bounds.empty) {
+            VisConfigData.bounds.x.min = pos.x;
+            VisConfigData.bounds.x.max = pos.x;
+            VisConfigData.bounds.y.min = pos.y;
+            VisConfigData.bounds.y.max = pos.y;
+            VisConfigData.bounds.z.min = pos.z;
+            VisConfigData.bounds.z.max = pos.z;
+            VisConfigData.bounds.empty = false;
+        } else {
+            if (VisConfigData.bounds.x.min > pos.x) {
+                VisConfigData.bounds.x.min = pos.x;
+            }
+            if (VisConfigData.bounds.x.max < pos.x) {
+                VisConfigData.bounds.x.max = pos.x;
+            }
+            if (VisConfigData.bounds.y.min > pos.y) {
+                VisConfigData.bounds.y.min = pos.y;
+            }
+            if (VisConfigData.bounds.y.max < pos.y) {
+                VisConfigData.bounds.y.max = pos.y;
+            }
+            if (VisConfigData.bounds.z.min > pos.z) {
+                VisConfigData.bounds.z.min = pos.z;
+            }
+            if (VisConfigData.bounds.z.max < pos.z) {
+                VisConfigData.bounds.z.max = pos.z;
+            }
+        }
+    },
+    clearBounds: () => {
+        VisConfigData.bounds.empty = true;
+    }
+}
+
 export let pathfinderData = {
     config_i: '{"exists": false}',
     config_f: '{"exists": false}',

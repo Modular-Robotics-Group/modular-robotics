@@ -5,10 +5,11 @@
 */
 
 import * as THREE from 'three';
-import { ModuleType, MoveType } from "./utils.js";
+import {CameraType, ModuleType, MoveType, VisConfigData} from "./utils.js";
 import { ModuleData } from "./ModuleGeometries.js";
 import { ModuleMaterialConstructors } from "./ModuleMaterials.js";
-import { gScene, gModules, gModulePositions, gRenderer } from "./main.js";
+import { gScene, gModules, gModulePositions, gRenderer, gUser } from "./main.js";
+import { zSliceController } from "./GUI.js";
 import { Move } from "./Move.js"
 
 const gTexLoader = new THREE.TextureLoader();
@@ -76,6 +77,15 @@ export class Module {
         gScene.add(this.parentMesh);
         gModules[id] = this;
         gModulePositions.set(JSON.stringify({x: Math.round(pos.x), y: Math.round(pos.y), z: Math.round(pos.z)}), this);
+
+        // Update configuration bounds data
+        VisConfigData.updateBounds(pos);
+        zSliceController.min(VisConfigData.bounds.z.min - 2);
+        zSliceController.max(VisConfigData.bounds.z.max + 2);
+        zSliceController.updateDisplay();
+        if (gUser.cameraStyle === CameraType.ORTHOGRAPHIC) {
+            gUser.camera.position.z = 5.0 + Math.max(VisConfigData.bounds.z.max, VisConfigData.bounds.x.max);
+        }
     }
 
     destroy() {
@@ -84,6 +94,18 @@ export class Module {
         gScene.remove(this.parentMesh);
         this.mesh.geometry.dispose();
         this.mesh.material.dispose();
+
+        // Update configuration bounds data
+        VisConfigData.clearBounds();
+        for (let module in gModules) {
+            VisConfigData.updateBounds(gModules[module].pos);
+        }
+        zSliceController.min(VisConfigData.bounds.z.min - 2);
+        zSliceController.max(VisConfigData.bounds.z.max + 2);
+        zSliceController.updateDisplay();
+        if (gUser.cameraStyle === CameraType.ORTHOGRAPHIC) {
+            gUser.camera.position.z = 5.0 + Math.max(VisConfigData.bounds.z.max, VisConfigData.bounds.x.max);
+        }
     }
 
     _setMeshMatrix(optionalPreTransform = new THREE.Matrix4()) {

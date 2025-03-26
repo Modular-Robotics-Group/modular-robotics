@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
 import { Scenario } from './Scenario.js';
 import { gScene, gLights, gRenderer } from './main.js';
-import { moduleBrush, pathfinderData, ModuleType, getModuleAtPosition } from './utils.js';
+import { moduleBrush, pathfinderData, VisConfigData, ModuleType, getModuleAtPosition } from './utils.js';
 import { CameraType } from "./utils.js";
 import { 
     saveConfiguration,
@@ -177,6 +177,7 @@ export const gScenGui = new GUI( { title: "Scenario", container: document.getEle
 // GUI elements for Configurizer Mode
 export const gModuleBrushGui = new GUI( { title: "Brush", container: document.getElementById("controlBar") } ).hide();
 export const gLayerGui = new GUI( { title: "Layer", container: document.getElementById("controlBar") } ).hide();
+export const zSliceController = gLayerGui.add(moduleBrush, 'zSlice', VisConfigData.bounds.z.min - 2, VisConfigData.bounds.z.max + 2, 1).name("Layer");
 
 // GUI element for Pathfinder and developer options
 export const gPathfinderGui = new GUI( { title: "Pathfinder", container: document.getElementById("controlBar") } ).close();
@@ -194,9 +195,6 @@ document.addEventListener("DOMContentLoaded", async function () {
     // Configurizer Controls
     gModuleBrushGui.addColor(moduleBrush, 'color').name("Module Color");
     gModuleBrushGui.add(moduleBrush, 'static').name("Static Module");
-    // TODO: set max value for zSlice to highest module z-value in scene
-    // TODO: might need to adjust step size for zSlice depending on module type
-    const zSliceController = gLayerGui.add(moduleBrush, 'zSlice', 0, 10, 1).name("Layer");
     zSliceController.onChange((value) => {
         if (window._isPainterModeActive) {
             updateVisibleModules(value);

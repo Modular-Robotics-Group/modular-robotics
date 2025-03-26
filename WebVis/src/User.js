@@ -10,7 +10,7 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { gScene, gCanvas, gUser, gRenderer, gMiniRenderer, gLights, toggleRenderMode } from "./main.js";
-import { CameraType } from "./utils.js";
+import { CameraType, VisConfigData } from "./utils.js";
 import { gDevGui } from "./GUI.js";
 
 /* ****************************** */
@@ -39,7 +39,10 @@ export class User {
         }
         newCamera.position.x = window.gwScenarioCentroid.x;
         newCamera.position.y = window.gwScenarioCentroid.y;
-        newCamera.position.z = window.gwScenarioCentroid.z + window.gwScenarioRadius + 3.0;
+        newCamera.position.z = this.cameraStyle === CameraType.PERSPECTIVE
+            ? window.gwScenarioCentroid.z + window.gwScenarioRadius + 3.0
+            // Numbers selected through trial and error, but it seems to work
+            : 5.0 + Math.max(VisConfigData.bounds.z.max, VisConfigData.bounds.x.max);
 
         this.controls = new OrbitControls(newCamera, gCanvas);
         this.controls.target.set(...window.gwScenarioCentroid);
