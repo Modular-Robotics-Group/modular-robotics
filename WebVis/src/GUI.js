@@ -202,7 +202,11 @@ document.addEventListener("DOMContentLoaded", async function () {
             updateVisibleModules(value);
         }
     });
-    gLayerGui.add(moduleBrush, 'adjSlicesVisible').name("Visualize Adjacent Layers");
+    gLayerGui.add(moduleBrush, 'adjSlicesVisible').name("Visualize Adjacent Layers").onChange((value) => {
+        if (window._isPainterModeActive) {
+            updateVisibleModules(moduleBrush.zSlice);
+        }
+    });
     // Pathfinder and debug Controls
     gPathfinderGui.add(window, '_pathfinderConfigDEBUG').name("Set configurations for Pathfinder");
     pathfinder_controller = gPathfinderGui.add(window, '_pathfinderRun').name("Run Pathfinder").disable();
