@@ -13,7 +13,7 @@ AdjOverride LatticeSetup::adjCheckOverride = NONE;
 
 void LatticeSetup::SetupFromJson(const std::string& filename) {
     std::ifstream file(filename);
-    if (!file) {
+    if (!file.is_open()) {
         std::cerr << "Unable to open file " << filename << std::endl;
         return;
     }
@@ -111,7 +111,7 @@ void LatticeSetup::SetupFromJson(std::istream& is) {
 
 Configuration LatticeSetup::SetupFinalFromJson(const std::string& filename) {
     std::ifstream file(filename);
-    if (!file) {
+    if (!file.is_open()) {
         std::cerr << "Unable to open file " << filename << std::endl;
         throw std::ios_base::failure("Unable to open file " + filename + "\n");
     }
