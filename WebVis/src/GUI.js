@@ -291,9 +291,10 @@ function updateModuleVisibility(module, moduleZ, zSlice) {
     const isCurrentSlice = moduleZ === zSlice;
     let isVisible = false;
     let opacity = OPACITY_SETTINGS.TRANSPARENT;
+    let distance = Math.abs(moduleZ - zSlice);
     
     const maxDistance = moduleBrush.adjSlicesVisible ? LAYER_SETTINGS.ADJACENT_DISTANCE : 0;
-    isVisible = (Math.abs(moduleZ - zSlice) <= maxDistance);
+    isVisible = distance <= maxDistance;
     
     // Set opacity based on visibility and whether it's the current slice
     opacity = isVisible ? 
@@ -302,7 +303,8 @@ function updateModuleVisibility(module, moduleZ, zSlice) {
     
     // Apply visibility and opacity settings
     module.visible = isVisible;
-    module.mesh.material.opacity = opacity;
+    module.mesh.material.uniforms.opacity = { value: opacity };
+    module.mesh.material.uniforms.line_divisor = { value: 2 * distance + 1 };
 }
 
 /**
@@ -316,7 +318,8 @@ function showAllModules() {
         const moduleMesh = module;
 
         moduleMesh.visible = true;
-        moduleMesh.mesh.material.opacity = OPACITY_SETTINGS.FULLY_OPAQUE;
+        moduleMesh.mesh.material.uniforms.opacity = { value: 1.0 };
+        moduleMesh.mesh.material.uniforms.line_divisor = { value: 1 };
     });
 }
 

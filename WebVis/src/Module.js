@@ -35,6 +35,8 @@ function _createModuleMesh(moduleType, color = 0x808080, scale = 1.0, opacity = 
         case ModuleType.RHOMBIC_DODECAHEDRON: texture = rdTexture; break;
         case ModuleType.CATOM: texture = catomTexture; break;
     }
+    texture.magFilter = THREE.NearestFilter;
+    texture.minFilter = THREE.NearestFilter;
     material = materialConstructor(texture, color, opacity);
 
     let mesh = new THREE.Mesh(geometry, material);
