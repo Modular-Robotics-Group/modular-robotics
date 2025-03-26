@@ -310,7 +310,7 @@ int main(int argc, char* argv[]) {
     scenInfo.scenName = Scenario::TryGetScenName(initialFile);
     scenInfo.scenDesc = Scenario::TryGetScenDesc(initialFile);
     
-    Scenario::ExportToScen(path, scenInfo);
+    Scenario::ExportToScenFile(path, scenInfo);
     std::cout << "Results exported." << std::endl << "Cleaning Modules..." << std::endl;
     ModuleIdManager::CleanupModules();
     std::cout << "Modules cleaned." << std::endl << "Cleaning Moves..." << std::endl;

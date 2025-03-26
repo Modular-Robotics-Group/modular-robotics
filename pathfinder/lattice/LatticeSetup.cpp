@@ -12,16 +12,21 @@
 AdjOverride LatticeSetup::adjCheckOverride = NONE;
 
 void LatticeSetup::SetupFromJson(const std::string& filename) {
-    if (ModuleProperties::PropertyCount() == 0) {
-        Lattice::ignoreProperties = true;
-    }
     std::ifstream file(filename);
     if (!file) {
         std::cerr << "Unable to open file " << filename << std::endl;
         return;
     }
+    SetupFromJson(file);
+    file.close();
+}
+
+void LatticeSetup::SetupFromJson(std::istream& is) {
+    if (ModuleProperties::PropertyCount() == 0) {
+        Lattice::ignoreProperties = true;
+    }
     nlohmann::json j;
-    file >> j;
+    is >> j;
     std::cout << "\tCreating Lattice...   ";
     if (j.contains("tensorPadding")) {
         Lattice::InitLattice(j["order"], j["axisSize"], j["tensorPadding"]);
@@ -110,8 +115,14 @@ Configuration LatticeSetup::SetupFinalFromJson(const std::string& filename) {
         std::cerr << "Unable to open file " << filename << std::endl;
         throw std::ios_base::failure("Unable to open file " + filename + "\n");
     }
+    auto final = SetupFinalFromJson(file);
+    file.close();
+    return final;
+}
+
+Configuration LatticeSetup::SetupFinalFromJson(std::istream& is) {
     nlohmann::json j;
-    file >> j;
+    is >> j;
     std::set<ModuleData> desiredState;
     for (const auto& module : j["modules"]) {
         if (module["static"] == true) continue;

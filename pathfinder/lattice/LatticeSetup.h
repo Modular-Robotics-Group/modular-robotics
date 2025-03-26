@@ -16,7 +16,11 @@ namespace LatticeSetup {
 
     void SetupFromJson(const std::string& filename);
 
+    void SetupFromJson(std::istream& is);
+
     Configuration SetupFinalFromJson(const std::string& filename);
+
+    Configuration SetupFinalFromJson(std::istream& is);
 }
 
 #endif
