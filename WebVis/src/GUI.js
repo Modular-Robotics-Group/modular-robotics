@@ -420,9 +420,6 @@ function toggleModuleAtPosition(x, y, z) {
     const existingModule = getModuleAtPosition(x, y, z);
 
     if (!existingModule) {
-        // Create a module ID
-        const moduleId = `module_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
-        
         // Create a new module at the position
         const pos = new THREE.Vector3(x, y, z);
 
@@ -433,12 +430,11 @@ function toggleModuleAtPosition(x, y, z) {
             moduleBrush.color.b
         );
 
-        const module = new ModuleClass(ModuleType.CUBE, moduleId, pos, color.getHex(), MODULE_SETTINGS.SCALE);
-        
-        // TODO: Handle static property
-        // if (moduleBrush.static && typeof module.setStatic === 'function') {
-        //     module.setStatic(true);
-        // }
+        const module = new ModuleClass(ModuleType.CUBE, VisConfigData.nextModID, pos, color.getHex(), MODULE_SETTINGS.SCALE);
+
+        if (moduleBrush.static) {
+            module.markStatic();
+        }
         updateModuleVisibility(module, z, moduleBrush.zSlice);
     } else {
         gModules[existingModule.id].destroy();

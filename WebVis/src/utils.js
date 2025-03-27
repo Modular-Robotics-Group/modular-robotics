@@ -11,6 +11,7 @@ export let moduleBrush = {
 };
 
 export let VisConfigData = {
+    nextModID: 0,
     bounds: {
         empty: true,
         x: {
@@ -126,7 +127,7 @@ export function createPathfinderConfiguration(name = "Default Configuration", de
         modules.push({
             // Apparently the number of coordinates here matters, probably could be considered a bug on pathfinder's end
             position: VisConfigData.bounds.z.max === VisConfigData.bounds.z.min ? [pos.x, pos.y] : [pos.x, pos.y, pos.z],
-            static: module.isStatic || false,
+            static: module.isStatic,
             properties: {
                 colorProperty: {
                     color: parseRgbString(module.color)

@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { ModuleType, MoveType } from "./utils.js";
+import {ModuleType, MoveType, VisConfigData} from "./utils.js";
 import { Module } from "./Module.js";
 import { Move } from "./Move.js";
 import { MoveSet } from "./MoveSet.js";
@@ -18,6 +18,10 @@ export class Scenario {
     constructor(rawString) {
         for (let module in gModules) gModules[module].destroy();
         cancelActiveMove();
+
+        // Reset Data
+        VisConfigData.nextModID = 0;
+        VisConfigData.clearBounds();
 
         // remove '\r' characters
         rawString = rawString.replace(/\r/g, '');

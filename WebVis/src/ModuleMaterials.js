@@ -37,7 +37,8 @@ function _constructBorderedMaterial(texture, color, opacity) {
             shininess: { value: 30.0 },
             reflectivity: { value: 1.0 },
             opacity: { value: opacity },
-            line_divisor: { value: 1 }
+            line_divisor: { value: 1 },
+            border_extra: { value: 0.0 }
         },
         vertexShader: `
 #define USE_MAP
@@ -49,6 +50,7 @@ function _constructBorderedMaterial(texture, color, opacity) {
 attribute vec3 edge;
 varying vec3 dist;
 uniform int line_divisor;
+uniform float border_extra;
 
 #define PHONG
 varying vec3 vViewPosition;
@@ -101,6 +103,7 @@ void main() {
 
 varying vec3 dist;
 uniform int line_divisor;
+uniform float border_extra;
 
 #define PHONG
 
@@ -188,9 +191,12 @@ void main() {
 	//     Matryoshka face effect
     //gl_FragColor = mix(vec4(0, 0, 0, 0), gl_FragColor, float(int(d1 * 100.0) % line_divisor == 0));
     //     Diagonal line effect
-    //gl_FragColor = mix(vec4(0, 0, 0, 0), gl_FragColor, float(int((d4 - d3) * 100.0) % line_divisor == 0));
+    //gl_FragColor = mix(vec4(0, 0, 0, 0), gl_FragColor, float(int((d2 - d1) * 100.0) % line_divisor == 0));
     //     Neat curve effect
     gl_FragColor = mix(vec4(0, 0, 0, 0), gl_FragColor, float(int(length(vec2(d1, d2)) * 100.0) % line_divisor == 0));
+    
+    // Static Module Effects
+    gl_FragColor = mix(gl_FragColor, vec4(0, 0, 0, 1), border_extra * float(d1 * sin(d2 * PI) < 0.115 / float(line_divisor)));
     
     // Border Shaders
     //     Standard

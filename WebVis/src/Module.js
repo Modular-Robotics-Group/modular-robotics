@@ -64,6 +64,7 @@ export class Module {
         this.pos = pos;
         this.color = color;
         this.scale = scale;
+        this.isStatic = false;
 
         this.cumulativeRotationMatrix = new THREE.Matrix4();
 
@@ -86,6 +87,14 @@ export class Module {
         if (gUser.cameraStyle === CameraType.ORTHOGRAPHIC) {
             gUser.camera.position.z = 5.0 + Math.max(VisConfigData.bounds.z.max, VisConfigData.bounds.x.max);
         }
+
+        // Update module ID data
+        VisConfigData.nextModID = Math.max(VisConfigData.nextModID, id + 1);
+    }
+
+    markStatic() {
+        this.isStatic = true;
+        this.mesh.material.uniforms.border_extra = { value: 0.375 };
     }
 
     destroy() {
