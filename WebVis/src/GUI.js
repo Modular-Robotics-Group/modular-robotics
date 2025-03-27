@@ -202,7 +202,11 @@ export const gScenGui = new GUI( { title: "Scenario", container: document.getEle
 // GUI elements for Configurizer Mode
 export const gModuleBrushGui = new GUI( { title: "Brush", container: document.getElementById("controlBar") } ).hide();
 export const gLayerGui = new GUI( { title: "Layer", container: document.getElementById("controlBar") } ).hide();
-export const zSliceController = gLayerGui.add(moduleBrush, 'zSlice', VisConfigData.bounds.z.min - 2, VisConfigData.bounds.z.max + 2, 1).name("Layer");
+export const zSliceController = gLayerGui.add(moduleBrush, 'zSlice', VisConfigData.bounds.z.min - 2, VisConfigData.bounds.z.max + 2, 1).name("Layer").onChange((value) => {
+    if (window._isPainterModeActive) {
+        updateVisibleModules(value);
+    }
+});
 
 // GUI element for Pathfinder and developer options
 export const gPathfinderGui = new GUI( { title: "Pathfinder", container: document.getElementById("controlBar") } ).close();
@@ -220,11 +224,6 @@ document.addEventListener("DOMContentLoaded", async function () {
     // Configurizer Controls
     gModuleBrushGui.addColor(moduleBrush, 'color').name("Module Color");
     gModuleBrushGui.add(moduleBrush, 'static').name("Static Module");
-    zSliceController.onChange((value) => {
-        if (window._isPainterModeActive) {
-            updateVisibleModules(value);
-        }
-    });
     gLayerGui.add(moduleBrush, 'adjSlicesVisible').name("Visualize Adjacent Layers").onChange((value) => {
         if (window._isPainterModeActive) {
             updateVisibleModules(moduleBrush.zSlice);
