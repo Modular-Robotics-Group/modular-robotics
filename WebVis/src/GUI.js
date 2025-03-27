@@ -1,14 +1,10 @@
 import * as THREE from 'three';
 import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
 import { Scenario } from './Scenario.js';
-import { gScene, gLights, gRenderer } from './main.js';
+import { gScene, gLights, gRenderer, gModules, gModulePositions } from './main.js';
 import { moduleBrush, pathfinderData, VisConfigData, ModuleType, getModuleAtPosition } from './utils.js';
 import { CameraType } from "./utils.js";
-import { 
-    saveConfiguration,
-    downloadConfiguration
-} from './utils.js';
-import { gModules } from './main.js';
+import { saveConfiguration, downloadConfiguration } from './utils.js';
 import { Module as ModuleClass } from './Module.js';
 
 // Exact filenames of example scenarios in /Scenarios/
@@ -120,6 +116,35 @@ window._toggleMRWTMode = function() {
     }
 }
 
+// Auto-Center
+window._autoCenterConfig = function() {
+    let shift = {
+        x: VisConfigData.bounds.x.min,
+        y: VisConfigData.bounds.y.min,
+        z: VisConfigData.bounds.z.min
+    };
+    gModulePositions.clear();
+    for (let module in gModules) {
+        gModules[module].pos.x -= shift.x;
+        gModules[module].pos.y -= shift.y;
+        gModules[module].pos.z -= shift.z;
+        gModules[module].parentMesh.position.sub(shift);
+        gModulePositions.set(JSON.stringify({
+            x: Math.round(gModules[module].pos.x),
+            y: Math.round(gModules[module].pos.y),
+            z: Math.round(gModules[module].pos.z)}),
+            gModules[module]);
+    }
+    let max = {
+        x: VisConfigData.bounds.x.max + shift.x,
+        y: VisConfigData.bounds.y.max + shift.y,
+        z: VisConfigData.bounds.z.max + shift.z
+    };
+    VisConfigData.clearBounds()
+    VisConfigData.updateBounds({x: 0, y: 0, z: 0});
+    VisConfigData.updateBounds(max);
+}
+
 /**
  * Helper function to set camera controls with a single configuration object
  * @param {Object} options - Camera control options
@@ -205,6 +230,7 @@ document.addEventListener("DOMContentLoaded", async function () {
             updateVisibleModules(moduleBrush.zSlice);
         }
     });
+    gLayerGui.add(window, '_autoCenterConfig').name("Auto-Center Configuration")
     // Pathfinder and debug Controls
     gPathfinderGui.add(window, '_pathfinderConfigDEBUG').name("Set configurations for Pathfinder");
     pathfinder_controller = gPathfinderGui.add(window, '_pathfinderRun').name("Run Pathfinder").disable();
@@ -215,6 +241,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     // Create configuration button controls using object literals
     gPathfinderGui.add({ 
         saveInitial: function() {
+            window._autoCenterConfig();
             saveConfiguration(true);
             console.log("Initial configuration saved");
             pathfinder_controller.enable();
@@ -223,6 +250,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     
     gPathfinderGui.add({ 
         saveFinal: function() {
+            window._autoCenterConfig();
             saveConfiguration(false);
             console.log("Final configuration saved");
             pathfinder_controller.enable();
