@@ -41,7 +41,7 @@ const MODULE_SETTINGS = Object.freeze({
  * Predefined camera control configurations for different application modes
  */
 const CAMERA_MODES = Object.freeze({
-    PAINTER: { pan: true, rotate: false, zoom: false },
+    PAINTER: { pan: true, rotate: false, zoom: true },
     NORMAL:  { pan: true, rotate: true, zoom: true }
 });
 
@@ -377,33 +377,29 @@ function handleModulePlacement(event) {
     // Get camera's current view parameters
     const camera = gwUser.camera;
     
-    // Calculate the click position relative to the canvas
-    const canvasX = event.clientX - rect.left;
-    const canvasY = event.clientY - rect.top;
-    
-    // Convert to normalized device coordinates (-1 to 1)
-    const ndcX = (canvasX / rect.width) * 2 - 1;
-    const ndcY = -(canvasY / rect.height) * 2 + 1;
-    
-    // For orthographic camera, we can directly map from NDC to world coordinates
-    // based on the camera's current view size
-    const worldX = ndcX * camera.right * camera.zoom;
-    const worldY = ndcY * camera.top * camera.zoom;
-    
-    // Add the camera position to get the final world position
-    const finalX = worldX + camera.position.x;
-    const finalY = worldY + camera.position.y;
+    // Calculate the click position by casting ray onto plane parallel to camera
+    // TODO: probably can tidy this bit up, most of it is pulled from an old stackoverflow answer
+    let raycaster = new THREE.Raycaster();
+    let mouse = new THREE.Vector2();
+    let plane = new THREE.Plane();
+    let planeNormal = new THREE.Vector3();
+    let point = new THREE.Vector3();
+
+    mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+    mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+    planeNormal.copy(camera.position).normalize();
+    plane.setFromNormalAndCoplanarPoint(planeNormal, gScene.position);
+    raycaster.setFromCamera(mouse, camera);
+    raycaster.ray.intersectPlane(plane, point);
     
     // Round to the nearest grid position
-    const gridX = Math.round(finalX);
-    const gridY = Math.round(finalY);
+    const gridX = Math.round(point.x);
+    const gridY = Math.round(point.y);
     const gridZ = moduleBrush.zSlice;
     
     console.log("Click position:", {
-        canvas: { x: canvasX, y: canvasY },
-        ndc: { x: ndcX, y: ndcY },
-        world: { x: worldX, y: worldY },
-        final: { x: finalX, y: finalY },
+        mouse: { x: mouse.x, y: mouse.y },
+        final: { x: point.x, y: point.y },
         grid: { x: gridX, y: gridY, z: gridZ }
     });
     
