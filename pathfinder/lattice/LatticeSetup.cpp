@@ -7,7 +7,9 @@
 #include "Lattice.h"
 #include "../search/ConfigurationSpace.h"
 
-#define FLIP_Y_COORD true
+#ifndef FLIP_Y_COORD
+#define FLIP_Y_COORD false
+#endif
 
 AdjOverride LatticeSetup::adjCheckOverride = NONE;
 
