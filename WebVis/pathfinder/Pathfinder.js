@@ -523,7 +523,12 @@ assert(typeof Int32Array != 'undefined' && typeof Float64Array !== 'undefined' &
     /** @suppress {checkTypes} */
     wasmMemory = new WebAssembly.Memory({
       'initial': INITIAL_MEMORY / 65536,
-      'maximum': INITIAL_MEMORY / 65536,
+      // In theory we should not need to emit the maximum if we want "unlimited"
+      // or 4GB of memory, but VMs error on that atm, see
+      // https://github.com/emscripten-core/emscripten/issues/14130
+      // And in the pthreads case we definitely need to emit a maximum. So
+      // always emit one.
+      'maximum': 32768,
     });
   }
 
@@ -902,8 +907,8 @@ async function createWasm() {
 // === Body ===
 
 var ASM_CONSTS = {
-  5007144: ($0) => { if (!$0) { AL.alcErr = 0xA004 ; return 1; } },  
- 5007192: ($0) => { if (!AL.currentCtx) { err("alGetProcAddress() called without a valid context"); return 1; } if (!$0) { AL.currentCtx.err = 0xA003 ; return 1; } }
+  5007096: ($0) => { if (!$0) { AL.alcErr = 0xA004 ; return 1; } },  
+ 5007144: ($0) => { if (!AL.currentCtx) { err("alGetProcAddress() called without a valid context"); return 1; } if (!$0) { AL.currentCtx.err = 0xA003 ; return 1; } }
 };
 
 // end include: preamble.js
@@ -1169,7 +1174,7 @@ var ASM_CONSTS = {
   
   
   
-  var ___heap_base = 5121952;
+  var ___heap_base = 5121888;
   
   var alignMemory = (size, alignment) => {
       assert(alignment, "alignment argument is required");
@@ -1996,11 +2001,11 @@ var ASM_CONSTS = {
 
   var ___memory_base = new WebAssembly.Global({'value': 'i32', 'mutable': false}, 1024);
 
-  var ___stack_high = 5121952;
+  var ___stack_high = 5121888;
 
-  var ___stack_low = 5056416;
+  var ___stack_low = 5056352;
 
-  var ___stack_pointer = new WebAssembly.Global({'value': 'i32', 'mutable': true}, 5121952);
+  var ___stack_pointer = new WebAssembly.Global({'value': 'i32', 'mutable': true}, 5121888);
 
   var PATH = {
   isAbs:(path) => path.charAt(0) === '/',
@@ -2639,6 +2644,13 @@ var ASM_CONSTS = {
   write(stream, buffer, offset, length, position, canOwn) {
           // The data buffer should be a typed array view
           assert(!(buffer instanceof ArrayBuffer));
+          // If the buffer is located in main memory (HEAP), and if
+          // memory can grow, we can't hold on to references of the
+          // memory buffer, as they may get invalidated. That means we
+          // need to do copy its contents.
+          if (buffer.buffer === HEAP8.buffer) {
+            canOwn = false;
+          }
   
           if (!length) return 0;
           var node = stream.node;
@@ -12032,7 +12044,11 @@ var ASM_CONSTS = {
   _emscripten_err.sig = 'vp';
 
   var getHeapMax = () =>
-      HEAPU8.length;
+      // Stay one Wasm page short of 4GB: while e.g. Chrome is able to allocate
+      // full 4GB Wasm memories, the size will wrap back to 0 bytes in Wasm side
+      // for any code that deals with heap sizes, which would require special
+      // casing all heap size related code to treat 0 specially.
+      2147483648;
   var _emscripten_get_heap_max = () => getHeapMax();
   _emscripten_get_heap_max.sig = 'p';
 
@@ -14566,14 +14582,71 @@ var ASM_CONSTS = {
 
   
   
-  var abortOnCannotGrowMemory = (requestedSize) => {
-      abort(`Cannot enlarge memory arrays to size ${requestedSize} bytes (OOM). Either (1) compile with -sINITIAL_MEMORY=X with X higher than the current value ${HEAP8.length}, (2) compile with -sALLOW_MEMORY_GROWTH which allows increasing the size at runtime, or (3) if you want malloc to return NULL (0) instead of this abort, compile with -sABORTING_MALLOC=0`);
+  var growMemory = (size) => {
+      var b = wasmMemory.buffer;
+      var pages = ((size - b.byteLength + 65535) / 65536) | 0;
+      try {
+        // round size grow request up to wasm page size (fixed 64KB per spec)
+        wasmMemory.grow(pages); // .grow() takes a delta compared to the previous size
+        updateMemoryViews();
+        return 1 /*success*/;
+      } catch(e) {
+        err(`growMemory: Attempted to grow heap from ${b.byteLength} bytes to ${size} bytes, but got error: ${e}`);
+      }
+      // implicit 0 return to save code size (caller will cast "undefined" into 0
+      // anyhow)
     };
   var _emscripten_resize_heap = (requestedSize) => {
       var oldSize = HEAPU8.length;
       // With CAN_ADDRESS_2GB or MEMORY64, pointers are already unsigned.
       requestedSize >>>= 0;
-      abortOnCannotGrowMemory(requestedSize);
+      // With multithreaded builds, races can happen (another thread might increase the size
+      // in between), so return a failure, and let the caller retry.
+      assert(requestedSize > oldSize);
+  
+      // Memory resize rules:
+      // 1.  Always increase heap size to at least the requested size, rounded up
+      //     to next page multiple.
+      // 2a. If MEMORY_GROWTH_LINEAR_STEP == -1, excessively resize the heap
+      //     geometrically: increase the heap size according to
+      //     MEMORY_GROWTH_GEOMETRIC_STEP factor (default +20%), At most
+      //     overreserve by MEMORY_GROWTH_GEOMETRIC_CAP bytes (default 96MB).
+      // 2b. If MEMORY_GROWTH_LINEAR_STEP != -1, excessively resize the heap
+      //     linearly: increase the heap size by at least
+      //     MEMORY_GROWTH_LINEAR_STEP bytes.
+      // 3.  Max size for the heap is capped at 2048MB-WASM_PAGE_SIZE, or by
+      //     MAXIMUM_MEMORY, or by ASAN limit, depending on which is smallest
+      // 4.  If we were unable to allocate as much memory, it may be due to
+      //     over-eager decision to excessively reserve due to (3) above.
+      //     Hence if an allocation fails, cut down on the amount of excess
+      //     growth, in an attempt to succeed to perform a smaller allocation.
+  
+      // A limit is set for how much we can grow. We should not exceed that
+      // (the wasm binary specifies it, so if we tried, we'd fail anyhow).
+      var maxHeapSize = getHeapMax();
+      if (requestedSize > maxHeapSize) {
+        err(`Cannot enlarge memory, requested ${requestedSize} bytes, but the limit is ${maxHeapSize} bytes!`);
+        return false;
+      }
+  
+      // Loop through potential heap size increases. If we attempt a too eager
+      // reservation that fails, cut down on the attempted size and reserve a
+      // smaller bump instead. (max 3 times, chosen somewhat arbitrarily)
+      for (var cutDown = 1; cutDown <= 4; cutDown *= 2) {
+        var overGrownHeapSize = oldSize * (1 + 0.2 / cutDown); // ensure geometric growth
+        // but limit overreserving (default to capping at +96MB overgrowth at most)
+        overGrownHeapSize = Math.min(overGrownHeapSize, requestedSize + 100663296 );
+  
+        var newSize = Math.min(maxHeapSize, alignMemory(Math.max(requestedSize, overGrownHeapSize), 65536));
+  
+        var replacement = growMemory(newSize);
+        if (replacement) {
+  
+          return true;
+        }
+      }
+      err(`Failed to grow the heap from ${oldSize} bytes to ${newSize} bytes, not enough memory!`);
+      return false;
     };
   _emscripten_resize_heap.sig = 'ip';
 
@@ -15225,21 +15298,6 @@ var ASM_CONSTS = {
 
 
 
-
-  var growMemory = (size) => {
-      var b = wasmMemory.buffer;
-      var pages = ((size - b.byteLength + 65535) / 65536) | 0;
-      try {
-        // round size grow request up to wasm page size (fixed 64KB per spec)
-        wasmMemory.grow(pages); // .grow() takes a delta compared to the previous size
-        updateMemoryViews();
-        return 1 /*success*/;
-      } catch(e) {
-        err(`growMemory: Attempted to grow heap from ${b.byteLength} bytes to ${size} bytes, but got error: ${e}`);
-      }
-      // implicit 0 return to save code size (caller will cast "undefined" into 0
-      // anyhow)
-    };
 
 
   var _emscripten_notify_memory_growth = (memoryIndex) => {
@@ -29232,7 +29290,7 @@ var ___cxa_demangle = createExportWrapper('__cxa_demangle', 4);
 var ___thrown_object_from_unwind_exception = createExportWrapper('__thrown_object_from_unwind_exception', 1);
 var ___get_exception_message = createExportWrapper('__get_exception_message', 3);
 var ___wasm_apply_data_relocs = createExportWrapper('__wasm_apply_data_relocs', 0);
-var ___emscripten_embedded_file_data = Module['___emscripten_embedded_file_data'] = 4644224;
+var ___emscripten_embedded_file_data = Module['___emscripten_embedded_file_data'] = 4644176;
 
 // include: postamble.js
 // === Auto-generated postamble setup entry stuff ===
@@ -29285,7 +29343,6 @@ var unexportedSymbols = [
   'zeroMemory',
   'exitJS',
   'getHeapMax',
-  'abortOnCannotGrowMemory',
   'growMemory',
   'ENV',
   'ERRNO_CODES',
@@ -29579,7 +29636,7 @@ function stackCheckInit() {
   // This is normally called automatically during __wasm_call_ctors but need to
   // get these values before even running any of the ctors so we call it redundantly
   // here.
-  _emscripten_stack_set_limits(5121952 , 5056416);
+  _emscripten_stack_set_limits(5121888 , 5056352);
   // TODO(sbc): Move writeStackCookie to native to to avoid this.
   writeStackCookie();
 }
