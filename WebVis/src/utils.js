@@ -124,7 +124,8 @@ export function createPathfinderConfiguration(name = "Default Configuration", de
         
         // Convert module to pathfinder format
         modules.push({
-            position: [pos.x, pos.y, pos.z],
+            // Apparently the number of coordinates here matters, probably could be considered a bug on pathfinder's end
+            position: maxZ === minZ ? [pos.x, pos.y] : [pos.x, pos.y, pos.z],
             static: module.isStatic || false,
             properties: {
                 colorProperty: {
@@ -146,7 +147,7 @@ export function createPathfinderConfiguration(name = "Default Configuration", de
         exists: true,
         name: name,
         description: description,
-        order: 3, // Default order
+        order: maxZ === minZ ? 2 : 3, // 2D if flat across Z-plane, 3D otherwise
         axisSize: axisSize,
         tensorPadding: 5,
         modules: modules,
