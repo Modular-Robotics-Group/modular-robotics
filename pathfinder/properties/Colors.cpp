@@ -41,6 +41,8 @@ ColorProperty::ColorProperty(const nlohmann::basic_json<>& propertyDef) {
         } else {
             color = Colors::colorToInt[propertyDef[COLOR]];
         }
+    } else if (propertyDef[COLOR].is_number_integer()) {
+        color = propertyDef[COLOR];
     } else {
         std::cerr << "Color improperly formatted." << std::endl;
         return;
