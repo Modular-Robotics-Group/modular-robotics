@@ -105,30 +105,29 @@ void ModuleProperties::LinkProperties() {
             std::cout << "\tFailed to link " << propertyLibName << '.' << std::endl;
             continue;
         }
-        boost::dll::shared_library propertyLibrary(propertyLibPath);
         std::cout << "\tLinking " << propertyLibName << "..." << std::endl;
         if (propertyClassDef.contains("staticFunctions")) {
             for (const auto& functionName : propertyClassDef["staticFunctions"]) {
                 auto ptrName = propertyName + "_" + static_cast<std::string>(functionName);
-                Functions()[functionName] = boost::dll::import_alias<boost::any(*)()>(propertyLibrary, ptrName);
+                Functions()[functionName] = boost::dll::import_alias<boost::any(*)()>(propertyLibPath, ptrName);
             }
         }
         if (propertyClassDef.contains("instanceFunctions")) {
             for (const auto& functionName : propertyClassDef["instanceFunctions"]) {
                 auto ptrName = propertyName + "_" + static_cast<std::string>(functionName);
-                InstFunctions()[functionName] = boost::dll::import_alias<boost::any(*)(IModuleProperty*)>(propertyLibrary, ptrName);
+                InstFunctions()[functionName] = boost::dll::import_alias<boost::any(*)(IModuleProperty*)>(propertyLibPath, ptrName);
             }
         }
         if (propertyClassDef.contains("argumentStaticFunctions")) {
             for (const auto& functionName : propertyClassDef["argumentStaticFunctions"]) {
                 auto ptrName = propertyName + "_" + static_cast<std::string>(functionName);
-                ArgFunctions()[functionName] = boost::dll::import_alias<boost::any(*)(const nlohmann::basic_json<>&)>(propertyLibrary, ptrName);
+                ArgFunctions()[functionName] = boost::dll::import_alias<boost::any(*)(const nlohmann::basic_json<>&)>(propertyLibPath, ptrName);
             }
         }
         if (propertyClassDef.contains("argumentInstanceFunctions")) {
             for (const auto& functionName : propertyClassDef["argumentInstanceFunctions"]) {
                 auto ptrName = propertyName + "_" + static_cast<std::string>(functionName);
-                ArgInstFunctions()[functionName] = boost::dll::import_alias<boost::any(*)(IModuleProperty*, const nlohmann::basic_json<>&)>(propertyLibrary, ptrName);
+                ArgInstFunctions()[functionName] = boost::dll::import_alias<boost::any(*)(IModuleProperty*, const nlohmann::basic_json<>&)>(propertyLibPath, ptrName);
             }
         }
         std::cout << "\tLinked " << propertyLibName << '.' << std::endl;
@@ -280,7 +279,11 @@ std::uint_fast64_t ModuleProperties::AsInt() const {
     if (_properties.size() == 1) {
         return (*_properties.begin())->AsInt();
     }
-    std::cerr << "Representing multiple properties as an integer is not supported." << std::endl;
+    std::cerr << "Representing multiple properties as an integer is not supported." << std::endl
+        << "Detected " << _properties.size() << " Properties:" << std::endl;
+    for (const auto property : _properties) {
+        std::cerr << '\t' << property->key << std::endl;
+    }
     exit(1);
 }
 

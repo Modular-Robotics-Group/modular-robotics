@@ -112,6 +112,7 @@ void EnqueueAdjacentInternal(std::queue<SearchCoord>& coordQueue, const SearchCo
 CoordTensor<int> BuildInternalDistanceCache() {
     if (ModuleIdManager::StaticModules().empty()) {
         // No static modules to use in distance cache
+        std::cout << "No static modules available for distance cache!" << std::endl;
         return { Lattice::Order(), Lattice::AxisSize(), 0 };
     }
     CoordTensor<int> cache(Lattice::Order(), Lattice::AxisSize(), INVALID_WEIGHT);

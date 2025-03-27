@@ -47,13 +47,12 @@ extern "C" {
         }
 
         // Dynamically Link Properties (probably not a thing in web but we will find out)
-        //std::cout << "Linking Properties..." << std::endl;
-        //ModuleProperties::LinkProperties();
-        //std::cout << "Properties successfully linked: " << ModuleProperties::PropertyCount() << std::endl;
+        std::cout << "Linking Properties..." << std::endl;
+        ModuleProperties::LinkProperties();
+        std::cout << "Properties successfully linked: " << ModuleProperties::PropertyCount() << std::endl;
 
         // Set up Lattice
         std::cout << "Initializing Lattice..." << std::endl;
-        Lattice::SetFlags(true);
         LatticeSetup::SetupFromJson(config_i_stream);
         std::cout << "Lattice initialized." << std::endl;
 
