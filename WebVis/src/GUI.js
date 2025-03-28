@@ -241,7 +241,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     gDevGui.add(window, '_toggleMRWTMode').name("MRWT Mode Toggle");
     // Add event listener for module placement
     document.addEventListener('mousedown', (event) => {
-        if (event.button === 0) {
+        if (event.button === 0 && !(event.shiftKey || event.ctrlKey)) {
             window._mouseHeld = true;
             setDrawMode(event);
             handleModulePlacement(event);
