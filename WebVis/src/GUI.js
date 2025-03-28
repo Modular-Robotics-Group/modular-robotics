@@ -190,14 +190,6 @@ function _generateExampleLoader(name) {
 // to move it somewhere else if you can find a spot that makes more sense.
 const pathfinder = Module.cwrap("pathfinder", "string", ["string", "string"]);
 let pathfinder_controller;
-window._pathfinderConfigDEBUG = async function() {
-    let example_configs = "";
-    await fetch(`./pathfinder/example_config.json`).then(response => response.text()).then(text => { example_configs = text });
-    let j = JSON.parse(example_configs);
-    pathfinderData.config_i = JSON.stringify(j.initial);
-    pathfinderData.config_f = JSON.stringify(j.final);
-    pathfinder_controller.enable();
-}
 
 window._pathfinderRun = function() {
     pathfinderData.scen_out = pathfinder(pathfinderData.config_i, pathfinderData.config_f);
@@ -248,7 +240,6 @@ document.addEventListener("DOMContentLoaded", async function () {
     gLayerGui.add(window, '_autoCenterConfig').name("Auto-Center Configuration")
     gLayerGui.add(window, '_clearConfig').name("Clear Configuration")
     // Pathfinder and debug Controls
-    gPathfinderGui.add(window, '_pathfinderConfigDEBUG').name("Set configurations for Pathfinder");
     pathfinder_controller = gPathfinderGui.add(window, '_pathfinderRun').name("Run Pathfinder").disable();
     gDevGui.add(window, '_toggleMRWTMode').name("MRWT Mode Toggle");
     // Add event listener for module placement
