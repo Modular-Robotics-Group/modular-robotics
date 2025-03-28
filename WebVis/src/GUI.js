@@ -37,6 +37,11 @@ const MODULE_SETTINGS = Object.freeze({
     SCALE:            0.9
 })
 
+const DRAW_MODES = Object.freeze({
+    ERASE:  -1,
+    PLACE:   0
+})
+
 /**
  * Predefined camera control configurations for different application modes
  */
@@ -235,7 +240,14 @@ document.addEventListener("DOMContentLoaded", async function () {
     pathfinder_controller = gPathfinderGui.add(window, '_pathfinderRun').name("Run Pathfinder").disable();
     gDevGui.add(window, '_toggleMRWTMode').name("MRWT Mode Toggle");
     // Add event listener for module placement
-    document.addEventListener('mousedown', handleModulePlacement);
+    document.addEventListener('mousedown', (event) => {
+        window._mouseHeld = true;
+        setDrawMode(event);
+    });
+    document.addEventListener('mouseup', (event) => {
+        window._mouseHeld = false;
+    });
+    document.addEventListener('mousemove', handleModulePlacement);
 
     // Create configuration button controls using object literals
     gPathfinderGui.add({ 
@@ -352,31 +364,14 @@ function showAllModules() {
     });
 }
 
-/**
- * Handles mouse clicks for module placement
- * @param {MouseEvent} event - The mouse event
- */
-function handleModulePlacement(event) {
-    // Only process left clicks when in MRWT mode
-    if (!window._isPainterModeActive || event.button !== 0) return;
-    
-    // Check if the click is on a UI element
-    const path = event.path || (event.composedPath && event.composedPath());
-    for (const element of path || []) {
-        if (element.classList && 
-            (element.classList.contains('lil-gui') || 
-             element.classList.contains('dg'))) {
-            return; // Click was on GUI, don't place a module
-        }
-    }
-
+function getClickPosition(event) {
     // Get the canvas element and its dimensions
     const canvas = gRenderer.domElement;
     const rect = canvas.getBoundingClientRect();
-    
+
     // Get camera's current view parameters
     const camera = gwUser.camera;
-    
+
     // Calculate the click position by casting ray onto plane parallel to camera
     // TODO: probably can tidy this bit up, most of it is pulled from an old stackoverflow answer
     let raycaster = new THREE.Raycaster();
@@ -391,19 +386,49 @@ function handleModulePlacement(event) {
     plane.setFromNormalAndCoplanarPoint(planeNormal, gScene.position);
     raycaster.setFromCamera(mouse, camera);
     raycaster.ray.intersectPlane(plane, point);
+
+    return {
+        x: Math.round(point.x),
+        y: Math.round(point.y),
+        z: moduleBrush.zSlice
+    };
+}
+
+function setDrawMode(event) {
+    if (!window._isPainterModeActive) return;
+
+    // Set draw mode based on module presence
+    let clickPos = getClickPosition(event);
+
+    const existingModule = getModuleAtPosition(clickPos.x, clickPos.y, clickPos.z);
+    if (!existingModule) {
+        window._drawMode = DRAW_MODES.PLACE;
+    } else {
+        window._drawMode = DRAW_MODES.ERASE;
+    }
+}
+
+/**
+ * Handles mouse clicks for module placement
+ * @param {MouseEvent} event - The mouse event
+ */
+function handleModulePlacement(event) {
+    // Only process left clicks when in MRWT mode
+    if (!window._mouseHeld || !window._isPainterModeActive) return;
     
-    // Round to the nearest grid position
-    const gridX = Math.round(point.x);
-    const gridY = Math.round(point.y);
-    const gridZ = moduleBrush.zSlice;
+    // Check if the click is on a UI element
+    const path = event.path || (event.composedPath && event.composedPath());
+    for (const element of path || []) {
+        if (element.classList && 
+            (element.classList.contains('lil-gui') || 
+             element.classList.contains('dg'))) {
+            return; // Click was on GUI, don't place a module
+        }
+    }
+
+    let clickPos = getClickPosition(event)
     
-    console.log("Click position:", {
-        mouse: { x: mouse.x, y: mouse.y },
-        final: { x: point.x, y: point.y },
-        grid: { x: gridX, y: gridY, z: gridZ }
-    });
-    
-    toggleModuleAtPosition(gridX, gridY, gridZ);
+    toggleModuleAtPosition(clickPos.x, clickPos.y, clickPos.z);
 }
 
 /**
@@ -415,7 +440,7 @@ function handleModulePlacement(event) {
 function toggleModuleAtPosition(x, y, z) {
     const existingModule = getModuleAtPosition(x, y, z);
 
-    if (!existingModule) {
+    if (!existingModule && window._drawMode === DRAW_MODES.PLACE) {
         // Create a new module at the position
         const pos = new THREE.Vector3(x, y, z);
 
@@ -432,7 +457,7 @@ function toggleModuleAtPosition(x, y, z) {
             module.markStatic();
         }
         updateModuleVisibility(module, z, moduleBrush.zSlice);
-    } else {
+    } else if (window._drawMode === DRAW_MODES.ERASE) {
         gModules[existingModule.id].destroy();
     }
 }
