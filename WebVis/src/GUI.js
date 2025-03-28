@@ -457,7 +457,7 @@ function toggleModuleAtPosition(x, y, z) {
             module.markStatic();
         }
         updateModuleVisibility(module, z, moduleBrush.zSlice);
-    } else if (window._drawMode === DRAW_MODES.ERASE) {
+    } else if (existingModule && window._drawMode === DRAW_MODES.ERASE) {
         gModules[existingModule.id].destroy();
     }
 }
