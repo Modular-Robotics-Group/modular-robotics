@@ -241,12 +241,16 @@ document.addEventListener("DOMContentLoaded", async function () {
     gDevGui.add(window, '_toggleMRWTMode').name("MRWT Mode Toggle");
     // Add event listener for module placement
     document.addEventListener('mousedown', (event) => {
-        window._mouseHeld = true;
-        setDrawMode(event);
-        handleModulePlacement(event);
+        if (event.button === 0) {
+            window._mouseHeld = true;
+            setDrawMode(event);
+            handleModulePlacement(event);
+        }
     });
     document.addEventListener('mouseup', (event) => {
-        window._mouseHeld = false;
+        if (event.button === 0) {
+            window._mouseHeld = false;
+        }
     });
     document.addEventListener('mousemove', handleModulePlacement);
 
