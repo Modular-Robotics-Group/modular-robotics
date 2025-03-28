@@ -150,6 +150,17 @@ window._autoCenterConfig = function() {
     VisConfigData.updateBounds(max);
 }
 
+// Clear
+window._clearConfig = function() {
+    for (let module in gModules) {
+        gModules[module].destroy();
+    }
+
+    // Reset Data
+    VisConfigData.nextModID = 0;
+    VisConfigData.clearBounds();
+}
+
 /**
  * Helper function to set camera controls with a single configuration object
  * @param {Object} options - Camera control options
@@ -235,6 +246,7 @@ document.addEventListener("DOMContentLoaded", async function () {
         }
     });
     gLayerGui.add(window, '_autoCenterConfig').name("Auto-Center Configuration")
+    gLayerGui.add(window, '_clearConfig').name("Clear Configuration")
     // Pathfinder and debug Controls
     gPathfinderGui.add(window, '_pathfinderConfigDEBUG').name("Set configurations for Pathfinder");
     pathfinder_controller = gPathfinderGui.add(window, '_pathfinderRun').name("Run Pathfinder").disable();
