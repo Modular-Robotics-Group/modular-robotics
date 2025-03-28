@@ -191,9 +191,11 @@ function _generateExampleLoader(name) {
 const pathfinder = Module.cwrap("pathfinder", "string", ["string", "string"]);
 let pathfinder_controller;
 
-window._pathfinderRun = function() {
+window._pathfinderRun = async function() {
+    pathfinderData.is_running = true;
+    pathfinder_controller.disable();
     pathfinderData.scen_out = pathfinder(pathfinderData.config_i, pathfinderData.config_f);
-    //console.log(pathfinderData.scen_out); // Uncomment this if you want to see the produced scen contents
+    pathfinder_controller.enable();
     new Scenario(pathfinderData.scen_out);
 }
 
@@ -263,7 +265,9 @@ document.addEventListener("DOMContentLoaded", async function () {
             window._autoCenterConfig();
             saveConfiguration(true);
             console.log("Initial configuration saved");
-            pathfinder_controller.enable();
+            if (!pathfinderData.is_running && JSON.parse(pathfinderData.config_f).exists) {
+                pathfinder_controller.enable();
+            }
         }
     }, 'saveInitial').name("Save Initial Config");
     
@@ -272,7 +276,9 @@ document.addEventListener("DOMContentLoaded", async function () {
             window._autoCenterConfig();
             saveConfiguration(false);
             console.log("Final configuration saved");
-            pathfinder_controller.enable();
+            if (!pathfinderData.is_running && JSON.parse(pathfinderData.config_i).exists) {
+                pathfinder_controller.enable();
+            }
         }
     }, 'saveFinal').name("Save Final Config");
     

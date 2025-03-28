@@ -66,7 +66,8 @@ export let VisConfigData = {
 export let pathfinderData = {
     config_i: '{"exists": false}',
     config_f: '{"exists": false}',
-    scen_out: 'INVALID SCENE'
+    scen_out: 'INVALID SCENE',
+    is_running: false
 };
 
 export function getModuleAtPosition(x, y, z) {
