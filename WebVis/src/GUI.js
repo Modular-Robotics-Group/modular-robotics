@@ -243,6 +243,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     document.addEventListener('mousedown', (event) => {
         window._mouseHeld = true;
         setDrawMode(event);
+        handleModulePlacement(event);
     });
     document.addEventListener('mouseup', (event) => {
         window._mouseHeld = false;
