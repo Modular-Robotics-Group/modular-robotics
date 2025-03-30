@@ -227,8 +227,8 @@ int main(int argc, char* argv[]) {
     std::cout << "DISABLED" << std::endl;
 #endif
     std::cout << "Search Method:         ";
-    if (searchMethod.empty() || searchMethod == "A*" || searchMethod == "a*") {
-        std::cout << "A*" << std::endl;
+    if (searchMethod.empty() || searchMethod == "A*" || searchMethod == "a*" || searchMethod == "BDA*" || searchMethod == "bda*") {
+        std::cout << (searchMethod == "BDA*" || searchMethod == "bda*" ? "BDA*" : "A*") << std::endl;
         std::cout << "└Heuristic:            ";
         if (heuristic.empty() || heuristic == "MRSH1" || heuristic == "mrsh1" || heuristic == "MRSH-1" || heuristic == "mrsh-1") {
             std::cout << "MRSH-1" << std::endl;
@@ -261,6 +261,8 @@ int main(int argc, char* argv[]) {
         }
     } else if (searchMethod == "BFS" || searchMethod == "bfs") {
         std::cout << "BFS" << std::endl;
+    } else if (searchMethod == "BDBFS" || searchMethod == "bdbfs") {
+        std::cout << "BDBFS" << std::endl;
     }
     std::cout << std::endl;
 
