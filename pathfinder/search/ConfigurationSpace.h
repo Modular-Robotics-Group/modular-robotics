@@ -60,10 +60,11 @@ private:
     size_t seed;
     std::set<ModuleData> moduleData;
     const Configuration* foundAt;
+    int depth;
 public:
     HashedState() = delete;
 
-    explicit HashedState(const std::set<ModuleData>& modData);
+    explicit HashedState(const std::set<ModuleData>& modData, int depth = 0);
 
     HashedState(const HashedState& other);
 
@@ -77,6 +78,11 @@ public:
 
     [[nodiscard]]
     const Configuration* FoundAt() const;
+
+    void SetDepth(int depth);
+
+    [[nodiscard]]
+    int GetDepth() const;
 
     bool operator==(const HashedState& other) const;
 

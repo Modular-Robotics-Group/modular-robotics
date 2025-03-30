@@ -18,13 +18,14 @@ const char *HeuristicExcept::what() const noexcept {
 }
 
 
-HashedState::HashedState(const std::set<ModuleData>& modData) {
+HashedState::HashedState(const std::set<ModuleData>& modData, const int depth) {
     seed = boost::hash_range(modData.begin(), modData.end());
     moduleData = modData;
     foundAt = nullptr;
+    this->depth = depth;
 }
 
-HashedState::HashedState(const HashedState& other) : seed(other.GetSeed()), moduleData(other.GetState()), foundAt(other.FoundAt()) {}
+HashedState::HashedState(const HashedState& other) : seed(other.GetSeed()), moduleData(other.GetState()), foundAt(other.FoundAt()), depth(other.depth) {}
 
 size_t HashedState::GetSeed() const {
     return seed;
@@ -42,6 +43,13 @@ const Configuration *HashedState::FoundAt() const {
     return foundAt;
 }
 
+void HashedState::SetDepth(const int depth) {
+    this->depth = depth;
+}
+
+int HashedState::GetDepth() const {
+    return depth;
+}
 
 bool HashedState::operator==(const HashedState& other) const {
     return seed == other.GetSeed() && moduleData == other.GetState();
@@ -769,7 +777,8 @@ std::vector<const Configuration*> ConfigurationSpace::AStar(Configuration* start
         statesProcessed++;
         for (const auto& moduleInfo : adjList) {
 #if !CONFIG_PARALLEL_MOVES
-            if (HashedState hashedState(moduleInfo); visited.find(hashedState) == visited.end()) {
+            if (HashedState hashedState(moduleInfo, current->depth + 1); visited.find(hashedState) == visited.end()
+                || hashedState.GetDepth() < visited.find(hashedState)->GetDepth()) {
 #endif
                 auto nextConfiguration = current->AddEdge(moduleInfo);
                 nextConfiguration->SetParent(current);
@@ -777,6 +786,9 @@ std::vector<const Configuration*> ConfigurationSpace::AStar(Configuration* start
                 pq.push(nextConfiguration);
                 nextConfiguration->depth = current->depth + 1;
 #if !CONFIG_PARALLEL_MOVES
+                if (visited.contains(hashedState)) {
+                    visited.erase(hashedState);
+                }
                 visited.insert(hashedState);
             } else {
                 dupesAvoided++;
@@ -1055,6 +1067,15 @@ std::vector<const Configuration*> ConfigurationSpace::BDAStar(BDConfiguration* s
                 }
                 path.insert(path.end(), pathRemainder.begin(), pathRemainder.end());
                 return path;
+            } else if (HashedState hashedState(moduleInfo, current->depth + 1); hashedState.GetDepth() < visited.find(hashedState)->GetDepth()) {
+                auto nextConfiguration = current->AddEdge(moduleInfo);
+                nextConfiguration->SetParent(current);
+                nextConfiguration->SetCost(current->GetCost() + 1);
+                pq.push(nextConfiguration);
+                nextConfiguration->depth = current->depth + 1;
+                hashedState.SetFounder(nextConfiguration);
+                hashedState.SetDepth(nextConfiguration->depth);
+                visited.insert(hashedState);
             } else {
                 dupesAvoided++;
             }
