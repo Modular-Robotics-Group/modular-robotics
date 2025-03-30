@@ -16,7 +16,7 @@ Pathfinder:
 	emcc -fwasm-exceptions -O3 -fPIC --std=c++20 ../../pathfinder/moves/Isometry.cpp -c -I ./em_boost -I ./single_include
 	emcc -fwasm-exceptions -O3 -fPIC --std=c++20 ../../pathfinder/moves/MoveManager.cpp -c -I ./em_boost -I ./single_include
 	emcc -fwasm-exceptions -O3 -fPIC --std=c++20 ../../pathfinder/moves/Scenario.cpp -c -I ./em_boost -I ./single_include
-	emcc -fwasm-exceptions -O3 -fPIC --std=c++20 ../../pathfinder/search/ConfigurationSpace.cpp -c -I ./em_boost -I ./single_include
+	emcc -fwasm-exceptions -DCONFIG_VERBOSE=1 -O3 -fPIC --std=c++20 ../../pathfinder/search/ConfigurationSpace.cpp -c -I ./em_boost -I ./single_include
 	emcc -fwasm-exceptions -O3 -fPIC --std=c++20 ../../pathfinder/search/HeuristicCache.cpp -c -I ./em_boost -I ./single_include
 	emcc -fwasm-exceptions -O3 -fPIC --std=c++20 ../../pathfinder/search/SearchAnalysis.cpp -c -I ./em_boost -I ./single_include
 	emcc -fwasm-exceptions -O3 -fPIC --std=c++20 ../../pathfinder/utility/color_util.cpp -c -I ./em_boost -I ./single_include
