@@ -100,12 +100,14 @@ extern "C" {
         std::cout << "MRSH-1" << std::endl;
         std::cout << " ├L1 Distance Limits:  ";
 #if CONFIG_HEURISTIC_CACHE_OPTIMIZATION
+        std::cout << " ├Unreachable Cache:   ";
         std::cout << "ENABLED" << std::endl;
 #else
         std::cout << "DISABLED" << std::endl;
 #endif
         std::cout << " ├L2 Distance Limits:  ";
 #if CONFIG_HEURISTIC_CACHE_DIST_LIMITATIONS
+        std::cout << " ├Reach Limits:        ";
         std::cout << "ENABLED" << std::endl;
 #else
         std::cout << "DISABLED" << std::endl;

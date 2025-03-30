@@ -232,13 +232,13 @@ int main(int argc, char* argv[]) {
         std::cout << "└Heuristic:            ";
         if (heuristic.empty() || heuristic == "MRSH1" || heuristic == "mrsh1" || heuristic == "MRSH-1" || heuristic == "mrsh-1") {
             std::cout << "MRSH-1" << std::endl;
-            std::cout << " ├L1 Distance Limits:  ";
+            std::cout << " ├Unreachable Cache:   ";
 #if CONFIG_HEURISTIC_CACHE_OPTIMIZATION
             std::cout << "ENABLED" << std::endl;
 #else
             std::cout << "DISABLED" << std::endl;
 #endif
-            std::cout << " ├L2 Distance Limits:  ";
+            std::cout << " ├Reach Limits:        ";
 #if CONFIG_HEURISTIC_CACHE_DIST_LIMITATIONS
             std::cout << "ENABLED" << std::endl;
 #else
