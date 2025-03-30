@@ -1,0 +1,29 @@
+{
+  "moves": [
+    {
+      "name": "In-Layer Restricted",
+      "order": 3,
+      "def": [[
+        " x  ",
+        "x x ",
+        " x x",
+        "  x "
+      ],
+        [
+        "  x ",
+        " ? x",
+        "  ! ",
+        "    "
+      ], [
+        "    ",
+        "  x ",
+        " #  ",
+        "    "
+      ]],
+      "permGen": true,
+      "animSeq": [
+        ["rd+y+z", [1, 1, 0]]
+      ]
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "moves": [
+    {
+      "name": "Slide",
+      "order": 2,
+      "def": [[
+        "?!",
+        "##"
+      ]],
+      "permGen": true,
+      "animSeq": [
+        ["slide", [1, 0, 0]]
+      ]
+    }
+  ]
+}

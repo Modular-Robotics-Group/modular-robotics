@@ -188,13 +188,13 @@ function _generateExampleLoader(name) {
 /* ****************************** */
 // TODO: I'm not sure this is the right place to put this functionality, feel free
 // to move it somewhere else if you can find a spot that makes more sense.
-const pathfinder = Module.cwrap("pathfinder", "string", ["string", "string"]);
-let pathfinder_controller;
+const pathfinder = Module.cwrap("pathfinder", "string", ["string", "string", "string"]);
+let pathfinder_controller, heuristic_setter;
 
 window._pathfinderRun = async function() {
     pathfinderData.is_running = true;
     pathfinder_controller.disable();
-    pathfinderData.scen_out = pathfinder(pathfinderData.config_i, pathfinderData.config_f);
+    pathfinderData.scen_out = pathfinder(pathfinderData.config_i, pathfinderData.config_f, JSON.stringify(pathfinderData.settings));
     pathfinder_controller.enable();
     new Scenario(pathfinderData.scen_out);
 }
@@ -243,6 +243,17 @@ document.addEventListener("DOMContentLoaded", async function () {
     gLayerGui.add(window, '_clearConfig').name("Clear Configuration")
     // Pathfinder and debug Controls
     pathfinder_controller = gPathfinderGui.add(window, '_pathfinderRun').name("Run Pathfinder").disable();
+    gPathfinderGui.add(pathfinderData.settings, 'name').name("Name");
+    gPathfinderGui.add(pathfinderData.settings, 'description').name("Description");
+    heuristic_setter = gPathfinderGui.add(pathfinderData.settings, 'heuristic',
+        ['MRSH-1', 'Symmetric Difference', 'Manhattan Distance', 'Chebyshev Distance']).name("Heuristic");
+    gPathfinderGui.add(pathfinderData.settings, 'search', ['A*', 'BDBFS']).name("Search Type").onChange((value) => {
+        if (value === "A*") {
+            heuristic_setter.show();
+        } else {
+            heuristic_setter.hide();
+        }
+    });
     gDevGui.add(window, '_toggleMRWTMode').name("MRWT Mode Toggle");
     // Add event listener for module placement
     document.addEventListener('mousedown', (event) => {

@@ -1,20 +1,6 @@
 {
   "moves": [
     {
-      "name": "Monkey",
-      "order": 2,
-      "def": [[
-        "xxx",
-        "?x!",
-        "#x#"
-      ]],
-      "permGen": true,
-      "animSeq": [
-        ["pivot+y", [1, 0, 0]],
-        ["pivot+y", [1, 0, 0]]
-      ]
-    },
-    {
       "name": "Diagonal Monkey",
       "order": 2,
       "def": [[

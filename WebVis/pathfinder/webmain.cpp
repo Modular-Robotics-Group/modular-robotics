@@ -27,15 +27,18 @@ const char* EMPTY_SCEN =
 std::string scen_str;
 
 extern "C" {
-    const char* pathfinder(char* config_initial, char* config_final) {
+    const char* pathfinder(char* config_initial, char* config_final, char* config_settings) {
         std::string config_i = config_initial;
         std::string config_f = config_final;
         std::stringstream config_i_stream(config_i);
         std::stringstream config_f_stream(config_f);
-        // I had both of this constructed with config_i at first and it took me way longer than it should've to
-        // figure out why the pathfinder wasn't working
+        nlohmann::json settings;
 
-        // Prompt user for names for initial and final state files if they are not given as command line arguments
+        std::stringstream(config_settings) >> settings;
+
+        std::cout << "Settings:" << settings << std::endl;
+
+        // Exit if final or initial state is missing
         if (config_i.empty()) {
             std::cerr << "Attempted to find path with no initial state! Exiting..." << std::endl;
             return EMPTY_SCEN;
@@ -46,7 +49,7 @@ extern "C" {
             return EMPTY_SCEN;
         }
 
-        // Dynamically Link Properties (probably not a thing in web but we will find out)
+        // Dynamically Link Properties
         std::cout << "Linking Properties..." << std::endl;
         ModuleProperties::LinkProperties();
         std::cout << "Properties successfully linked: " << ModuleProperties::PropertyCount() << std::endl;
@@ -60,7 +63,9 @@ extern "C" {
         std::cout << "Initializing Move Manager..." << std::endl;
         MoveManager::InitMoveManager(Lattice::Order(), Lattice::AxisSize());
         std::cout << "Move Manager initialized." << std::endl << "Loading Moves..." << std::endl;
-        MoveManager::RegisterAllMoves();
+        for (const auto& path : settings["movePaths"]) {
+            MoveManager::RegisterAllMoves(path);
+        }
         std::cout << "Moves loaded." << std::endl;
 
         // print some stuff
@@ -95,29 +100,33 @@ extern "C" {
         std::cout << "DISABLED" << std::endl;
 #endif
         std::cout << "Search Method:         ";
-        std::cout << "A*" << std::endl;
-        std::cout << "└Heuristic:            ";
-        std::cout << "MRSH-1" << std::endl;
-        std::cout << " ├L1 Distance Limits:  ";
+        if (settings["search"] == "A*") {
+            std::cout << "A*" << std::endl;
+            std::cout << "└Heuristic:            ";
+            std::cout << settings["heuristic"] << std::endl;
+            if (settings["heuristic"] == "MRSH-1") {
+                std::cout << " ├Unreachable Cache:   ";
 #if CONFIG_HEURISTIC_CACHE_OPTIMIZATION
-        std::cout << " ├Unreachable Cache:   ";
-        std::cout << "ENABLED" << std::endl;
+                std::cout << "ENABLED" << std::endl;
 #else
-        std::cout << "DISABLED" << std::endl;
+                std::cout << "DISABLED" << std::endl;
 #endif
-        std::cout << " ├L2 Distance Limits:  ";
+                std::cout << " ├Reach Limits:        ";
 #if CONFIG_HEURISTIC_CACHE_DIST_LIMITATIONS
-        std::cout << " ├Reach Limits:        ";
-        std::cout << "ENABLED" << std::endl;
+                std::cout << "ENABLED" << std::endl;
 #else
-        std::cout << "DISABLED" << std::endl;
+                std::cout << "DISABLED" << std::endl;
 #endif
-        std::cout << " └Help Limits:         ";
+                std::cout << " └Help Limits:         ";
 #if CONFIG_HEURISTIC_CACHE_HELP_LIMITATIONS
-        std::cout << "ENABLED" << std::endl;
+                std::cout << "ENABLED" << std::endl;
 #else
-        std::cout << "DISABLED" << std::endl;
+                std::cout << "DISABLED" << std::endl;
 #endif
+            }
+        } else {
+            std::cout << "BDBFS" << std::endl;
+        }
         std::cout << std::endl;
 
         // Pathfinding
@@ -129,7 +138,11 @@ extern "C" {
         try {
             std::cout << "Beginning search..." << std::endl;
             const auto timeBegin = std::chrono::high_resolution_clock::now();
-            path = ConfigurationSpace::AStar(&start, &end, "MRSH-1");
+            if (settings["search"] == "A*") {
+                path = ConfigurationSpace::AStar(&start, &end, settings["heuristic"]);
+            } else {
+                path = ConfigurationSpace::BiDirectionalBFS(&bidirectionalStart, &bidirectionalEnd);
+            }
             const auto timeEnd = std::chrono::high_resolution_clock::now();
             const auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(timeEnd - timeBegin);
             std::cout << "Search completed in " << duration.count() << " ms." << std::endl;
@@ -141,8 +154,8 @@ extern "C" {
         std::ostringstream scen;
         Scenario::ScenInfo scenInfo;
         scenInfo.exportFile = "None";
-        scenInfo.scenName = "WebPathfinder-Out";
-        scenInfo.scenDesc = "Output produced by a valid Pathfinder run.";
+        scenInfo.scenName = settings["name"];
+        scenInfo.scenDesc = settings["description"];
 
         Scenario::ExportToScen(path, scenInfo, scen);
         std::cout << "Results exported." << std::endl << "Cleaning Modules..." << std::endl;

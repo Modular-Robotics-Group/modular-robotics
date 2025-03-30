@@ -1,0 +1,69 @@
+{
+  "moves": [
+    {
+      "name": "Straight Slide",
+      "order": 3,
+      "def": [
+        [
+          "xx",
+          "?!",
+          "##"
+        ],
+        [
+          "xx",
+          "xx",
+          "  "
+        ]
+      ],
+      "permGen": true,
+      "animSeq": [
+        ["slide", [1, 0, 0]]
+      ]
+    },
+    {
+      "name": "Corner Slide",
+      "order": 3,
+      "def": [
+        [
+          "xxx",
+          "?xx",
+          "#!x"
+        ],
+        [
+          "xxx",
+          "xxx",
+          " xx"
+        ]
+      ],
+      "permGen": true,
+      "animSeq": [
+        ["x-slide", [1, 1, 0]]
+      ]
+    },
+    {
+      "name": "Corner Slide2",
+      "order": 3,
+      "def": [
+        [
+          " xx",
+          " xx",
+          " xx"
+        ],
+        [
+          "xxx",
+          "?xx",
+          "#!x"
+        ],
+        [
+          "xxx",
+          "xxx",
+          " # "
+        ]
+      ],
+      "permGen": true,
+      "animSeq": [
+        ["x-slide", [1, 1, 0]]
+      ]
+    }
+  ]
+}

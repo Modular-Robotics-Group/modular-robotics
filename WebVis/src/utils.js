@@ -67,6 +67,13 @@ export let pathfinderData = {
     config_i: '{"exists": false}',
     config_f: '{"exists": false}',
     scen_out: 'INVALID SCENE',
+    settings: {
+        name: "WebPathfinder-Out",
+        description: "Output produced by a valid Pathfinder run.",
+        search: "A*",
+        heuristic: "MRSH-1",
+        movePaths: [ "Moves/PivotCube" ]
+    },
     is_running: false
 };
 
