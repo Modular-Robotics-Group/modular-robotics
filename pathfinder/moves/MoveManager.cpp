@@ -771,6 +771,7 @@ void MoveManager::RegisterSingleMove(MoveBase *move) {
 void MoveManager::RegisterAllMoves(const std::string& movePath) {
     nlohmann::json moveJson;
     for (const auto& moveFile : std::filesystem::recursive_directory_iterator(movePath)) {
+        if (!moveFile.is_regular_file()) continue;
         std::ifstream(moveFile.path()) >> moveJson;
         for (const auto& moveDef : moveJson["moves"]) {
             if (moveDef["order"] == 2) {
