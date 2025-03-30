@@ -37,19 +37,33 @@ void LatticeSetup::SetupFromJson(std::istream& is) {
     }
     std::cout << "Done." << std::endl << "\tConfiguring Adjacency Checks...   ";
     if (adjCheckOverride == NONE) {
-        if (j.contains("adjacencyOffsets")) {
-            std::vector<std::valarray<int>> offsets;
-            for (const auto& offset_in : j["adjacencyOffsets"]) {
-                std::valarray<int> offset(0, Lattice::Order());
-                for (int i = 0; i < Lattice::Order() && i < offset_in.size(); i++) {
-                    offset[i] = offset_in[i];
-                }
-                offsets.push_back(offset);
+        if (j.contains("adjacencyMode")) {
+            if (j["adjacencyMode"] == "Cube Face") {
+                // Adjacency when two modules have a common face
+                Lattice::SetAdjIndicesFromOffsets(LatticeUtils::cubeAdjOffsets);
+            } else if (j["adjacencyMode"] == "Cube Edge") {
+                // Adjacency when two modules have a common edge
+                Lattice::SetAdjIndicesFromOffsets(LatticeUtils::rhomDodAdjOffsets);
+            } else {
+                std::cerr << "Read invalid adjacency check option: " << j["adjacencyMode"] <<
+                        R"(, valid options are "Cube Face" or "Cube Edge".)" << std::endl;
             }
-            Lattice::SetAdjIndicesFromOffsets(offsets);
-        } else {
-            // Cube adjacency as fallback, might be worth looking into some way to auto-choose between cube and rd
-            Lattice::SetAdjIndicesFromOffsets(LatticeUtils::cubeAdjOffsets);
+        }
+        if (Lattice::adjIndices.empty()) {
+            if (j.contains("adjacencyOffsets")) {
+                std::vector<std::valarray<int>> offsets;
+                for (const auto& offset_in : j["adjacencyOffsets"]) {
+                    std::valarray<int> offset(0, Lattice::Order());
+                    for (int i = 0; i < Lattice::Order() && i < offset_in.size(); i++) {
+                        offset[i] = offset_in[i];
+                    }
+                    offsets.push_back(offset);
+                }
+                Lattice::SetAdjIndicesFromOffsets(offsets);
+            } else {
+                // Cube adjacency as fallback, might be worth looking into some way to auto-choose between cube and rd
+                Lattice::SetAdjIndicesFromOffsets(LatticeUtils::cubeAdjOffsets);
+            }
         }
     } else if (adjCheckOverride == CUBE) {
         Lattice::SetAdjIndicesFromOffsets(LatticeUtils::cubeAdjOffsets);
