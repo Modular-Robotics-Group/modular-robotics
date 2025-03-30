@@ -210,7 +210,7 @@ std::vector<const Configuration*> ConfigurationSpace::BFS(Configuration* start, 
 #endif
         q.pop();
         if (current->GetHash() == final->GetHash()) {
-#if CONFIG_VERBOSE > CS_LOG_FINAL_DEPTH
+#if CONFIG_VERBOSE >= CS_LOG_FINAL_DEPTH
 #if CONFIG_OUTPUT_JSON
             SearchAnalysis::PauseClock();
 #endif
@@ -333,7 +333,7 @@ std::vector<const Configuration*> ConfigurationSpace::BiDirectionalBFS(BDConfigu
         q.pop();
         if ((current->GetOrigin() == START && current->GetHash() == final->GetHash()) ||
             (current->GetOrigin() == END && current->GetHash() == start->GetHash())) {
-#if CONFIG_VERBOSE > CS_LOG_FINAL_DEPTH
+#if CONFIG_VERBOSE >= CS_LOG_FINAL_DEPTH
 #if CONFIG_OUTPUT_JSON
             SearchAnalysis::PauseClock();
 #endif
@@ -388,7 +388,7 @@ std::vector<const Configuration*> ConfigurationSpace::BiDirectionalBFS(BDConfigu
                         depthFromFinal++;
                     }
                 }
-#if CONFIG_VERBOSE > CS_LOG_FINAL_DEPTH
+#if CONFIG_VERBOSE >= CS_LOG_FINAL_DEPTH
 #if CONFIG_OUTPUT_JSON
                 SearchAnalysis::PauseClock();
 #endif
@@ -731,7 +731,7 @@ std::vector<const Configuration*> ConfigurationSpace::AStar(Configuration* start
 #endif
         pq.pop();
         if (current->GetHash() == final->GetHash()) {
-#if CONFIG_VERBOSE > CS_LOG_FINAL_DEPTH
+#if CONFIG_VERBOSE >= CS_LOG_FINAL_DEPTH
 #if CONFIG_OUTPUT_JSON
             SearchAnalysis::PauseClock();
 #endif
@@ -935,7 +935,7 @@ std::vector<const Configuration*> ConfigurationSpace::BDAStar(BDConfiguration* s
         pq.pop();
         if ((current->GetOrigin() == START && current->GetHash() == final->GetHash()) ||
             (current->GetOrigin() == END && current->GetHash() == start->GetHash())) {
-#if CONFIG_VERBOSE > CS_LOG_FINAL_DEPTH
+#if CONFIG_VERBOSE >= CS_LOG_FINAL_DEPTH
 #if CONFIG_OUTPUT_JSON
             SearchAnalysis::PauseClock();
 #endif
@@ -1006,7 +1006,7 @@ std::vector<const Configuration*> ConfigurationSpace::BDAStar(BDConfiguration* s
                         depthFromFinal++;
                     }
                 }
-#if CONFIG_VERBOSE > CS_LOG_FINAL_DEPTH
+#if CONFIG_VERBOSE >= CS_LOG_FINAL_DEPTH
 #if CONFIG_OUTPUT_JSON
                 SearchAnalysis::PauseClock();
 #endif
