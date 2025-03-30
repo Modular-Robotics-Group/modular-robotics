@@ -214,7 +214,7 @@ std::vector<const Configuration*> ConfigurationSpace::BFS(Configuration* start, 
 #if CONFIG_OUTPUT_JSON
             SearchAnalysis::PauseClock();
 #endif
-            std::cout << "BFS Final Depth: " << q.front()->depth << std::endl
+            std::cout << "BFS Final Depth: " << depth << std::endl
             << "Duplicate states Avoided: " << dupesAvoided << std::endl
             << "States Discovered: " << visited.size() << std::endl
             << "States Processed: " << statesProcessed << std::endl
