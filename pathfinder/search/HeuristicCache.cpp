@@ -258,6 +258,7 @@ MoveOffsetHeuristicCache::MoveOffsetHeuristicCache(const std::set<ModuleData>& d
             coordQueue.pop();
         }
     }
+    std::cout << "Acquired Help Values." << std::endl;
 #endif
     // Populate weight tensor
     for (const auto& desiredModuleData : desiredState) {
@@ -271,7 +272,7 @@ MoveOffsetHeuristicCache::MoveOffsetHeuristicCache(const std::set<ModuleData>& d
             const auto depth = coordQueue.front().depth;
             if (const auto weight = weightCache[coords]; depth < weight) {
                 weightCache[coords] = depth;
-            } else if (depth > weight) {
+            } else {
                 coordQueue.pop();
                 continue;
             }
@@ -421,7 +422,7 @@ MoveOffsetPropertyHeuristicCache::MoveOffsetPropertyHeuristicCache(const std::se
             const auto depth = coordQueue.front().depth;
             if (const auto weight = weightCache[coordProps]; depth < weight) {
                 weightCache[coordProps] = depth;
-            } else if (depth > weight) {
+            } else {
                 coordQueue.pop();
                 continue;
             }
