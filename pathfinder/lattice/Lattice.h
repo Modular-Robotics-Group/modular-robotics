@@ -62,8 +62,6 @@ private:
     static void ClearAdjacencies(int moduleId);
 
 public:
-    // State tensor
-    static CoordTensor<bool> stateTensor;
     // Module tensor
     static CoordTensor<int> coordTensor;
     // Boundary Offset

@@ -40,7 +40,6 @@ int Lattice::moduleCount = 0;
 bool Lattice::ignoreProperties = false;
 std::valarray<int> Lattice::boundaryOffset;
 std::vector<Module*> Lattice::movableModules;
-CoordTensor<bool> Lattice::stateTensor(1, 1, false);
 CoordTensor<int> Lattice::coordTensor(1, 1, -1);
 
 void Lattice::ClearAdjacencies(const int moduleId) {
