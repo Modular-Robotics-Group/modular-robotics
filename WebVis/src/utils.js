@@ -4,6 +4,7 @@ import { gModulePositions } from "./main.js";
 export let moduleBrush = {
     // Module Properties
     color: { r:1.0, g:1.0, b:1.0 },
+    type: 0,
     static: false,
     // Configuration Slice Properties
     zSlice: 0,

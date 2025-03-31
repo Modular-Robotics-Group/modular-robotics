@@ -240,6 +240,12 @@ document.addEventListener("DOMContentLoaded", async function () {
             updateVisibleModules(moduleBrush.zSlice);
         }
     });
+    gModuleBrushGui.add(moduleBrush, 'type',
+        {
+            "Cube": ModuleType.CUBE,
+            "Rhombic Dodecahedron": ModuleType.RHOMBIC_DODECAHEDRON,
+            "Catom": ModuleType.CATOM
+        }).name("Module Type");
     gLayerGui.add(window, '_autoCenterConfig').name("Auto-Center Configuration")
     gLayerGui.add(window, '_clearConfig').name("Clear Configuration")
     // Pathfinder and debug Controls
@@ -493,7 +499,7 @@ function toggleModuleAtPosition(x, y, z) {
             moduleBrush.color.b
         );
 
-        const module = new ModuleClass(ModuleType.CUBE, VisConfigData.nextModID, pos, color.getHex(), MODULE_SETTINGS.SCALE);
+        const module = new ModuleClass(moduleBrush.type, VisConfigData.nextModID, pos, color.getHex(), MODULE_SETTINGS.SCALE);
 
         if (moduleBrush.static) {
             module.markStatic();
