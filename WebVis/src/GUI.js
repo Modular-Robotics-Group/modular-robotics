@@ -189,6 +189,7 @@ function _generateExampleLoader(name) {
 // TODO: I'm not sure this is the right place to put this functionality, feel free
 // to move it somewhere else if you can find a spot that makes more sense.
 const pathfinder = Module.cwrap("pathfinder", "string", ["string", "string", "string"]);
+const config2Scen = Module.cwrap("config2Scen", "string", ["string", "string"]);
 let pathfinder_controller, heuristic_setter;
 
 window._pathfinderRun = async function() {
@@ -292,6 +293,22 @@ document.addEventListener("DOMContentLoaded", async function () {
             }
         }
     }, 'saveFinal').name("Save Final Config");
+
+    gPathfinderGui.add({
+        loadInitial: function() {
+            let scen = config2Scen(pathfinderData.config_i, JSON.stringify(pathfinderData.settings));
+            new Scenario(scen);
+            console.log("Initial configuration loaded");
+        }
+    }, 'loadInitial').name("Load Initial Config");
+
+    gPathfinderGui.add({
+        loadFinal: function() {
+            let scen = config2Scen(pathfinderData.config_f, JSON.stringify(pathfinderData.settings));
+            new Scenario(scen);
+            console.log("Final configuration loaded");
+        }
+    }, 'loadFinal').name("Load Final Config");
     
     gPathfinderGui.add({ 
         downloadInitial: function() {

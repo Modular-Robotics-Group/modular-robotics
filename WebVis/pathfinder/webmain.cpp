@@ -27,6 +27,40 @@ const char* EMPTY_SCEN =
 std::string scen_str;
 
 extern "C" {
+    const char* config2Scen(char* config, char* config_settings) {
+        // Technically, this function does much more work than it needs to; However, there isn't much need to add new
+        // functionality for this specific feature when the naive approach using existing functionality works just as
+        // well.
+        std::string config_str = config;
+        std::stringstream config_stream(config_str);
+        nlohmann::json settings;
+        std::stringstream(config_settings) >> settings;
+
+        // Dynamically Link Properties
+        std::cout << "Linking Properties..." << std::endl;
+        ModuleProperties::LinkProperties();
+        std::cout << "Properties successfully linked: " << ModuleProperties::PropertyCount() << std::endl;
+
+        // Set up Lattice
+        std::cout << "Initializing Lattice..." << std::endl;
+        LatticeSetup::SetupFromJson(config_stream);
+        std::cout << "Lattice initialized." << std::endl;
+
+        // Get Configuration and create "path" with no moves
+        Configuration start(Lattice::GetModuleInfo());
+        std::vector<const Configuration*> path = { &start };
+
+        // Send path to scen exporter
+        std::ostringstream scen;
+        Scenario::ScenInfo scenInfo;
+        scenInfo.exportFile = "None";
+        scenInfo.scenName = settings["name"];
+        scenInfo.scenDesc = settings["description"];
+        Scenario::ExportToScen(path, scenInfo, scen);
+        scen_str = scen.str();
+        return scen_str.c_str();
+    }
+
     const char* pathfinder(char* config_initial, char* config_final, char* config_settings) {
         std::string config_i = config_initial;
         std::string config_f = config_final;
