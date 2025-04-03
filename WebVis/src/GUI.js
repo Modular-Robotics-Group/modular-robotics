@@ -240,8 +240,7 @@ document.addEventListener("DOMContentLoaded", async function () {
             updateVisibleModules(moduleBrush.zSlice);
         }
     });
-    gModuleBrushGui.add(moduleBrush, 'type',
-        {
+    gModuleBrushGui.add(moduleBrush, 'type', {
             "Cube": ModuleType.CUBE,
             "Rhombic Dodecahedron": ModuleType.RHOMBIC_DODECAHEDRON,
             "Catom": ModuleType.CATOM
@@ -252,6 +251,13 @@ document.addEventListener("DOMContentLoaded", async function () {
     pathfinder_controller = gPathfinderGui.add(window, '_pathfinderRun').name("Run Pathfinder").disable();
     gPathfinderGui.add(pathfinderData.settings, 'name').name("Name");
     gPathfinderGui.add(pathfinderData.settings, 'description').name("Description");
+    gPathfinderGui.add(pathfinderData.settings, 'movePaths', {
+        "Pivoting Cube": [ "Moves/PivotCube" ],
+        "Sliding Cube": [ "Moves/SlideCube" ],
+        "NASA Cube": [ "Moves/SlideNASA" ],
+        "Rhombic Dodecahedron": [ "Moves/RhombicDodecahedron" ],
+        "Catom": [ "Moves/Catom" ]
+    }).name("Move Set");
     heuristic_setter = gPathfinderGui.add(pathfinderData.settings, 'heuristic',
         ['MRSH-1', 'Symmetric Difference', 'Manhattan Distance', 'Chebyshev Distance']).name("Heuristic");
     gPathfinderGui.add(pathfinderData.settings, 'search', ['A*', 'BDBFS']).name("Search Type").onChange((value) => {
