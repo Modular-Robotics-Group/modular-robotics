@@ -159,6 +159,7 @@ export function createPathfinderConfiguration(name = "Default Configuration", de
         description: description,
         order: maxZ === minZ ? 2 : 3, // 2D if flat across Z-plane, 3D otherwise
         axisSize: axisSize,
+        adjacencyMode: moduleBrush.type === ModuleType.CUBE ? "Cube Face" : "Cube Edge",
         tensorPadding: 5,
         modules: modules,
         boundaries: [] // Could be populated with actual boundaries if available
