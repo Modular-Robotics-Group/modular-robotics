@@ -11,11 +11,14 @@ namespace Scenario {
         std::string exportFile;
         std::string scenName;
         std::string scenDesc;
+        std::string scenType;
     };
 
     std::string TryGetScenName(const std::string& initialFile);
 
     std::string TryGetScenDesc(const std::string& initialFile);
+
+    std::string TryGetScenType(const std::string& initialFile);
 
     void ExportToScenFile(const std::vector<const Configuration*>& path, const ScenInfo& scenInfo);
 

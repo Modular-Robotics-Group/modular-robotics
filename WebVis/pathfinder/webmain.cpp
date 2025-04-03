@@ -33,8 +33,8 @@ extern "C" {
         // well.
         std::string config_str = config;
         std::stringstream config_stream(config_str);
-        nlohmann::json settings;
-        std::stringstream(config_settings) >> settings;
+        nlohmann::json config_json;
+        config_stream >> config_json;
 
         // Dynamically Link Properties
         std::cout << "Linking Properties..." << std::endl;
@@ -54,23 +54,23 @@ extern "C" {
         std::ostringstream scen;
         Scenario::ScenInfo scenInfo;
         scenInfo.exportFile = "None";
-        scenInfo.scenName = settings["name"];
-        scenInfo.scenDesc = settings["description"];
+        scenInfo.scenName = config_json.contains("name") ? config_json["name"] : "scen_out";
+        scenInfo.scenDesc = config_json.contains("description") ? config_json["description"] : "config2Scen output";
+        scenInfo.scenType = config_json.contains("moduleType") ? config_json["moduleType"] : "CUBE";
         Scenario::ExportToScen(path, scenInfo, scen);
         scen_str = scen.str();
         return scen_str.c_str();
     }
 
-    const char* pathfinder(char* config_initial, char* config_final, char* config_settings) {
+    const char* pathfinder(char* config_initial, char* config_final, char* settings) {
         std::string config_i = config_initial;
         std::string config_f = config_final;
         std::stringstream config_i_stream(config_i);
         std::stringstream config_f_stream(config_f);
-        nlohmann::json settings;
-
-        std::stringstream(config_settings) >> settings;
-
-        std::cout << "Settings:" << settings << std::endl;
+        nlohmann::json config_initial_json;
+        std::stringstream(config_i) >> config_initial_json;
+        nlohmann::json settings_json;
+        std::stringstream(settings) >> settings_json;
 
         // Exit if final or initial state is missing
         if (config_i.empty()) {
@@ -97,7 +97,7 @@ extern "C" {
         std::cout << "Initializing Move Manager..." << std::endl;
         MoveManager::InitMoveManager(Lattice::Order(), Lattice::AxisSize());
         std::cout << "Move Manager initialized." << std::endl << "Loading Moves..." << std::endl;
-        for (const auto& path : settings["movePaths"]) {
+        for (const auto& path : settings_json["movePaths"]) {
             MoveManager::RegisterAllMoves(path);
         }
         std::cout << "Moves loaded." << std::endl;
@@ -134,11 +134,11 @@ extern "C" {
         std::cout << "DISABLED" << std::endl;
 #endif
         std::cout << "Search Method:         ";
-        if (settings["search"] == "A*") {
+        if (settings_json["search"] == "A*") {
             std::cout << "A*" << std::endl;
             std::cout << "└Heuristic:            ";
-            std::cout << settings["heuristic"] << std::endl;
-            if (settings["heuristic"] == "MRSH-1") {
+            std::cout << settings_json["heuristic"] << std::endl;
+            if (settings_json["heuristic"] == "MRSH-1") {
                 std::cout << " ├Unreachable Cache:   ";
 #if CONFIG_HEURISTIC_CACHE_OPTIMIZATION
                 std::cout << "ENABLED" << std::endl;
@@ -172,8 +172,8 @@ extern "C" {
         try {
             std::cout << "Beginning search..." << std::endl;
             const auto timeBegin = std::chrono::high_resolution_clock::now();
-            if (settings["search"] == "A*") {
-                path = ConfigurationSpace::AStar(&start, &end, settings["heuristic"]);
+            if (settings_json["search"] == "A*") {
+                path = ConfigurationSpace::AStar(&start, &end, settings_json["heuristic"]);
             } else {
                 path = ConfigurationSpace::BiDirectionalBFS(&bidirectionalStart, &bidirectionalEnd);
             }
@@ -188,8 +188,9 @@ extern "C" {
         std::ostringstream scen;
         Scenario::ScenInfo scenInfo;
         scenInfo.exportFile = "None";
-        scenInfo.scenName = settings["name"];
-        scenInfo.scenDesc = settings["description"];
+        scenInfo.scenName = config_initial_json.contains("name") ? config_initial_json["name"] : "scen_out";
+        scenInfo.scenDesc = config_initial_json.contains("description") ? config_initial_json["description"] : "config2Scen output";
+        scenInfo.scenType = config_initial_json.contains("moduleType") ? config_initial_json["moduleType"] : "CUBE";
 
         Scenario::ExportToScen(path, scenInfo, scen);
         std::cout << "Results exported." << std::endl << "Cleaning Modules..." << std::endl;
