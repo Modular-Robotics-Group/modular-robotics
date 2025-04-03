@@ -110,7 +110,7 @@ export const CameraType = Object.freeze({
 });
 
 // Function to create Pathfinder compatible configuration
-export function createPathfinderConfiguration(name = "Default Configuration", description = "Created with MRWT") {
+export function createPathfinderConfiguration() {
     // Get all modules from the global module positions map
     const modules = [];
     const positions = [];
@@ -155,8 +155,13 @@ export function createPathfinderConfiguration(name = "Default Configuration", de
     // Create configuration object
     const config = {
         exists: true,
-        name: name,
-        description: description,
+        name: pathfinderData.settings.name,
+        description: pathfinderData.settings.description,
+        moduleType: moduleBrush.type === ModuleType.CUBE
+            ? "CUBE"
+            : moduleBrush.type === ModuleType.RHOMBIC_DODECAHEDRON
+                ? "RHOMBIC DODECAHEDRON"
+                : "CATOM",
         order: maxZ === minZ ? 2 : 3, // 2D if flat across Z-plane, 3D otherwise
         axisSize: axisSize,
         adjacencyMode: moduleBrush.type === ModuleType.CUBE ? "Cube Face" : "Cube Edge",
@@ -189,11 +194,8 @@ export function parseRgbString(rgbString) {
 }
 
 // Function to save current configuration as initial or final
-export function saveConfiguration(isInitial = true, name = "", description = "") {
-    const config = createPathfinderConfiguration(
-        name || (isInitial ? "Initial Configuration" : "Final Configuration"),
-        description || (isInitial ? "Starting state" : "Target state")
-    );
+export function saveConfiguration(isInitial = true) {
+    const config = createPathfinderConfiguration();
     
     const configJSON = JSON.stringify(config);
     
@@ -209,7 +211,9 @@ export function saveConfiguration(isInitial = true, name = "", description = "")
 // Function to download configuration as JSON file
 export function downloadConfiguration(isInitial = true) {
     const configJSON = isInitial ? pathfinderData.config_i : pathfinderData.config_f;
-    const configName = isInitial ? "initial_config.json" : "final_config.json";
+    const configName = isInitial
+        ? pathfinderData.settings.name + "_initial.json"
+        : pathfinderData.settings.name + "_final.json";
     
     // Create blob and download link
     const blob = new Blob([configJSON], { type: "application/json" });
