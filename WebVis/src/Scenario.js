@@ -95,6 +95,7 @@ export class Scenario {
                     let vg = visgroups[lineVals[1]];
                     let pos = new THREE.Vector3(lineVals[2], lineVals[3], lineVals[4]);
                     new Module(scenarioModuleType, moduleId, pos, vg.color, vg.scale);
+                    gModules[moduleId].markStatic(); // Initially set all modules static
 
                     if (!minCoords) {
                         minCoords = new THREE.Vector3(lineVals[2], lineVals[3], lineVals[4]);
@@ -108,6 +109,7 @@ export class Scenario {
                 }
                 default: { // Move definitions
                     let moverId = lineVals[0];
+                    gModules[moverId].unMarkStatic(); // Set non-static if module moves
                     let anchorDirCode = lineVals[1];
                     let deltaPos = new THREE.Vector3(lineVals[2], lineVals[3], lineVals[4]);
                     // TODO if we add more move types, this needs to be changed

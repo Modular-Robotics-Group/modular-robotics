@@ -97,6 +97,11 @@ export class Module {
         this.mesh.material.uniforms.border_extra = { value: 0.375 };
     }
 
+    unMarkStatic() {
+        this.isStatic = false;
+        this.mesh.material.uniforms.border_extra = { value: 0.0 };
+    }
+
     destroy() {
         delete gModules[this.id];
         gModulePositions.delete(JSON.stringify({x: Math.round(this.pos.x), y: Math.round(this.pos.y), z: Math.round(this.pos.z)}));
