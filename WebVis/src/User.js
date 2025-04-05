@@ -52,6 +52,7 @@ export class User {
     }
 
     toggleCameraStyle() {
+        if (window._isPainterModeActive) return;
         let newCameraStyle;
         switch(this.cameraStyle) {
             case CameraType.PERSPECTIVE: newCameraStyle = CameraType.ORTHOGRAPHIC; break;

@@ -105,6 +105,8 @@ window._toggleMRWTMode = function() {
     gLayerGui.show(gLayerGui._hidden);
     
     if (window._isPainterModeActive) {
+        // Hide perspective controller and swap to ortho view
+        style_controller.hide();
         gwUser.cameraStyle = CameraType.ORTHOGRAPHIC;
         gwUser.resetCamera();
         // Update module visibility based on current z-slice
@@ -113,6 +115,7 @@ window._toggleMRWTMode = function() {
         // Configure controls for painter mode (panning only)
         setCameraControls(CAMERA_MODES.PAINTER);
     } else {
+        style_controller.show();
         // Show all modules when exiting painter mode
         showAllModules();
 
@@ -205,6 +208,7 @@ window._pathfinderRun = async function() {
 /* ****************************** */
 // GUI elements for general settings
 export const gGraphicsGui = new GUI( { title: "Graphics", width: 160, container: document.getElementById("controlBar") } ).close();
+let style_controller;
 
 // GUI elements for Visualizer Mode
 export const gAnimGui = new GUI( { title: "Animation", container: document.getElementById("controlBar") } );
@@ -227,7 +231,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     // Visualizer Controls
     gAnimGui.add(new GuiGlobalsHelper('gwAnimSpeed', 1.0, SliderType.QUADRATIC), 'value', 0.0, 5.0, 0.1).name("Anim Speed");
     gAnimGui.add(new GuiGlobalsHelper('gwAutoAnimate', false), 'value').name("Auto Animate");
-    gGraphicsGui.add(window.gwUser, 'toggleCameraStyle').name("Toggle Camera Style");
+    style_controller = gGraphicsGui.add(window.gwUser, 'toggleCameraStyle').name("Toggle Camera Style");
     gGraphicsGui.add(window, '_toggleBackgroundColor').name("Toggle Background Color");
     gGraphicsGui.add(window, '_toggleFullbright').name("Toggle Fullbright");
     gAnimGui.add(window, '_requestForwardAnim').name("Step Forward");
