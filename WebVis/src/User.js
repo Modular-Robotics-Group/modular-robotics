@@ -134,11 +134,13 @@ function selectModule(viewportX, viewportY) {
 }
 
 window._requestForwardAnim = function () {
+    if (window._isPainterModeActive) return;
     window.gwNextAnimationRequested = true; 
     window.gwForward = true;
 }
 window._requestBackwardAnim = function () {
-    window.gwNextAnimationRequested = true; 
+    if (window._isPainterModeActive) return;
+    window.gwNextAnimationRequested = true;
     window.gwForward = false;
 }
 

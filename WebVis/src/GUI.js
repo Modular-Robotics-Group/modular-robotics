@@ -111,6 +111,8 @@ window._toggleMRWTMode = function() {
         gwUser.resetCamera();
         // Update module visibility based on current z-slice
         updateVisibleModules(moduleBrush.zSlice);
+        // Reset move sequence to initial state
+        window.gwMoveSetSequence.reset();
         
         // Configure controls for painter mode (panning only)
         setCameraControls(CAMERA_MODES.PAINTER);
@@ -497,6 +499,9 @@ function handleModulePlacement(event) {
  */
 function toggleModuleAtPosition(x, y, z) {
     const existingModule = getModuleAtPosition(x, y, z);
+
+    // Invalidate move sequence
+    window.gwMoveSetSequence.invalidate();
 
     if (!existingModule && window._drawMode === DRAW_MODES.PLACE) {
         // Create a new module at the position
