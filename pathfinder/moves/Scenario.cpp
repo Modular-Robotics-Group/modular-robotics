@@ -67,13 +67,13 @@ void Scenario::ExportToScen(const std::vector<const Configuration*>& path, const
     os << scenInfo.scenType << std::endl << std::endl;
 #endif
     if (Lattice::ignoreProperties) {
-        os << "0, 244, 244, 0, 95\n";
-        os << "1, 255, 255, 255, 85\n\n";
+        os << "0, 255, 255, 255, 90\n";
+        os << "1, 255, 255, 255, 90\n\n";
     } else {
         std::cout << "\tBuilding color palette...   ";
         for (auto color: ModuleProperties::CallFunction<const std::unordered_set<int>&>("Palette")) {
             Colors::ColorsRGB rgb(color);
-            os << color << ", " << rgb.red << ", " << rgb.green << ", " << rgb.blue << ", 85\n";
+            os << color << ", " << rgb.red << ", " << rgb.green << ", " << rgb.blue << ", 90\n";
         }
         os << "\n";
         std::cout << "Done." << std::endl;
