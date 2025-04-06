@@ -165,6 +165,9 @@ window._clearConfig = function() {
     // Reset Data
     VisConfigData.nextModID = 0;
     VisConfigData.clearBounds();
+
+    // Invalidate move sequence
+    window.gwMoveSetSequence.invalidate();
 }
 
 /**
