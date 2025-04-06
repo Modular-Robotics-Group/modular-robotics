@@ -217,6 +217,7 @@ window._pathfinderRun = function() {
                 case MessageType.ERROR:
                     pathfinderData.is_running = false;
                     pathfinder_controller.enable();
+                    pathfinderProgressBar.style.width = "0%";
                     console.log("pathfinder task encountered an error.");
                     break;
                 case MessageType.RESULT:
