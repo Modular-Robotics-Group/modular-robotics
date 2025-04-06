@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
 import { Scenario } from './Scenario.js';
 import { gScene, gLights, gRenderer, gModules, gModulePositions } from './main.js';
-import { moduleBrush, pathfinderData, VisConfigData, ModuleType, getModuleAtPosition } from './utils.js';
+import { moduleBrush, pathfinderData, WorkerType, VisConfigData, ModuleType, getModuleAtPosition } from './utils.js';
 import { CameraType } from "./utils.js";
 import { saveConfiguration, downloadConfiguration } from './utils.js';
 import { Module as ModuleClass } from './Module.js';
@@ -193,16 +193,33 @@ function _generateExampleLoader(name) {
 /* ****************************** */
 // TODO: I'm not sure this is the right place to put this functionality, feel free
 // to move it somewhere else if you can find a spot that makes more sense.
-const pathfinder = Module.cwrap("pathfinder", "string", ["string", "string", "string"]);
-const config2Scen = Module.cwrap("config2Scen", "string", ["string", "string"]);
+let pathfinderWorker;
+let config2ScenWorker;
 let pathfinder_controller, heuristic_setter;
 
-window._pathfinderRun = async function() {
-    pathfinderData.is_running = true;
-    pathfinder_controller.disable();
-    pathfinderData.scen_out = pathfinder(pathfinderData.config_i, pathfinderData.config_f, JSON.stringify(pathfinderData.settings));
-    pathfinder_controller.enable();
-    new Scenario(pathfinderData.scen_out);
+window._pathfinderRun = function() {
+    if (window.Worker) {
+        pathfinderData.is_running = true;
+        pathfinder_controller.disable();
+        if (pathfinderWorker != null) {
+            pathfinderWorker.terminate();
+        }
+        pathfinderWorker = new Worker("src/PathfinderWorker.js");
+        pathfinderWorker.onmessage = (msg) => {
+            pathfinderData.scen_out = msg.data[1];
+            // TODO: provide option to delay loading found path instead of always instantly loading
+            new Scenario(pathfinderData.scen_out);
+            pathfinderData.is_running = false;
+            pathfinder_controller.enable();
+        }
+        pathfinderWorker.postMessage([
+            WorkerType.PATHFINDER, pathfinderData.config_i,
+            pathfinderData.config_f, JSON.stringify(pathfinderData.settings)
+        ]);
+        console.log("Started pathfinder task");
+    } else {
+        console.log("Browser does not support web workers.");
+    }
 }
 
 /* ****************************** */
@@ -314,17 +331,37 @@ document.addEventListener("DOMContentLoaded", async function () {
 
     gPathfinderGui.add({
         loadInitial: function() {
-            let scen = config2Scen(pathfinderData.config_i, JSON.stringify(pathfinderData.settings));
-            new Scenario(scen);
-            console.log("Initial configuration loaded");
+            if (window.Worker) {
+                if (config2ScenWorker != null) {
+                    config2ScenWorker.terminate();
+                }
+                config2ScenWorker = new Worker("src/PathfinderWorker.js");
+                config2ScenWorker.postMessage([WorkerType.CONFIG2SCEN, pathfinderData.config_i]);
+                config2ScenWorker.onmessage = (msg) => {
+                    new Scenario(msg.data[1]);
+                }
+                console.log("Started config2Scen task");
+            } else {
+                console.log("Browser does not support web workers.");
+            }
         }
     }, 'loadInitial').name("Load Initial Config");
 
     gPathfinderGui.add({
         loadFinal: function() {
-            let scen = config2Scen(pathfinderData.config_f, JSON.stringify(pathfinderData.settings));
-            new Scenario(scen);
-            console.log("Final configuration loaded");
+            if (window.Worker) {
+                if (config2ScenWorker != null) {
+                    config2ScenWorker.terminate();
+                }
+                config2ScenWorker = new Worker("src/PathfinderWorker.js");
+                config2ScenWorker.postMessage([WorkerType.CONFIG2SCEN, pathfinderData.config_f]);
+                config2ScenWorker.onmessage = (msg) => {
+                    new Scenario(msg.data[1]);
+                }
+                console.log("Started config2Scen task");
+            } else {
+                console.log("Browser does not support web workers.");
+            }
         }
     }, 'loadFinal').name("Load Final Config");
     

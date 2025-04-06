@@ -78,6 +78,11 @@ export let pathfinderData = {
     is_running: false
 };
 
+export const WorkerType = Object.freeze({
+    PATHFINDER: 0,
+    CONFIG2SCEN: 1
+});
+
 export function getModuleAtPosition(x, y, z) {
     return gModulePositions.get(JSON.stringify({x: Math.round(x), y: Math.round(y), z: Math.round(z)}));
 }
