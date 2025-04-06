@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import {ModuleType, MoveType, VisConfigData} from "./utils.js";
+import {CameraType, ModuleType, MoveType, VisConfigData} from "./utils.js";
 import { Module } from "./Module.js";
 import { Move } from "./Move.js";
 import { MoveSet } from "./MoveSet.js";
@@ -126,8 +126,15 @@ export class Scenario {
         let radius = Math.max(...maxCoords.sub(minCoords).toArray());
         gUser.camera.position.x = centroid.x;
         gUser.camera.position.y = centroid.y;
-        gUser.camera.position.z = centroid.z + radius + 3.0;
+        gUser.camera.position.z = gUser.cameraStyle === CameraType.PERSPECTIVE
+            ? centroid.z + radius + 3.0
+            // Numbers selected through trial and error, but it seems to work
+            : 5.0 + Math.max(VisConfigData.bounds.z.max, VisConfigData.bounds.x.max);
         gUser.controls.target.set(...centroid);
+        gUser.miniCamera.position.x = centroid.x;
+        gUser.miniCamera.position.y = centroid.y;
+        gUser.miniCamera.position.z = centroid.z + radius + 3.0;
+        gUser.miniControls.target.set(...centroid);
 
         window.gwMoveSetSequence = new MoveSetSequence(moveSets);
         window.gwScenarioCentroid = centroid;

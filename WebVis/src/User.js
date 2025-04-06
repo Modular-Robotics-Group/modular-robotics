@@ -9,7 +9,7 @@
 
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { gScene, gCanvas, gUser, gRenderer, gMiniRenderer, gLights, toggleRenderMode } from "./main.js";
+import { gScene, gCanvas, gMiniCanvas, gUser, gRenderer, gMiniRenderer, gLights, toggleRenderMode } from "./main.js";
 import { CameraType, VisConfigData } from "./utils.js";
 import { gDevGui } from "./GUI.js";
 
@@ -20,10 +20,17 @@ export class User {
     constructor() {
         this.cameraStyle = CameraType.ORTHOGRAPHIC;
         this.headlamp = new THREE.PointLight(0xFFFFFF, 50.0);
+        this.headlamp.layers.set(1);
         this.headlamp.position.set(0.0, 0.0, 0.0);
         gLights.headlamp = this.headlamp;
         gLights._defaultHeadlampIntensity = this.headlamp.intensity;
         this.resetCamera();
+        this.miniHeadlamp = new THREE.PointLight(0xFFFFFF, 50.0);
+        this.miniHeadlamp.layers.set(2);
+        this.miniHeadlamp.position.set(0.0, 0.0, 0.0);
+        gLights.miniHeadlamp = this.miniHeadlamp;
+        gLights._defaultMiniHeadlampIntensity = this.miniHeadlamp.intensity;
+        this.resetMiniCamera();
         window.gwUser = this;
     }
 
@@ -37,6 +44,7 @@ export class User {
                 newCamera = new THREE.OrthographicCamera( -width, width, height, -height, 0.1, 250.0 ); break;
             }
         }
+        newCamera.layers.enable(1); // Layer 1 is for main view exclusive content
         newCamera.position.x = window.gwScenarioCentroid.x;
         newCamera.position.y = window.gwScenarioCentroid.y;
         newCamera.position.z = this.cameraStyle === CameraType.PERSPECTIVE
@@ -49,6 +57,19 @@ export class User {
         this.camera = newCamera;
         this.camera.add(this.headlamp);
         gScene.add(this.camera);
+    }
+
+    resetMiniCamera() {
+        this.miniCamera = new THREE.PerspectiveCamera( 75, gMiniCanvas.clientWidth / gMiniCanvas.clientHeight, 0.1, 250.0 );
+        this.miniCamera.layers.enable(2); // Layer 2 is for mini view exclusive content
+        this.miniCamera.position.x = window.gwScenarioCentroid.x;
+        this.miniCamera.position.y = window.gwScenarioCentroid.y;
+        this.miniCamera.position.z = window.gwScenarioCentroid.z + window.gwScenarioRadius + 3.0
+
+        this.miniControls = new OrbitControls(this.miniCamera, gMiniCanvas);
+        this.miniControls.target.set(...window.gwScenarioCentroid);
+        this.miniCamera.add(this.miniHeadlamp);
+        gScene.add(this.miniCamera);
     }
 
     toggleCameraStyle() {
@@ -85,6 +106,8 @@ function window_resize_callback() {
     gRenderer.setSize(width, height);
     
     // Mini View
+    gUser.miniCamera.aspect = newAspect;
+    gUser.miniCamera.updateProjectionMatrix();
     gMiniRenderer.setSize(0.25 * width, 0.25 * height);
 }
 

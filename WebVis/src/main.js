@@ -200,9 +200,10 @@ function animate(time) {
     }
 
     gUser.controls.update();
+    gUser.miniControls.update();
 
 	gRenderer.render( gScene, gUser.camera );
-	gMiniRenderer.render( gScene, gUser.camera );
+	gMiniRenderer.render( gScene, gUser.miniCamera );
 
     // Manually add line strokes to SVG paths, if in SVG rendering mode
     if (renderMode == 'SVG') {
