@@ -207,11 +207,11 @@ window._pathfinderRun = function() {
         }
         pathfinderWorker = new Worker("src/PathfinderWorker.js");
         pathfinderWorker.onmessage = (msg) => {
+            pathfinderData.is_running = false;
+            pathfinder_controller.enable();
             pathfinderData.scen_out = msg.data[1];
             // TODO: provide option to delay loading found path instead of always instantly loading
             new Scenario(pathfinderData.scen_out);
-            pathfinderData.is_running = false;
-            pathfinder_controller.enable();
         }
         pathfinderWorker.postMessage([
             WorkerType.PATHFINDER, pathfinderData.config_i,
