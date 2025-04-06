@@ -34,7 +34,7 @@ extern "C" {
         std::string config_str = config;
         std::stringstream config_stream(config_str);
         nlohmann::json config_json;
-        config_stream >> config_json;
+        std::stringstream(config_str) >> config_json;
 
         // Dynamically Link Properties
         std::cout << "Linking Properties..." << std::endl;
@@ -77,7 +77,6 @@ extern "C" {
             std::cerr << "Attempted to find path with no initial state! Exiting..." << std::endl;
             return EMPTY_SCEN;
         }
-        std::size_t trimPos;
         if (config_f.empty()) {
             std::cerr << "Attempted to find path with no final state! Exiting..." << std::endl;
             return EMPTY_SCEN;
