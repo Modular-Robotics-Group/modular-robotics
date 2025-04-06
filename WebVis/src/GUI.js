@@ -515,10 +515,9 @@ function handleModulePlacement(event) {
     if (!window._mouseHeld || !window._isPainterModeActive) return;
     
     // Check if the click is on a UI element
-    const path = event.path || (event.composedPath && event.composedPath());
-    for (const element of path || []) {
-        if (element.classList && 
-            (element.classList.contains('lil-gui') || 
+    for (const element of event.composedPath() || []) {
+        if (element.classList &&
+            (element.classList.contains('lil-gui') ||
              element.classList.contains('dg'))) {
             return; // Click was on GUI, don't place a module
         }
