@@ -196,7 +196,7 @@ std::vector<const Configuration*> ConfigurationSpace::BFS(Configuration* start, 
 #endif
         if (q.front()->depth != depth) {
             depth++;
-#if CONFIG_VERBOSE > CS_LOG_FINAL_DEPTH
+#if CONFIG_VERBOSE > CS_LOG_FINAL_DEPTH && !__EMSCRIPTEN__
             std::cout << "BFS Depth: " << q.front()->depth << std::endl
             << "Duplicate states Avoided: " << dupesAvoided << std::endl
             << "States Discovered: " << visited.size() << std::endl
@@ -222,11 +222,15 @@ std::vector<const Configuration*> ConfigurationSpace::BFS(Configuration* start, 
 #if CONFIG_OUTPUT_JSON
             SearchAnalysis::PauseClock();
 #endif
+#if __EMSCRIPTEN__
+            std::cout << "BFS Final Depth: " << depth << std::endl;
+#else
             std::cout << "BFS Final Depth: " << depth << std::endl
             << "Duplicate states Avoided: " << dupesAvoided << std::endl
             << "States Discovered: " << visited.size() << std::endl
             << "States Processed: " << statesProcessed << std::endl
             << Lattice::ToString() << std::endl;
+#endif
 #if CONFIG_OUTPUT_JSON
             SearchAnalysis::EnterGraph("BFSDepthOverTime");
             SearchAnalysis::InsertTimePoint(depth);
@@ -312,7 +316,7 @@ std::vector<const Configuration*> ConfigurationSpace::BiDirectionalBFS(BDConfigu
             } else {
                 depthFromFinal = q.front()->depth;
             }
-#if CONFIG_VERBOSE > CS_LOG_FINAL_DEPTH
+#if CONFIG_VERBOSE > CS_LOG_FINAL_DEPTH && !__EMSCRIPTEN__
             std::cout << "BDBFS Depth: " << depthFromStart + depthFromFinal << std::endl
             << "Depth from initial configuration: " << depthFromStart << std::endl
             << "Depth from final configuration: " << depthFromFinal << std::endl
@@ -345,6 +349,9 @@ std::vector<const Configuration*> ConfigurationSpace::BiDirectionalBFS(BDConfigu
 #if CONFIG_OUTPUT_JSON
             SearchAnalysis::PauseClock();
 #endif
+#if __EMSCRIPTEN__
+            std::cout << "BDBFS Final Depth: " << depthFromStart + depthFromFinal << std::endl;
+#else
             std::cout << "BDBFS Final Depth: " << depthFromStart + depthFromFinal << std::endl
             << "Depth from initial configuration: " << depthFromStart << std::endl
             << "Depth from final configuration: " << depthFromFinal << std::endl
@@ -352,6 +359,7 @@ std::vector<const Configuration*> ConfigurationSpace::BiDirectionalBFS(BDConfigu
             << "States Discovered: " << visited.size() << std::endl
             << "States Processed: " << statesProcessed << std::endl
             << Lattice::ToString() << std::endl;
+#endif
 #if CONFIG_OUTPUT_JSON
             SearchAnalysis::EnterGraph("BDBFSDepthOverTime");
             SearchAnalysis::InsertTimePoint(depthFromStart + depthFromFinal);
@@ -400,6 +408,9 @@ std::vector<const Configuration*> ConfigurationSpace::BiDirectionalBFS(BDConfigu
 #if CONFIG_OUTPUT_JSON
                 SearchAnalysis::PauseClock();
 #endif
+#if __EMSCRIPTEN__
+                std::cout << "BDBFS Final Depth: " << depthFromStart + depthFromFinal << std::endl;
+#else
                 std::cout << "BDBFS Final Depth: " << depthFromStart + depthFromFinal << std::endl
                 << "Depth from initial configuration: " << depthFromStart << std::endl
                 << "Depth from final configuration: " << depthFromFinal << std::endl
@@ -407,6 +418,7 @@ std::vector<const Configuration*> ConfigurationSpace::BiDirectionalBFS(BDConfigu
                 << "States Discovered: " << visited.size() << std::endl
                 << "States Processed: " << statesProcessed << std::endl
                 << Lattice::ToString() << std::endl;
+#endif
 #if CONFIG_OUTPUT_JSON
                 SearchAnalysis::EnterGraph("BDBFSDepthOverTime");
                 SearchAnalysis::InsertTimePoint(depthFromStart + depthFromFinal);
@@ -629,6 +641,17 @@ float BDConfiguration::BDCacheMoveOffsetPropertyDistance(const Configuration* fi
     return h;
 }
 
+#if __EMSCRIPTEN__
+// TODO: If BDA* is made available in MRWT, will need a special loading bar for that
+auto pathfinderProgress = R"(
+{
+    "content": 0,
+    "depth": 0,
+    "estimatedDepth": -1
+}
+)"_json;
+#endif
+
 std::vector<const Configuration*> ConfigurationSpace::AStar(Configuration* start, const Configuration* final, const std::string& heuristic) {
 #if CONFIG_OUTPUT_JSON
     SearchAnalysis::EnterGraph("AStarDepthOverTime_" + heuristic);
@@ -713,12 +736,18 @@ std::vector<const Configuration*> ConfigurationSpace::AStar(Configuration* start
 #endif
 #endif
 #if CONFIG_VERBOSE > CS_LOG_FINAL_DEPTH
+#if __EMSCRIPTEN__
+            pathfinderProgress["depth"] = current->depth;
+            pathfinderProgress["estimatedDepth"] = estimatedFinalDepth;
+            std::cout << pathfinderProgress << std::endl;
+#else
             std::cout << "A* Depth: " << current->depth << std::endl
                     << "Estimated Final Depth: " << estimatedFinalDepth << std::endl
                     << "Duplicate states Avoided: " << dupesAvoided << std::endl
                     << "States Discovered: " << visited.size() << std::endl
                     << "States Processed: " << statesProcessed << std::endl
                     << Lattice::ToString() << std::endl;
+#endif
 #if CONFIG_OUTPUT_JSON
             SearchAnalysis::EnterGraph("AStarDepthOverTime_" + heuristic);
             SearchAnalysis::InsertTimePoint(depth);
@@ -748,12 +777,19 @@ std::vector<const Configuration*> ConfigurationSpace::AStar(Configuration* start
 #else
             estimatedFinalDepth = current->depth + static_cast<int>((current->*hFunc)(final));
 #endif
+#if __EMSCRIPTEN__
+            pathfinderProgress["depth"] = current->depth;
+            pathfinderProgress["estimatedDepth"] = estimatedFinalDepth;
+            std::cout << pathfinderProgress << std::endl;
+            std::cout << "A* Final Depth: " << current->depth << std::endl;
+#else
             std::cout << "A* Final Depth: " << current->depth << std::endl
                     << "Estimated Final Depth: " << estimatedFinalDepth << std::endl
                     << "Duplicate states Avoided: " << dupesAvoided << std::endl
                     << "States Discovered: " << visited.size() << std::endl
                     << "States Processed: " << statesProcessed << std::endl
                     << Lattice::ToString() << std::endl;
+#endif
 #if CONFIG_OUTPUT_JSON
             SearchAnalysis::EnterGraph("AStarDepthOverTime_" + heuristic);
             SearchAnalysis::InsertTimePoint(depth);
@@ -917,6 +953,13 @@ std::vector<const Configuration*> ConfigurationSpace::BDAStar(BDConfiguration* s
             }
 #endif
 #if CONFIG_VERBOSE > CS_LOG_FINAL_DEPTH
+#if __EMSCRIPTEN__
+            std::cout << "Bi-Directional A* Depth: " << depthFromStart + depthFromFinal << std::endl
+                    << "Depth from initial configuration: " << depthFromStart << std::endl
+                    << "Depth from final configuration: " << depthFromFinal << std::endl
+                    << "Estimated Final Depth from Start: " << estimatedFinalDepthFromStart << std::endl
+                    << "Estimated Start Depth from Final: " << estimatedStartDepthFromFinal << std::endl;
+#else
             std::cout << "Bi-Directional A* Depth: " << depthFromStart + depthFromFinal << std::endl
                     << "Depth from initial configuration: " << depthFromStart << std::endl
                     << "Depth from final configuration: " << depthFromFinal << std::endl
@@ -926,6 +969,7 @@ std::vector<const Configuration*> ConfigurationSpace::BDAStar(BDConfiguration* s
                     << "States Discovered: " << visited.size() << std::endl
                     << "States Processed: " << statesProcessed << std::endl
                     << Lattice::ToString() << std::endl;
+#endif
 #if CONFIG_OUTPUT_JSON
             SearchAnalysis::EnterGraph("AStarDepthOverTime_" + heuristic);
             SearchAnalysis::InsertTimePoint(depth);
@@ -964,6 +1008,13 @@ std::vector<const Configuration*> ConfigurationSpace::BDAStar(BDConfiguration* s
                 estimatedStartDepthFromFinal = current->depth + static_cast<int>((current->*hFunc)(start));
 #endif
             }
+#if __EMSCRIPTEN__
+            std::cout << "Bi-Directional A* Final Depth: " << depthFromStart + depthFromFinal << std::endl
+                    << "Depth from initial configuration: " << depthFromStart << std::endl
+                    << "Depth from final configuration: " << depthFromFinal << std::endl
+                    << "Estimated Final Depth from Start: " << estimatedFinalDepthFromStart << std::endl
+                    << "Estimated Start Depth from Final: " << estimatedStartDepthFromFinal << std::endl;
+#else
             std::cout << "Bi-Directional A* Final Depth: " << depthFromStart + depthFromFinal << std::endl
                     << "Depth from initial configuration: " << depthFromStart << std::endl
                     << "Depth from final configuration: " << depthFromFinal << std::endl
@@ -973,6 +1024,7 @@ std::vector<const Configuration*> ConfigurationSpace::BDAStar(BDConfiguration* s
                     << "States Discovered: " << visited.size() << std::endl
                     << "States Processed: " << statesProcessed << std::endl
                     << Lattice::ToString() << std::endl;
+#endif
 #if CONFIG_OUTPUT_JSON
             SearchAnalysis::EnterGraph("AStarDepthOverTime_" + heuristic);
             SearchAnalysis::InsertTimePoint(depth);
@@ -1035,6 +1087,13 @@ std::vector<const Configuration*> ConfigurationSpace::BDAStar(BDConfiguration* s
                     estimatedStartDepthFromFinal = current->depth + static_cast<int>((current->*hFunc)(start));
 #endif
                 }
+#if __EMSCRIPTEN__
+                std::cout << "Bi-Directional A* Final Depth: " << depthFromStart + depthFromFinal << std::endl
+                        << "Depth from initial configuration: " << depthFromStart << std::endl
+                        << "Depth from final configuration: " << depthFromFinal << std::endl
+                        << "Estimated Final Depth from Start: " << estimatedFinalDepthFromStart << std::endl
+                        << "Estimated Start Depth from Final: " << estimatedStartDepthFromFinal << std::endl;
+#else
                 std::cout << "Bi-Directional A* Final Depth: " << depthFromStart + depthFromFinal << std::endl
                         << "Depth from initial configuration: " << depthFromStart << std::endl
                         << "Depth from final configuration: " << depthFromFinal << std::endl
@@ -1044,6 +1103,7 @@ std::vector<const Configuration*> ConfigurationSpace::BDAStar(BDConfiguration* s
                         << "States Discovered: " << visited.size() << std::endl
                         << "States Processed: " << statesProcessed << std::endl
                         << Lattice::ToString() << std::endl;
+#endif
 #if CONFIG_OUTPUT_JSON
                 SearchAnalysis::EnterGraph("AStarDepthOverTime_" + heuristic);
                 SearchAnalysis::InsertTimePoint(depth);

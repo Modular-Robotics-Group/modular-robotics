@@ -181,6 +181,9 @@ extern "C" {
             std::cout << "Search completed in " << duration.count() << " ms." << std::endl;
         } catch(SearchExcept& searchExcept) {
             std::cerr << searchExcept.what() << std::endl;
+        } catch(std::exception& exception) {
+            std::cerr << exception.what() << std::endl;
+            throw exception;
         }
 
         std::cout << "Exporting results..." << std::endl;

@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
 import { Scenario } from './Scenario.js';
 import { gScene, gLights, gRenderer, gModules, gReferenceModule, gModulePositions, gCanvas, gHighlightModule } from './main.js';
-import { moduleBrush, pathfinderData, WorkerType, VisConfigData, ModuleType, getModuleAtPosition } from './utils.js';
+import { moduleBrush, pathfinderData, WorkerType, MessageType, ContentType, VisConfigData, ModuleType, getModuleAtPosition } from './utils.js';
 import { CameraType } from "./utils.js";
 import { saveConfiguration, downloadConfiguration } from './utils.js';
 import { Module } from './Module.js';
@@ -166,7 +166,8 @@ window._clearConfig = function() {
     VisConfigData.nextModID = 0;
     VisConfigData.clearBounds();
 
-    // Invalidate move sequence
+    // Invalidate move sequence and reset progress bar
+    pathfinderProgressBar.style.width = "0%";
     window.gwMoveSetSequence.invalidate();
 }
 
@@ -200,21 +201,39 @@ function _generateExampleLoader(name) {
 let pathfinderWorker;
 let config2ScenWorker;
 let pathfinder_controller, heuristic_setter;
+const pathfinderProgressBar = document.getElementById("pathfinderProgressBar");
 
 window._pathfinderRun = function() {
     if (window.Worker) {
         pathfinderData.is_running = true;
         pathfinder_controller.disable();
+        pathfinderProgressBar.style.width = "0%";
         if (pathfinderWorker != null) {
             pathfinderWorker.terminate();
         }
         pathfinderWorker = new Worker("src/PathfinderWorker.js");
         pathfinderWorker.onmessage = (msg) => {
-            pathfinderData.is_running = false;
-            pathfinder_controller.enable();
-            pathfinderData.scen_out = msg.data[1];
-            // TODO: provide option to delay loading found path instead of always instantly loading
-            new Scenario(pathfinderData.scen_out);
+            switch(msg.data[0]) {
+                case MessageType.ERROR:
+                    pathfinderData.is_running = false;
+                    pathfinder_controller.enable();
+                    console.log("pathfinder task encountered an error.");
+                    break;
+                case MessageType.RESULT:
+                    pathfinderData.is_running = false;
+                    pathfinder_controller.enable();
+                    pathfinderData.scen_out = msg.data[1];
+                    // TODO: provide option to delay loading found path instead of always instantly loading
+                    new Scenario(pathfinderData.scen_out);
+                    pathfinderProgressBar.style.width = "100%";
+                    break;
+                case MessageType.DATA:
+                    let data = JSON.parse(msg.data[1]);
+                    switch (data.content) {
+                        case ContentType.PATHFINDER_PROGRESS:
+                            pathfinderProgressBar.style.width = 100 * data.depth / data.estimatedDepth + "%";
+                    }
+            }
         }
         pathfinderWorker.postMessage([
             WorkerType.PATHFINDER, pathfinderData.config_i,
@@ -350,7 +369,17 @@ document.addEventListener("DOMContentLoaded", async function () {
                 config2ScenWorker = new Worker("src/PathfinderWorker.js");
                 config2ScenWorker.postMessage([WorkerType.CONFIG2SCEN, pathfinderData.config_i]);
                 config2ScenWorker.onmessage = (msg) => {
-                    new Scenario(msg.data[1]);
+                    switch (msg.data[0]) {
+                        case MessageType.ERROR:
+                            console.log("config2Scen task encountered an error.");
+                            break;
+                        case MessageType.RESULT:
+                            new Scenario(msg.data[1]);
+                            break;
+                        case MessageType.DATA:
+                            // Currently unused for config2Scen
+                            console.log(msg.data[1]);
+                    }
                 }
                 console.log("Started config2Scen task");
             } else {
@@ -368,7 +397,17 @@ document.addEventListener("DOMContentLoaded", async function () {
                 config2ScenWorker = new Worker("src/PathfinderWorker.js");
                 config2ScenWorker.postMessage([WorkerType.CONFIG2SCEN, pathfinderData.config_f]);
                 config2ScenWorker.onmessage = (msg) => {
-                    new Scenario(msg.data[1]);
+                    switch (msg.data[0]) {
+                        case MessageType.ERROR:
+                            console.log("config2Scen task encountered an error.");
+                            break;
+                        case MessageType.RESULT:
+                            new Scenario(msg.data[1]);
+                            break;
+                        case MessageType.DATA:
+                            // Currently unused for config2Scen
+                            console.log(msg.data[1]);
+                    }
                 }
                 console.log("Started config2Scen task");
             } else {
@@ -548,7 +587,8 @@ function handleModulePlacement(event) {
 function toggleModuleAtPosition(x, y, z) {
     const existingModule = getModuleAtPosition(x, y, z);
 
-    // Invalidate move sequence
+    // Invalidate move sequence and reset progress bar
+    pathfinderProgressBar.style.width = "0%";
     window.gwMoveSetSequence.invalidate();
 
     if (!existingModule && window._drawMode === DRAW_MODES.PLACE) {
