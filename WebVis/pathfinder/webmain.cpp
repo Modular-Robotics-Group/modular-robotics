@@ -27,6 +27,10 @@ const char* EMPTY_SCEN =
 std::string scen_str;
 
 extern "C" {
+    void exceptionTest() {
+        throw std::runtime_error("Exception Test");
+    }
+
     const char* config2Scen(char* config) {
         // Technically, this function does much more work than it needs to; However, there isn't much need to add new
         // functionality for this specific feature when the naive approach using existing functionality works just as
