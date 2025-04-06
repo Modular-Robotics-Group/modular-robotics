@@ -31,6 +31,7 @@ export class User {
         gLights.miniHeadlamp = this.miniHeadlamp;
         gLights._defaultMiniHeadlampIntensity = this.miniHeadlamp.intensity;
         this.resetMiniCamera();
+        this.initReferenceCamera();
         window.gwUser = this;
     }
 
@@ -70,6 +71,13 @@ export class User {
         this.miniControls.target.set(...window.gwScenarioCentroid);
         this.miniCamera.add(this.miniHeadlamp);
         gScene.add(this.miniCamera);
+    }
+
+    initReferenceCamera() {
+        this.referenceCamera = new THREE.PerspectiveCamera( 75, 1.0, 0.1, 250.0 );
+        this.referenceCamera.layers.set(3); // Reference camera can see reference module, nothing else
+        this.referenceCamera.position.z = 1.5;
+        gScene.add(this.referenceCamera);
     }
 
     toggleCameraStyle() {

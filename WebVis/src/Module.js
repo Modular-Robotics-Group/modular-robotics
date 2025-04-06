@@ -174,3 +174,24 @@ export class Module {
         return transform;
     }
 }
+
+export class ReferenceModule {
+    constructor(moduleType) {
+        this.moduleType = moduleType;
+
+        this.mesh = _createModuleMesh(moduleType, 0xFFFFFF, 1.0);
+        this.mesh.layers.set(3);
+        this.mesh.material.uniforms.opacity = { value: 0.3 };
+        this.mesh.material.depthWrite = false;
+        gScene.add(this.mesh);
+    }
+
+    swapType(moduleType) {
+        gScene.remove(this.mesh);
+        this.mesh = _createModuleMesh(moduleType, 0xFFFFFF, 1.0);
+        this.mesh.layers.set(3);
+        this.mesh.material.uniforms.opacity = { value: 0.3 };
+        this.mesh.material.depthWrite = false;
+        gScene.add(this.mesh);
+    }
+}

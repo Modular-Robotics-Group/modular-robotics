@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
 import { Scenario } from './Scenario.js';
-import { gScene, gLights, gRenderer, gModules, gModulePositions, gCanvas } from './main.js';
+import { gScene, gLights, gRenderer, gModules, gReferenceModule, gModulePositions, gCanvas } from './main.js';
 import { moduleBrush, pathfinderData, WorkerType, VisConfigData, ModuleType, getModuleAtPosition } from './utils.js';
 import { CameraType } from "./utils.js";
 import { saveConfiguration, downloadConfiguration } from './utils.js';
@@ -268,7 +268,9 @@ document.addEventListener("DOMContentLoaded", async function () {
             "Cube": ModuleType.CUBE,
             "Rhombic Dodecahedron": ModuleType.RHOMBIC_DODECAHEDRON,
             "Catom": ModuleType.CATOM
-        }).name("Module Type");
+        }).name("Module Type").onChange((value) => {
+            gReferenceModule.swapType(value);
+    });
     gLayerGui.add(window, '_autoCenterConfig').name("Auto-Center Configuration")
     gLayerGui.add(window, '_clearConfig').name("Clear Configuration")
     // Pathfinder and debug Controls

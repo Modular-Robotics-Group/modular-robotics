@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { SVGRenderer } from 'three/addons/renderers/SVGRenderer.js';
-import { Module } from "./Module.js";
+import {Module, ReferenceModule} from "./Module.js";
 import { User } from "./User.js";
 import { ModuleType, MoveType } from "./utils.js";
 import { Move } from "./Move.js";
@@ -59,6 +59,8 @@ function _setupWebGLRenderer() {
     gMiniRenderer.setPixelRatio(window.devicePixelRatio * 1.5);
     gMiniRenderer.shadowMap.enabled = true;
     gMiniRenderer.setSize(0.25 * gCanvas.clientWidth, 0.25 * gCanvas.clientHeight);
+    gReferenceRenderer = new THREE.WebGLRenderer( {canvas: gReferenceCanvas, antialiasing: true, alpha: true} );
+    gReferenceRenderer.setSize(0.05 * gCanvas.clientWidth, 0.05 * gCanvas.clientWidth);
 }
 function _setupSVGRenderer() {
     gCanvas.width = 0;
@@ -89,14 +91,15 @@ gCanvas._yscale = gCanvas.clientHeight / window.innerHeight; // Used for resizin
 // Mini View
 export let gMiniRenderer;
 export const gMiniCanvas = document.getElementById("miniView");
-gMiniCanvas._xscale = gMiniCanvas.clientWidth / window.innerWidth; // Used for resizing
-gMiniCanvas._yscale = gMiniCanvas.clientHeight / window.innerHeight; // Used for resizing
+export let gReferenceRenderer;
+export const gReferenceCanvas = document.getElementById("referenceModule");
 
 // Final initialization
 export const gLights = {_fullbright: false};
 export const gScene = new THREE.Scene();
 export const gUser = new User();
 export const gModules = {};
+export let gReferenceModule = new ReferenceModule(ModuleType.CUBE);
 export const gModulePositions = new Map();
 _setupWebGLRenderer();
 gScene._backgroundColors = [new THREE.Color(0x334D4D), new THREE.Color(0xFFFFFF), new THREE.Color(0x000000)];
@@ -115,6 +118,8 @@ new Module(ModuleType.RHOMBIC_DODECAHEDRON, 0, new THREE.Vector3(0.0, 0.0, 0.0),
 export const lightAmbient = new THREE.AmbientLight(0xFFFFFF, 0.8);
 const lightDirectional = new THREE.DirectionalLight(0xFFFFFF, 0.5);
 lightDirectional.position.set(1, 1, 1);
+lightAmbient.layers.enable(3);
+lightDirectional.layers.enable(3);
 gScene.add(lightAmbient);
 gScene.add(lightDirectional);
 gLights.lightAmbient = lightAmbient;
@@ -203,8 +208,13 @@ function animate(time) {
 
     gUser.controls.update();
     gUser.miniControls.update();
+    gUser.referenceCamera.position.copy(gUser.miniCamera.position);
+    gUser.referenceCamera.position.sub(gUser.miniControls.target);
+    gUser.referenceCamera.position.setLength(1.5);
+    gUser.referenceCamera.lookAt(new THREE.Vector3(0.0, 0.0, 0.0));
 
 	gMiniRenderer.render( gScene, gUser.miniCamera );
+    gReferenceRenderer.render( gScene, gUser.referenceCamera );
     gRenderer.render( gScene, gUser.camera );
 
     // Manually add line strokes to SVG paths, if in SVG rendering mode
