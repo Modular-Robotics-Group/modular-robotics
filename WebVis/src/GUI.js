@@ -5,7 +5,7 @@ import { gScene, gLights, gRenderer, gModules, gModulePositions } from './main.j
 import { moduleBrush, pathfinderData, WorkerType, VisConfigData, ModuleType, getModuleAtPosition } from './utils.js';
 import { CameraType } from "./utils.js";
 import { saveConfiguration, downloadConfiguration } from './utils.js';
-import { Module as ModuleClass } from './Module.js';
+import { Module } from './Module.js';
 
 // Exact filenames of example scenarios in /Scenarios/
 let EXAMPLE_SCENARIOS = [
@@ -551,7 +551,7 @@ function toggleModuleAtPosition(x, y, z) {
             moduleBrush.color.b
         );
 
-        const module = new ModuleClass(moduleBrush.type, VisConfigData.nextModID, pos, color.getHex(), MODULE_SETTINGS.SCALE);
+        const module = new Module(moduleBrush.type, VisConfigData.nextModID, pos, color.getHex(), MODULE_SETTINGS.SCALE);
 
         if (moduleBrush.static) {
             module.markStatic();
