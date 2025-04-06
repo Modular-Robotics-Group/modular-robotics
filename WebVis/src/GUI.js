@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
 import { Scenario } from './Scenario.js';
-import { gScene, gLights, gRenderer, gModules, gModulePositions } from './main.js';
+import { gScene, gLights, gRenderer, gModules, gModulePositions, gCanvas } from './main.js';
 import { moduleBrush, pathfinderData, WorkerType, VisConfigData, ModuleType, getModuleAtPosition } from './utils.js';
 import { CameraType } from "./utils.js";
 import { saveConfiguration, downloadConfiguration } from './utils.js';
@@ -293,7 +293,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     });
     gDevGui.add(window, '_toggleMRWTMode').name("MRWT Mode Toggle");
     // Add event listener for module placement
-    document.addEventListener('mousedown', (event) => {
+    gCanvas.addEventListener('mousedown', (event) => {
         if (event.button === 0 && !(event.shiftKey || event.ctrlKey)) {
             window._mouseHeld = true;
             setDrawMode(event);
@@ -305,7 +305,7 @@ document.addEventListener("DOMContentLoaded", async function () {
             window._mouseHeld = false;
         }
     });
-    document.addEventListener('mousemove', handleModulePlacement);
+    gCanvas.addEventListener('mousemove', handleModulePlacement);
 
     // Create configuration button controls using object literals
     gPathfinderGui.add({ 
@@ -511,16 +511,11 @@ function setDrawMode(event) {
  * @param {MouseEvent} event - The mouse event
  */
 function handleModulePlacement(event) {
-    // Only process left clicks when in MRWT mode
-    if (!window._mouseHeld || !window._isPainterModeActive) return;
-    
-    // Check if the click is on a UI element
-    for (const element of event.composedPath() || []) {
-        if (element.classList &&
-            (element.classList.contains('lil-gui') ||
-             element.classList.contains('dg'))) {
-            return; // Click was on GUI, don't place a module
-        }
+    // Only paint modules when clicking on main view in painter mode
+    if (!window._mouseHeld
+        || !window._isPainterModeActive
+        || document.elementFromPoint(event.clientX, event.clientY).id !== "mainView") {
+        return;
     }
 
     let clickPos = getClickPosition(event)
