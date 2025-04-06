@@ -85,7 +85,7 @@ class GuiGlobalsHelper {
 /* ****************************** */
 window._toggleBackgroundColor = function() {
     gScene._backgroundColorSelected = (gScene._backgroundColorSelected + 1) % gScene._backgroundColors.length
-    gScene.background = gScene._backgroundColors[gScene._backgroundColorSelected];
+    gRenderer.setClearColor(gScene._backgroundColors[gScene._backgroundColorSelected]);
 }
 window._toggleFullbright = function() {
     gLights._fullbright = !gLights._fullbright;

@@ -55,7 +55,7 @@ function _setupWebGLRenderer() {
     // Mini View: set up canvas + renderer
     gMiniCanvas.width = gMiniCanvas.clientWidth;
     gMiniCanvas.height = gMiniCanvas.clientHeight;
-    gMiniRenderer = new THREE.WebGLRenderer( {canvas: gMiniCanvas, antialiasing: true} );
+    gMiniRenderer = new THREE.WebGLRenderer( {canvas: gMiniCanvas, antialiasing: true, alpha: true} );
     gMiniRenderer.setPixelRatio(window.devicePixelRatio * 1.5);
     gMiniRenderer.shadowMap.enabled = true;
     gMiniRenderer.setSize(0.25 * gCanvas.clientWidth, 0.25 * gCanvas.clientHeight);
@@ -101,7 +101,8 @@ export const gModulePositions = new Map();
 _setupWebGLRenderer();
 gScene._backgroundColors = [new THREE.Color(0x334D4D), new THREE.Color(0xFFFFFF), new THREE.Color(0x000000)];
 gScene._backgroundColorSelected = 0;
-gScene.background = gScene._backgroundColors[gScene._backgroundColorSelected];
+gRenderer.setClearColor(gScene._backgroundColors[gScene._backgroundColorSelected]);
+gMiniRenderer.setClearColor(0xFFFFFF, 0.05);
 requestAnimationFrame(animate);
 
 /* ****************************** */
