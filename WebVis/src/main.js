@@ -123,6 +123,7 @@ gLights._defaultDirectionalIntensity = lightDirectional.intensity;
 
 // Axis lines to help with orientation
 let axesHelper = new THREE.AxesHelper(5);
+axesHelper.layers.set(1);
 gScene.add(axesHelper);
 
 // Once the page loads, automatically load an example scenario
