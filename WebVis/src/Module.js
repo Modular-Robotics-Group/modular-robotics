@@ -177,8 +177,6 @@ export class Module {
 
 export class ReferenceModule {
     constructor(moduleType) {
-        this.moduleType = moduleType;
-
         this.mesh = _createModuleMesh(moduleType, 0xFFFFFF, 1.0);
         this.mesh.layers.set(3);
         this.mesh.material.uniforms.opacity = { value: 0.3 };
@@ -193,5 +191,38 @@ export class ReferenceModule {
         this.mesh.material.uniforms.opacity = { value: 0.3 };
         this.mesh.material.depthWrite = false;
         gScene.add(this.mesh);
+    }
+}
+
+export class HighlightModule {
+    constructor(moduleType) {
+        this.mesh = _createModuleMesh(moduleType, 0xFFFFFF, 1.0);
+        this.mesh.material.uniforms.opacity = { value: 0.0 };
+        this.mesh.material.depthWrite = false;
+        this.hide();
+        this.parentMesh = new THREE.Object3D();
+        this.parentMesh.add(this.mesh);
+        gScene.add(this.parentMesh);
+    }
+
+    setPosition(pos) {
+        this.parentMesh.position.set(pos.x, pos.y, pos.z);
+    }
+
+    hide() {
+        this.mesh.visible = false;
+    }
+
+    show() {
+        this.mesh.visible = true;
+    }
+
+    swapType(moduleType) {
+        this.parentMesh.remove(this.mesh);
+        this.mesh = _createModuleMesh(moduleType, 0xFFFFFF, 1.0);
+        this.mesh.material.uniforms.opacity = { value: 0.0 };
+        this.mesh.material.depthWrite = false;
+        this.hide();
+        this.parentMesh.add(this.mesh);
     }
 }

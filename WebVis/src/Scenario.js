@@ -4,7 +4,7 @@ import { Module } from "./Module.js";
 import { Move } from "./Move.js";
 import { MoveSet } from "./MoveSet.js";
 import { MoveSetSequence } from "./MoveSetSequence.js";
-import { gModules, gReferenceModule, gModulePositions, gRenderer, gUser, cancelActiveMove } from "./main.js";
+import { gModules, gReferenceModule, gHighlightModule, gModulePositions, gRenderer, gUser, cancelActiveMove } from "./main.js";
 
 function Visgroup(r, g, b, scale) {
     this.color = `rgb(${r}, ${g}, ${b})`;
@@ -136,6 +136,7 @@ export class Scenario {
         gUser.miniCamera.position.z = centroid.z + radius + 3.0;
         gUser.miniControls.target.set(...centroid);
         gReferenceModule.swapType(scenarioModuleType);
+        gHighlightModule.swapType(scenarioModuleType);
 
         window.gwMoveSetSequence = new MoveSetSequence(moveSets);
         window.gwScenarioCentroid = centroid;

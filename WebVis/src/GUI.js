@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
 import { Scenario } from './Scenario.js';
-import { gScene, gLights, gRenderer, gModules, gReferenceModule, gModulePositions, gCanvas } from './main.js';
+import { gScene, gLights, gRenderer, gModules, gReferenceModule, gModulePositions, gCanvas, gHighlightModule } from './main.js';
 import { moduleBrush, pathfinderData, WorkerType, VisConfigData, ModuleType, getModuleAtPosition } from './utils.js';
 import { CameraType } from "./utils.js";
 import { saveConfiguration, downloadConfiguration } from './utils.js';
@@ -270,6 +270,7 @@ document.addEventListener("DOMContentLoaded", async function () {
             "Catom": ModuleType.CATOM
         }).name("Module Type").onChange((value) => {
             gReferenceModule.swapType(value);
+            gHighlightModule.swapType(value);
     });
     gLayerGui.add(window, '_autoCenterConfig').name("Auto-Center Configuration")
     gLayerGui.add(window, '_clearConfig').name("Clear Configuration")
@@ -307,6 +308,11 @@ document.addEventListener("DOMContentLoaded", async function () {
             window._mouseHeld = false;
         }
     });
+    gCanvas.addEventListener('mouseleave', (event) => {
+        if (window._isPainterModeActive) {
+            gHighlightModule.hide();
+        }
+    })
     gCanvas.addEventListener('mousemove', handleModulePlacement);
 
     // Create configuration button controls using object literals
@@ -464,7 +470,7 @@ function showAllModules() {
     });
 }
 
-function getClickPosition(event) {
+function getMousePosition(event) {
     // Get the canvas element and its dimensions
     const canvas = gRenderer.domElement;
     const rect = canvas.getBoundingClientRect();
@@ -498,9 +504,9 @@ function setDrawMode(event) {
     if (!window._isPainterModeActive) return;
 
     // Set draw mode based on module presence
-    let clickPos = getClickPosition(event);
+    let mousePos = getMousePosition(event);
 
-    const existingModule = getModuleAtPosition(clickPos.x, clickPos.y, clickPos.z);
+    const existingModule = getModuleAtPosition(mousePos.x, mousePos.y, mousePos.z);
     if (!existingModule) {
         window._drawMode = DRAW_MODES.PLACE;
     } else {
@@ -514,15 +520,20 @@ function setDrawMode(event) {
  */
 function handleModulePlacement(event) {
     // Only paint modules when clicking on main view in painter mode
-    if (!window._mouseHeld
-        || !window._isPainterModeActive
-        || document.elementFromPoint(event.clientX, event.clientY).id !== "mainView") {
+    if (!window._isPainterModeActive) return;
+
+    if (document.elementFromPoint(event.clientX, event.clientY).id !== "mainView") {
+        gHighlightModule.hide();
         return;
     }
 
-    let clickPos = getClickPosition(event)
+    gHighlightModule.show();
+    let mousePos = getMousePosition(event)
+    gHighlightModule.setPosition(mousePos);
+
+    if (!window._mouseHeld) return;
     
-    toggleModuleAtPosition(clickPos.x, clickPos.y, clickPos.z);
+    toggleModuleAtPosition(mousePos.x, mousePos.y, mousePos.z);
 }
 
 /**

@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { SVGRenderer } from 'three/addons/renderers/SVGRenderer.js';
-import {Module, ReferenceModule} from "./Module.js";
+import { Module, ReferenceModule, HighlightModule } from "./Module.js";
 import { User } from "./User.js";
 import { ModuleType, MoveType } from "./utils.js";
 import { Move } from "./Move.js";
@@ -100,6 +100,7 @@ export const gScene = new THREE.Scene();
 export const gUser = new User();
 export const gModules = {};
 export let gReferenceModule = new ReferenceModule(ModuleType.CUBE);
+export const gHighlightModule = new HighlightModule(ModuleType.CUBE);
 export const gModulePositions = new Map();
 _setupWebGLRenderer();
 gScene._backgroundColors = [new THREE.Color(0x334D4D), new THREE.Color(0xFFFFFF), new THREE.Color(0x000000)];
