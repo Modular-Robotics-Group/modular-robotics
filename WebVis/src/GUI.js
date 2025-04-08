@@ -202,6 +202,12 @@ let pathfinderWorker;
 let config2ScenWorker;
 let pathfinder_controller, heuristic_setter;
 const pathfinderProgressBar = document.getElementById("pathfinderProgressBar");
+const pathfinderStats = {
+    div: document.getElementById("statsDiv"),
+    found: document.getElementById("found"),
+    expanded: document.getElementById("expanded"),
+    unexpanded: document.getElementById("unexpanded")
+};
 
 window._pathfinderRun = function() {
     if (window.Worker) {
@@ -233,6 +239,12 @@ window._pathfinderRun = function() {
                     switch (data.content) {
                         case ContentType.PATHFINDER_PROGRESS:
                             pathfinderProgressBar.style.width = 100 * data.depth / data.estimatedDepth + "%";
+                            break;
+                        case ContentType.PATHFINDER_UPDATE:
+                            pathfinderStats.div.style.display = "block";
+                            pathfinderStats.found.innerText = data.found;
+                            pathfinderStats.expanded.innerText = data.expanded;
+                            pathfinderStats.unexpanded.innerText = data.unexpanded;
                     }
             }
         }

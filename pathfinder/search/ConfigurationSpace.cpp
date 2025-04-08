@@ -163,6 +163,17 @@ auto BDConfiguration::CompareBDConfiguration(const BDConfiguration* start, const
     };
 }
 
+#if __EMSCRIPTEN__ && CONFIG_REALTIME
+auto pathfinderUpdate = R"(
+{
+    "content": 1,
+    "found": 0,
+    "expanded": 0,
+    "unexpanded": 0
+}
+)"_json;
+#endif
+
 int ConfigurationSpace::depth = -1;
 
 std::vector<const Configuration*> ConfigurationSpace::BFS(Configuration* start, const Configuration* final) {
@@ -263,6 +274,12 @@ std::vector<const Configuration*> ConfigurationSpace::BFS(Configuration* start, 
             }
 #endif
         }
+#if __EMSCRIPTEN__ && CONFIG_REALTIME
+        pathfinderUpdate["found"] = visited.size();
+        pathfinderUpdate["expanded"] = statesProcessed;
+        pathfinderUpdate["unexpanded"] = visited.size() - statesProcessed;
+        std::cout << pathfinderUpdate << std::endl;
+#endif
     }
     throw SearchExcept();
 }
@@ -447,6 +464,12 @@ std::vector<const Configuration*> ConfigurationSpace::BiDirectionalBFS(BDConfigu
             }
 #endif
         }
+#if __EMSCRIPTEN__ && CONFIG_REALTIME
+        pathfinderUpdate["found"] = visited.size();
+        pathfinderUpdate["expanded"] = statesProcessed;
+        pathfinderUpdate["unexpanded"] = visited.size() - statesProcessed;
+        std::cout << pathfinderUpdate << std::endl;
+#endif
     }
     throw SearchExcept();
 }
@@ -831,6 +854,12 @@ std::vector<const Configuration*> ConfigurationSpace::AStar(Configuration* start
             }
 #endif
         }
+#if __EMSCRIPTEN__ && CONFIG_REALTIME
+        pathfinderUpdate["found"] = visited.size();
+        pathfinderUpdate["expanded"] = statesProcessed;
+        pathfinderUpdate["unexpanded"] = visited.size() - statesProcessed;
+        std::cout << pathfinderUpdate << std::endl;
+#endif
     }
     throw SearchExcept();
 }
@@ -1141,6 +1170,12 @@ std::vector<const Configuration*> ConfigurationSpace::BDAStar(BDConfiguration* s
             }
 #endif
         }
+#if __EMSCRIPTEN__ && CONFIG_REALTIME
+        pathfinderUpdate["found"] = visited.size();
+        pathfinderUpdate["expanded"] = statesProcessed;
+        pathfinderUpdate["unexpanded"] = visited.size() - statesProcessed;
+        std::cout << pathfinderUpdate << std::endl;
+#endif
     }
     throw SearchExcept();
 }
