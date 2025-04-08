@@ -225,11 +225,13 @@ window._pathfinderRun = function() {
                     pathfinder_controller.enable();
                     pathfinderProgressBar.style.width = "0%";
                     console.log("pathfinder task encountered an error.");
+                    pathfinderWorker.terminate();
                     break;
                 case MessageType.RESULT:
                     pathfinderData.is_running = false;
                     pathfinder_controller.enable();
                     pathfinderData.scen_out = msg.data[1];
+                    pathfinderWorker.terminate();
                     // TODO: provide option to delay loading found path instead of always instantly loading
                     new Scenario(pathfinderData.scen_out);
                     pathfinderProgressBar.style.width = "100%";
@@ -385,8 +387,10 @@ document.addEventListener("DOMContentLoaded", async function () {
                     switch (msg.data[0]) {
                         case MessageType.ERROR:
                             console.log("config2Scen task encountered an error.");
+                            config2ScenWorker.terminate();
                             break;
                         case MessageType.RESULT:
+                            config2ScenWorker.terminate();
                             new Scenario(msg.data[1]);
                             break;
                         case MessageType.DATA:
@@ -413,8 +417,10 @@ document.addEventListener("DOMContentLoaded", async function () {
                     switch (msg.data[0]) {
                         case MessageType.ERROR:
                             console.log("config2Scen task encountered an error.");
+                            config2ScenWorker.terminate();
                             break;
                         case MessageType.RESULT:
+                            config2ScenWorker.terminate();
                             new Scenario(msg.data[1]);
                             break;
                         case MessageType.DATA:
