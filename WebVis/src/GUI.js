@@ -349,8 +349,20 @@ document.addEventListener("DOMContentLoaded", async function () {
         if (window._isPainterModeActive) {
             gHighlightModule.hide();
         }
-    })
+    });
     gCanvas.addEventListener('mousemove', handleModulePlacement);
+    gCanvas.addEventListener('wheel', (event) => {
+        if (event.ctrlKey && window._isPainterModeActive) {
+            if (gwUser.controls.enableZoom) {
+                gwUser.controls.enableZoom = false;
+            }
+            moduleBrush.zSlice += Math.sign(event.deltaY);
+            zSliceController.updateDisplay();
+            updateVisibleModules(moduleBrush.zSlice);
+        } else {
+            gwUser.controls.enableZoom = true;
+        }
+    });
 
     // Create configuration button controls using object literals
     gPathfinderGui.add({ 
