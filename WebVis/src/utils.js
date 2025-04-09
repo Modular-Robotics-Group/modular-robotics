@@ -91,7 +91,8 @@ export const MessageType = Object.freeze({
 
 export const ContentType = Object.freeze({
     PATHFINDER_PROGRESS: 0,
-    PATHFINDER_UPDATE: 1
+    PATHFINDER_UPDATE: 1,
+    PATHFINDER_BD_PROGRESS: 2
 });
 
 export function getModuleAtPosition(x, y, z) {

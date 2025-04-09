@@ -202,6 +202,7 @@ let pathfinderWorker;
 let config2ScenWorker;
 let pathfinder_controller, heuristic_setter;
 const pathfinderProgressBar = document.getElementById("pathfinderProgressBar");
+const pathfinderReverseProgressBar = document.getElementById("pathfinderReverseProgressBar");
 const pathfinderStats = {
     div: document.getElementById("statsDiv"),
     found: document.getElementById("found"),
@@ -214,6 +215,10 @@ window._pathfinderRun = function() {
         pathfinderData.is_running = true;
         pathfinder_controller.disable();
         pathfinderProgressBar.style.width = "0%";
+        pathfinderReverseProgressBar.style.width = "0%";
+        if (pathfinderData.settings.search === 'BDBFS') {
+            pathfinderProgressBar.style.backgroundColor = "rgba(0, 255, 255, 0.5)";
+        }
         if (pathfinderWorker != null) {
             pathfinderWorker.terminate();
         }
@@ -223,7 +228,9 @@ window._pathfinderRun = function() {
                 case MessageType.ERROR:
                     pathfinderData.is_running = false;
                     pathfinder_controller.enable();
+                    pathfinderProgressBar.style.backgroundColor = "rgba(255, 255, 255, 0.5)";
                     pathfinderProgressBar.style.width = "0%";
+                    pathfinderReverseProgressBar.style.width = "0%";
                     console.log("pathfinder task encountered an error.");
                     pathfinderWorker.terminate();
                     break;
@@ -234,13 +241,19 @@ window._pathfinderRun = function() {
                     pathfinderWorker.terminate();
                     // TODO: provide option to delay loading found path instead of always instantly loading
                     new Scenario(pathfinderData.scen_out);
+                    pathfinderProgressBar.style.backgroundColor = "rgba(255, 255, 255, 0.5)";
                     pathfinderProgressBar.style.width = "100%";
+                    pathfinderReverseProgressBar.style.width = "0%";
                     break;
                 case MessageType.DATA:
                     let data = JSON.parse(msg.data[1]);
                     switch (data.content) {
                         case ContentType.PATHFINDER_PROGRESS:
-                            pathfinderProgressBar.style.width = 100 * data.depth / data.estimatedDepth + "%";
+                            pathfinderProgressBar.style.width = 100 * data.estimatedProgress + "%";
+                            break;
+                        case ContentType.PATHFINDER_BD_PROGRESS:
+                            pathfinderProgressBar.style.width = 100 * data.estimatedProgress_s + "%";
+                            pathfinderReverseProgressBar.style.width = 100 * data.estimatedProgress_t + "%";
                             break;
                         case ContentType.PATHFINDER_UPDATE:
                             pathfinderStats.div.style.display = "block";

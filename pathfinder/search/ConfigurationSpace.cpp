@@ -163,6 +163,23 @@ auto BDConfiguration::CompareBDConfiguration(const BDConfiguration* start, const
     };
 }
 
+#if __EMSCRIPTEN__
+auto pathfinderProgress = R"(
+{
+    "content": 0,
+    "estimatedProgress": 0.0
+}
+)"_json;
+
+auto pathfinderBDProgress = R"(
+{
+    "content": 2,
+    "estimatedProgress_s": 0.0,
+    "estimatedProgress_t": 0.0
+}
+)"_json;
+#endif
+
 #if __EMSCRIPTEN__ && CONFIG_REALTIME
 auto pathfinderUpdate = R"(
 {
@@ -194,6 +211,9 @@ std::vector<const Configuration*> ConfigurationSpace::BFS(Configuration* start, 
 #endif
     int dupesAvoided = 0;
     int statesProcessed = 0;
+#if __EMSCRIPTEN__
+    int estimatedFinalDepth = static_cast<int>(start->CacheMoveOffsetPropertyDistance(final));
+#endif
     std::queue<Configuration*> q;
     std::unordered_set<HashedState> visited;
     q.push(start);
@@ -207,12 +227,21 @@ std::vector<const Configuration*> ConfigurationSpace::BFS(Configuration* start, 
 #endif
         if (q.front()->depth != depth) {
             depth++;
-#if CONFIG_VERBOSE > CS_LOG_FINAL_DEPTH && !__EMSCRIPTEN__
+#if CONFIG_VERBOSE > CS_LOG_FINAL_DEPTH
+#if __EMSCRIPTEN__
+            if (depth < estimatedFinalDepth) {
+                pathfinderProgress["estimatedProgress"] = static_cast<float>(depth) / estimatedFinalDepth;
+            } else {
+                pathfinderProgress["estimatedProgress"] = static_cast<float>(depth) / (depth + 1);
+            }
+            std::cout << pathfinderProgress << std::endl;
+#else
             std::cout << "BFS Depth: " << q.front()->depth << std::endl
             << "Duplicate states Avoided: " << dupesAvoided << std::endl
             << "States Discovered: " << visited.size() << std::endl
             << "States Processed: " << statesProcessed << std::endl
             << Lattice::ToString() << std::endl;
+#endif
 #if CONFIG_OUTPUT_JSON
             SearchAnalysis::EnterGraph("BFSDepthOverTime");
             SearchAnalysis::InsertTimePoint(depth);
@@ -312,6 +341,10 @@ std::vector<const Configuration*> ConfigurationSpace::BiDirectionalBFS(BDConfigu
     int statesProcessed = 0;
     int depthFromStart = 0;
     int depthFromFinal = 0;
+#if __EMSCRIPTEN__
+    int estimatedFinalDepth = static_cast<int>(std::max(start->CacheMoveOffsetPropertyDistance(final),
+                                                        final->CacheMoveOffsetPropertyDistance(start)));
+#endif
     std::queue<BDConfiguration*> q;
     std::unordered_set<HashedState> visited;
     q.push(start);
@@ -333,7 +366,17 @@ std::vector<const Configuration*> ConfigurationSpace::BiDirectionalBFS(BDConfigu
             } else {
                 depthFromFinal = q.front()->depth;
             }
-#if CONFIG_VERBOSE > CS_LOG_FINAL_DEPTH && !__EMSCRIPTEN__
+#if __EMSCRIPTEN__
+            if (depthFromStart + depthFromFinal > estimatedFinalDepth) {
+                estimatedFinalDepth++;
+            }
+#endif
+#if CONFIG_VERBOSE > CS_LOG_FINAL_DEPTH
+#if __EMSCRIPTEN__
+            pathfinderBDProgress["estimatedProgress_s"] = static_cast<float>(depthFromStart) / estimatedFinalDepth;
+            pathfinderBDProgress["estimatedProgress_t"] = static_cast<float>(depthFromFinal) / estimatedFinalDepth;
+            std::cout << pathfinderBDProgress << std::endl;
+#else
             std::cout << "BDBFS Depth: " << depthFromStart + depthFromFinal << std::endl
             << "Depth from initial configuration: " << depthFromStart << std::endl
             << "Depth from final configuration: " << depthFromFinal << std::endl
@@ -341,6 +384,7 @@ std::vector<const Configuration*> ConfigurationSpace::BiDirectionalBFS(BDConfigu
             << "States Discovered: " << visited.size() << std::endl
             << "States Processed: " << statesProcessed << std::endl
             << Lattice::ToString() << std::endl;
+#endif
 #if CONFIG_OUTPUT_JSON
             SearchAnalysis::EnterGraph("BDBFSDepthOverTime");
             SearchAnalysis::InsertTimePoint(depthFromStart + depthFromFinal);
@@ -664,17 +708,6 @@ float BDConfiguration::BDCacheMoveOffsetPropertyDistance(const Configuration* fi
     return h;
 }
 
-#if __EMSCRIPTEN__
-// TODO: If BDA* is made available in MRWT, will need a special loading bar for that
-auto pathfinderProgress = R"(
-{
-    "content": 0,
-    "depth": 0,
-    "estimatedDepth": -1
-}
-)"_json;
-#endif
-
 std::vector<const Configuration*> ConfigurationSpace::AStar(Configuration* start, const Configuration* final, const std::string& heuristic) {
 #if CONFIG_OUTPUT_JSON
     SearchAnalysis::EnterGraph("AStarDepthOverTime_" + heuristic);
@@ -760,8 +793,7 @@ std::vector<const Configuration*> ConfigurationSpace::AStar(Configuration* start
 #endif
 #if CONFIG_VERBOSE > CS_LOG_FINAL_DEPTH
 #if __EMSCRIPTEN__
-            pathfinderProgress["depth"] = current->depth;
-            pathfinderProgress["estimatedDepth"] = estimatedFinalDepth;
+            pathfinderProgress["estimatedProgress"] = static_cast<float>(depth) / estimatedFinalDepth;
             std::cout << pathfinderProgress << std::endl;
 #else
             std::cout << "A* Depth: " << current->depth << std::endl
@@ -801,9 +833,6 @@ std::vector<const Configuration*> ConfigurationSpace::AStar(Configuration* start
             estimatedFinalDepth = current->depth + static_cast<int>((current->*hFunc)(final));
 #endif
 #if __EMSCRIPTEN__
-            pathfinderProgress["depth"] = current->depth;
-            pathfinderProgress["estimatedDepth"] = estimatedFinalDepth;
-            std::cout << pathfinderProgress << std::endl;
             std::cout << "A* Final Depth: " << current->depth << std::endl;
 #else
             std::cout << "A* Final Depth: " << current->depth << std::endl
