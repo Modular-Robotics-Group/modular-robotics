@@ -295,7 +295,7 @@ export const zSliceController = gLayerGui.add(moduleBrush, 'zSlice', VisConfigDa
 
 // GUI element for Pathfinder and developer options
 export const gPathfinderGui = new GUI( { title: "Pathfinder", container: document.getElementById("controlBar") } ).close();
-export const gDevGui = new GUI( { title: "Dev Menu", width: 160, container: document.getElementById("controlBar") } ).close().hide();
+export const gModeGui = new GUI( { title: "Dev Menu", width: 160, container: document.getElementById("controlBar") } );
 
 document.addEventListener("DOMContentLoaded", async function () {
     // Visualizer Controls
@@ -344,7 +344,7 @@ document.addEventListener("DOMContentLoaded", async function () {
             heuristic_setter.hide();
         }
     });
-    gDevGui.add(window, '_toggleMRWTMode').name("MRWT Mode Toggle");
+    gModeGui.add(window, '_toggleMRWTMode').name("Toggle Painter/Viewer Mode");
     // Add event listener for module placement
     gCanvas.addEventListener('mousedown', (event) => {
         if (event.button === 0 && !(event.shiftKey || event.ctrlKey)) {

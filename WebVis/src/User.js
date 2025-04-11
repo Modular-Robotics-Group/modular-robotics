@@ -11,7 +11,6 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { gScene, gCanvas, gMiniCanvas, gUser, gRenderer, gMiniRenderer, gLights, toggleRenderMode } from "./main.js";
 import { CameraType, VisConfigData } from "./utils.js";
-import { gDevGui } from "./GUI.js";
 
 /* ****************************** */
 /* User class */
@@ -134,7 +133,6 @@ function keydown_input_callback(event) {
         case 'ArrowLeft': _requestBackwardAnim(); break;
         case 'M': toggleRenderMode(); break;
         case 'P': console.log(gRenderer.domElement); break;
-        case '`': gDevGui.show(); break;
         case `c`: selectModule(mx, my); break;
         default: break;
     }
