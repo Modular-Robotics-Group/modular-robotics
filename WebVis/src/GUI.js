@@ -295,7 +295,7 @@ export const zSliceController = gLayerGui.add(moduleBrush, 'zSlice', VisConfigDa
 
 // GUI element for Pathfinder and developer options
 export const gPathfinderGui = new GUI( { title: "Pathfinder", container: document.getElementById("controlBar") } ).close();
-export const gModeGui = new GUI( { title: "Dev Menu", width: 160, container: document.getElementById("controlBar") } );
+export const gModeGui = new GUI( { title: "View/Edit", width: 160, container: document.getElementById("controlBar") } );
 
 document.addEventListener("DOMContentLoaded", async function () {
     // Visualizer Controls
