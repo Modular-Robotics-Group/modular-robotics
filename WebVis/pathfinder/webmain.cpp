@@ -204,7 +204,6 @@ extern "C" {
         std::cout << "Modules cleaned." << std::endl << "Cleaning Moves..." << std::endl;
         Isometry::CleanupTransforms();
         std::cout << "Moves cleaned." << std::endl;
-        std::cout << "Output: " << scen.str() << std::endl;
         scen_str = scen.str();
         return scen_str.c_str();
     }

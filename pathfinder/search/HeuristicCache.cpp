@@ -48,18 +48,18 @@ ChebyshevHeuristicCache::ChebyshevHeuristicCache(const std::set<ModuleData>& des
             coordQueue.pop();
         }
     }
-    std::cout << "Weight Cache:";
+    LOG_NOWASM("Weight Cache:");
     for (int i = 0; i < weightCache.GetArrayInternal().size(); i++) {
-        if (i % Lattice::AxisSize() == 0) std::cout << std::endl;
+        if (i % Lattice::AxisSize() == 0) LOG_NOWASM(std::endl);
         if (weightCache.GetArrayInternal()[i] < 10) {
-            std::cout << weightCache.GetArrayInternal()[i];
+            LOG_NOWASM(weightCache.GetArrayInternal()[i]);
         } else if (weightCache.GetArrayInternal()[i] == INVALID_WEIGHT) {
-            std::cout << "#";
+            LOG_NOWASM("#");
         } else {
-            std::cout << " ";
+            LOG_NOWASM(" ");
         }
     }
-    std::cout << std::endl;
+    LOG_NOWASM(std::endl);
 }
 
 void ManhattanEnqueueAdjacentInternal(std::queue<SearchCoord>& coordQueue, const SearchCoord& coordInfo) {
@@ -112,7 +112,7 @@ void EnqueueAdjacentInternal(std::queue<SearchCoord>& coordQueue, const SearchCo
 CoordTensor<int> BuildInternalDistanceCache() {
     if (ModuleIdManager::StaticModules().empty()) {
         // No static modules to use in distance cache
-        std::cout << "No static modules available for distance cache!" << std::endl;
+        LOG_NOWASM("No static modules available for distance cache!" << std::endl);
         return { Lattice::Order(), Lattice::AxisSize(), 0 };
     }
     CoordTensor<int> cache(Lattice::Order(), Lattice::AxisSize(), INVALID_WEIGHT);
@@ -149,25 +149,25 @@ CoordTensor<int> BuildInternalDistanceCache() {
         }
     }
     // Print distance tensor
-    std::cout << "Distance Cache:";
+    LOG_NOWASM("Distance Cache:");
     for (int i = 0; i < cache.GetArrayInternal().size(); i++) {
-        if (i % Lattice::AxisSize() == 0) std::cout << std::endl;
+        if (i % Lattice::AxisSize() == 0) LOG_NOWASM(std::endl);
         if (cache.GetArrayInternal()[i] < 10) {
-            std::cout << cache.GetArrayInternal()[i];
+            LOG_NOWASM(cache.GetArrayInternal()[i]);
         } else if (cache.GetArrayInternal()[i] == INVALID_WEIGHT) {
             if (Lattice::coordTensor.GetElementDirect(i) >= ModuleIdManager::MinStaticID()) {
-                std::cout << "#";
+                LOG_NOWASM("#");
             } else {
 #if CONFIG_HEURISTIC_CACHE_OPTIMIZATION
                 Lattice::coordTensor.GetElementDirect(i) = OUT_OF_BOUNDS;
 #endif
-                std::cout << "⋅";
+                LOG_NOWASM("⋅");
             }
         } else {
-            std::cout << " ";
+            LOG_NOWASM(" ");
         }
     }
-    std::cout << std::endl;
+    LOG_NOWASM(std::endl);
     return cache;
 }
 
@@ -258,7 +258,7 @@ MoveOffsetHeuristicCache::MoveOffsetHeuristicCache(const std::set<ModuleData>& d
             coordQueue.pop();
         }
     }
-    std::cout << "Acquired Help Values." << std::endl;
+    LOG_NOWASM("Acquired Help Values." << std::endl);
 #endif
     // Populate weight tensor
     for (const auto& desiredModuleData : desiredState) {
@@ -285,25 +285,25 @@ MoveOffsetHeuristicCache::MoveOffsetHeuristicCache(const std::set<ModuleData>& d
         Lattice::coordTensor[mod.coords] = mod.id;
     }
     // Print weight tensor
-    std::cout << "Weight Cache:";
+    LOG_NOWASM("Weight Cache:");
     for (int i = 0; i < weightCache.GetArrayInternal().size(); i++) {
-        if (i % Lattice::AxisSize() == 0) std::cout << std::endl;
+        if (i % Lattice::AxisSize() == 0) LOG_NOWASM(std::endl);
         if (weightCache.GetArrayInternal()[i] < 10) {
-            std::cout << weightCache.GetArrayInternal()[i];
+            LOG_NOWASM(weightCache.GetArrayInternal()[i]);
         } else if (weightCache.GetArrayInternal()[i] == INVALID_WEIGHT) {
             if (Lattice::coordTensor.GetElementDirect(i) >= ModuleIdManager::MinStaticID()) {
-                std::cout << "#";
+                LOG_NOWASM("#");
             } else {
 #if CONFIG_HEURISTIC_CACHE_OPTIMIZATION
                 Lattice::coordTensor.GetElementDirect(i) = OUT_OF_BOUNDS;
 #endif
-                std::cout << "⋅";
+                LOG_NOWASM("⋅");
             }
         } else {
-            std::cout << " ";
+            LOG_NOWASM(" ");
         }
     }
-    std::cout << std::endl;
+    LOG_NOWASM(std::endl);
 }
 
 #if CONFIG_HEURISTIC_CACHE_HELP_LIMITATIONS
@@ -404,7 +404,7 @@ MoveOffsetPropertyHeuristicCache::MoveOffsetPropertyHeuristicCache(const std::se
             coordQueue.pop();
         }
     }
-    std::cout << "Acquired Help Values." << std::endl;
+    LOG_NOWASM("Acquired Help Values." << std::endl);
 #endif
     // Populate weight tensor
     for (const auto& desiredModuleData : desiredState) {
@@ -451,24 +451,24 @@ MoveOffsetPropertyHeuristicCache::MoveOffsetPropertyHeuristicCache(const std::se
     }
     // Print weight tensor
     auto maxIndex = propIndex * Lattice::coordTensor.GetArrayInternal().size();
-    std::cout << "Weight Cache:";
+    LOG_NOWASM("Weight Cache:");
     for (int i = 0; i < maxIndex; i++) {
-        if (i % Lattice::AxisSize() == 0) std::cout << std::endl;
+        if (i % Lattice::AxisSize() == 0) LOG_NOWASM(std::endl);
         if (weightCache.GetArrayInternal()[i] < 10) {
-            std::cout << weightCache.GetArrayInternal()[i];
+            LOG_NOWASM(weightCache.GetArrayInternal()[i]);
         } else if (weightCache.GetArrayInternal()[i] == INVALID_WEIGHT) {
             if (Lattice::coordTensor.GetArrayInternal()[i % Lattice::coordTensor.GetArrayInternal().size()] >= ModuleIdManager::MinStaticID()) {
-                std::cout << "#";
+                LOG_NOWASM("#");
             } else if (Lattice::coordTensor.GetArrayInternal()[i % Lattice::coordTensor.GetArrayInternal().size()] == OUT_OF_BOUNDS) {
-                std::cout << "⋅";
+                LOG_NOWASM("⋅");
             } else {
-                std::cout << "+";
+                LOG_NOWASM("+");
             }
         } else {
-            std::cout << " ";
+            LOG_NOWASM(" ");
         }
     }
-    std::cout << std::endl;
+    LOG_NOWASM(std::endl);
 }
 
 float MoveOffsetPropertyHeuristicCache::operator()(const std::valarray<int>& coords, std::uint_fast64_t propInt) const {

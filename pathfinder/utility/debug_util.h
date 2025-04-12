@@ -13,5 +13,11 @@
 #define DEBUGF(msg, ...) printf(msg, __VA_ARGS__)
 #define DEBUG(msg) std::cout << msg
 #endif
+// These will only run if non-wasm
+#if __EMSCRIPTEN__
+#define LOG_NOWASM(msg, ...)
+#else
+#define LOG_NOWASM(msg, ...) std::cout << msg
+#endif
 
 #endif //MODULAR_ROBOTICS_DEBUG_UTIL_H

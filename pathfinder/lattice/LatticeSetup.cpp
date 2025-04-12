@@ -96,7 +96,7 @@ void LatticeSetup::SetupFromJson(std::istream& is) {
         if (const auto& palette = ModuleProperties::CallFunction<const std::unordered_set<int>&>("Palette"); palette.empty()) {
             Lattice::ignoreProperties = true;
         } else if (palette.size() == 1) {
-            std::cout << "Only one color used, recommend rerunning with -i flag to improve performance." << std::endl;
+            std::cout << "Only one color used, recommend rerunning with -i flag to improve performance. ";
         }
     }
     std::cout << "Done." << std::endl << "\tInserting Modules...   ";
