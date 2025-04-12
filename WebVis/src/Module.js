@@ -85,8 +85,9 @@ export class Module {
         zSliceController.max(VisConfigData.bounds.z.max + 2);
         zSliceController.updateDisplay();
         if (gUser.cameraStyle === CameraType.ORTHOGRAPHIC) {
-            gUser.camera.position.z = 5.0 + Math.max(VisConfigData.bounds.z.max, VisConfigData.bounds.x.max);
+            gUser.camera.position.z = 5.0 + Math.max(VisConfigData.bounds.x.max, VisConfigData.bounds.y.max, VisConfigData.bounds.z.max);
         }
+        gUser.resetMiniCamera();
 
         // Update module ID data
         VisConfigData.nextModID = Math.max(VisConfigData.nextModID, id + 1);
@@ -118,8 +119,9 @@ export class Module {
         zSliceController.max(VisConfigData.bounds.z.max + 2);
         zSliceController.updateDisplay();
         if (gUser.cameraStyle === CameraType.ORTHOGRAPHIC) {
-            gUser.camera.position.z = 5.0 + Math.max(VisConfigData.bounds.z.max, VisConfigData.bounds.x.max);
+            gUser.camera.position.z = 5.0 + Math.max(VisConfigData.bounds.x.max, VisConfigData.bounds.y.max, VisConfigData.bounds.z.max);
         }
+        gUser.resetMiniCamera();
     }
 
     _setMeshMatrix(optionalPreTransform = new THREE.Matrix4()) {

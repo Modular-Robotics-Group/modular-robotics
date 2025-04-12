@@ -60,14 +60,19 @@ export class User {
     }
 
     resetMiniCamera() {
+        let initial_position = new THREE.Vector3(...window.gwScenarioCentroid);
+        if (this.miniCamera) {
+            initial_position.add(this.miniCamera.position).sub(this.miniControls.target);
+        } else {
+            initial_position.add(0.0, 0.0, 3.0);
+        }
         this.miniCamera = new THREE.PerspectiveCamera( 75, gMiniCanvas.clientWidth / gMiniCanvas.clientHeight, 0.1, 250.0 );
         this.miniCamera.layers.enable(2); // Layer 2 is for mini view exclusive content
-        this.miniCamera.position.x = window.gwScenarioCentroid.x;
-        this.miniCamera.position.y = window.gwScenarioCentroid.y;
-        this.miniCamera.position.z = window.gwScenarioCentroid.z + window.gwScenarioRadius + 3.0
+        this.miniCamera.position.set(...initial_position);
 
         this.miniControls = new OrbitControls(this.miniCamera, gMiniCanvas);
         this.miniControls.target.set(...window.gwScenarioCentroid);
+        this.miniControls.enablePan = false;
         this.miniCamera.add(this.miniHeadlamp);
         gScene.add(this.miniCamera);
     }

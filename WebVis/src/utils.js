@@ -1,4 +1,5 @@
 /* Enums and basic data structures */
+import * as THREE from 'three';
 import { gModulePositions } from "./main.js";
 
 export let moduleBrush = {
@@ -27,6 +28,20 @@ export let VisConfigData = {
             max: 0,
             min: 0
         }
+    },
+    getRadius: () => {
+        return Math.max(
+            VisConfigData.bounds.x.max - VisConfigData.bounds.x.min,
+            VisConfigData.bounds.y.max - VisConfigData.bounds.y.min,
+            VisConfigData.bounds.z.max - VisConfigData.bounds.z.min
+        );
+    },
+    getCentroid: () => {
+        return new THREE.Vector3(
+            VisConfigData.bounds.x.max - (VisConfigData.bounds.x.max - VisConfigData.bounds.x.min) / 2,
+            VisConfigData.bounds.y.max - (VisConfigData.bounds.y.max - VisConfigData.bounds.y.min) / 2,
+            VisConfigData.bounds.z.max - (VisConfigData.bounds.z.max - VisConfigData.bounds.z.min) / 2
+        );
     },
     updateBounds: (pos) => {
         // There's definitely a nicer way to do this, but it works, and it's easy enough to read
@@ -58,6 +73,8 @@ export let VisConfigData = {
                 VisConfigData.bounds.z.max = pos.z;
             }
         }
+        window.gwScenarioCentroid = VisConfigData.getCentroid();
+        window.gwScenarioRadius = VisConfigData.getRadius();
     },
     clearBounds: () => {
         VisConfigData.bounds.empty = true;
