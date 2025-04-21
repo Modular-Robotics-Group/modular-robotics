@@ -20,7 +20,7 @@ For more specific information about each step of the process, see the relevant t
 
 ## Install
 
-The functionality that used to be split among 3 tools has now been merged and made available from WebVis,
+The functionality that used to be split among 3 tools has now been merged and made available from [WebVis](https://Modular-Robotics-Group.github.io/modular-robotics/WebVis/index.html),
 which was consequently renamed to the Modular Robotics Web Tool. Since it is a web application, there is no
 need to install anything in order to use it.
 
