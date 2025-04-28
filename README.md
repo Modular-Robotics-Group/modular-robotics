@@ -12,19 +12,31 @@ Example use cases include:
 This section briefly describes how to find a shortest path between two configurations.
 For more specific information about each step of the process, see the relevant tools [wiki page](https://github.com/gShahr/modular-robotics/wiki).
 
-1. Set up initial and desired configurations using the [3D Tiler](https://Modular-Robotics-Group.github.io/modular-robotics/3DTiler/Index.html).
-2. Run [Pathfinder](https://github.com/Modular-Robotics-Group/modular-robotics/wiki/Pathfinder) with the configurations.
-3. Visualize the generated path in [WebVis](https://Modular-Robotics-Group.github.io/modular-robotics/WebVis/index.html).
+1. Set up initial and desired configurations using the module painter in [MRWT](https://Modular-Robotics-Group.github.io/modular-robotics/WebVis/index.html).
+2. Run the web version of Pathfinder from MRWT.
+    1. If the web version successfully finds a path, step 3 happens automatically.
+    2. Otherwise, try running the desktop version of [Pathfinder](https://github.com/Modular-Robotics-Group/modular-robotics/wiki/Pathfinder) with the configurations.
+3. Visualize the generated path in [MRWT](https://Modular-Robotics-Group.github.io/modular-robotics/WebVis/index.html)'s viewer mode.
 
 ## Install
 
-Both the 3D Tiler and WebVis are web applications, and as such do not need to be installed unless
+The functionality that used to be split among 3 tools has now been merged and made available from [WebVis](https://Modular-Robotics-Group.github.io/modular-robotics/WebVis/index.html),
+which was consequently renamed to the Modular Robotics Web Tool. Since it is a web application, there is no
+need to install anything in order to use it.
+
+In some cases you may still want to install and compile the desktop version of Pathfinder, especially when the
+reconfiguration causes the online version to run out of memory before it can find a path. The process for
+installing Pathfinder is described [here](https://github.com/Modular-Robotics-Group/modular-robotics/wiki/Pathfinder#compiling).
+
+<!---Both the 3D Tiler and WebVis are web applications, and as such do not need to be installed unless
 you need a local modified version. The process for building and running Pathfinder is described
-[here](https://github.com/Modular-Robotics-Group/modular-robotics/wiki/Pathfinder#compiling).
+[here](https://github.com/Modular-Robotics-Group/modular-robotics/wiki/Pathfinder#compiling).-->
 
 ## Modular Robotics Web Tool
 
-Modular Robotics Web Tool (MRWT) has two modes: viewer and painter mode. Viewer mode helps validate paths found using Pathfinder by animating the sequence of moves found. Painter mode allows us to plan out possible configurations in the MRWT.
+Modular Robotics Web Tool (MRWT) has two modes: viewer and painter mode. Viewer mode helps validate paths found using Pathfinder
+by animating the sequence of moves found. Painter mode allows us to plan out possible configurations in the MRWT. MRWT is also
+able to run a web version of Pathfinder.
 
 <p align="center">
   <!--<img src="https://github.com/user-attachments/assets/a5a6754b-7876-4b19-a570-a5dc63a21dd3" width="640">-->
@@ -41,7 +53,9 @@ Modular Robotics Web Tool (MRWT) has two modes: viewer and painter mode. Viewer 
 
 ## Pathfinder
 
-Pathfinder will find the shortest path between two configurations, if such a path exists.
+Pathfinder will find the shortest path between two configurations, if such a path exists. For most short reconfiguration sequences,
+the web version should be able to find the shortest path without any problems, but with longer sequences the desktop version is
+better suited for the task since it doesn't have such strict memory constraints.
 
 <p align="center">
   <img src="https://github.com/user-attachments/assets/58b9d604-ab7a-44ec-afe0-310fc28a0582" width="640"/>
@@ -56,6 +70,8 @@ Pathfinder will find the shortest path between two configurations, if such a pat
 [How to compile](https://github.com/Modular-Robotics-Group/modular-robotics/wiki/Pathfinder#compiling)
 
 ## 3DTiler
+
+**Note:** 3DTiler's functionality has been merged into MRWT.
 
 3DTiler can be used to set up configurations for modular robots, plan out possible configurations,
 or just make stuff out of cubes (or rhombic dodecahedra).
