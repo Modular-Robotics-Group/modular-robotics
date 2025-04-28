@@ -43,6 +43,26 @@
       "animSeq": [
         ["rd+x+z", [1, -1, 0]]
       ]
+    },
+    {
+      "name": "Catom 3",
+      "order": 3,
+      "def": [[
+        " x x",
+        "x x x",
+        " x x"
+      ], [
+        "  x",
+        " ? !",
+        "  x"
+      ], [
+        "",
+        "  #"
+      ]],
+      "permGen": true,
+      "animSeq": [
+        ["rd+x+z", [2, 0, 0]]
+      ]
     }
   ]
 }
