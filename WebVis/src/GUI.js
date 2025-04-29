@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
 import { Scenario } from './Scenario.js';
-import { gScene, gLights, gRenderer, gModules, gReferenceModule, gModulePositions, gCanvas, gHighlightModule } from './main.js';
-import { moduleBrush, pathfinderData, WorkerType, MessageType, ContentType, VisConfigData, ModuleType, getModuleAtPosition } from './utils.js';
+import { gScene, gLights, gRenderer, gModules, gModulePositions } from './main.js';
+import { moduleBrush, pathfinderData, VisConfigData, ModuleType, getModuleAtPosition } from './utils.js';
 import { CameraType } from "./utils.js";
 import { saveConfiguration, downloadConfiguration } from './utils.js';
-import { Module } from './Module.js';
+import { Module as ModuleClass } from './Module.js';
 
 // Exact filenames of example scenarios in /Scenarios/
 let EXAMPLE_SCENARIOS = [
@@ -85,40 +85,34 @@ class GuiGlobalsHelper {
 /* ****************************** */
 window._toggleBackgroundColor = function() {
     gScene._backgroundColorSelected = (gScene._backgroundColorSelected + 1) % gScene._backgroundColors.length
-    gRenderer.setClearColor(gScene._backgroundColors[gScene._backgroundColorSelected]);
+    gScene.background = gScene._backgroundColors[gScene._backgroundColorSelected];
 }
 window._toggleFullbright = function() {
     gLights._fullbright = !gLights._fullbright;
     gLights.lightAmbient.intensity = gLights._fullbright ? 3.0 : gLights._defaultAmbientIntensity;
     gLights.lightDirectional.intensity = gLights._fullbright ? 0 : gLights._defaultDirectionalIntensity;
     gLights.headlamp.intensity = gLights._fullbright ? 0 : gLights._defaultHeadlampIntensity;
-    gLights.miniHeadlamp.intensity = gLights._fullbright ? 0 : gLights._defaultMiniHeadlampIntensity;
 }
 
 // Painter Mode Toggle
 window._toggleMRWTMode = function() {
     window._isPainterModeActive = !window._isPainterModeActive;
-    
+
     // Toggle GUI elements visibility
     gAnimGui.show(gAnimGui._hidden);
     gScenGui.show(gScenGui._hidden);
     gModuleBrushGui.show(gModuleBrushGui._hidden);
     gLayerGui.show(gLayerGui._hidden);
-    
+
     if (window._isPainterModeActive) {
-        // Hide perspective controller and swap to ortho view
-        style_controller.hide();
         gwUser.cameraStyle = CameraType.ORTHOGRAPHIC;
         gwUser.resetCamera();
         // Update module visibility based on current z-slice
         updateVisibleModules(moduleBrush.zSlice);
-        // Reset move sequence to initial state
-        window.gwMoveSetSequence.reset();
-        
+
         // Configure controls for painter mode (panning only)
         setCameraControls(CAMERA_MODES.PAINTER);
     } else {
-        style_controller.show();
         // Show all modules when exiting painter mode
         showAllModules();
 
@@ -165,10 +159,6 @@ window._clearConfig = function() {
     // Reset Data
     VisConfigData.nextModID = 0;
     VisConfigData.clearBounds();
-
-    // Invalidate move sequence and reset progress bar
-    pathfinderProgressBar.style.width = "0%";
-    window.gwMoveSetSequence.invalidate();
 }
 
 /**
@@ -198,79 +188,15 @@ function _generateExampleLoader(name) {
 /* ****************************** */
 // TODO: I'm not sure this is the right place to put this functionality, feel free
 // to move it somewhere else if you can find a spot that makes more sense.
-let pathfinderWorker;
-let config2ScenWorker;
+const pathfinder = Module.cwrap("pathfinder", "string", ["string", "string", "string"]);
 let pathfinder_controller, heuristic_setter;
-const pathfinderProgressBar = document.getElementById("pathfinderProgressBar");
-const pathfinderReverseProgressBar = document.getElementById("pathfinderReverseProgressBar");
-const pathfinderStats = {
-    div: document.getElementById("statsDiv"),
-    found: document.getElementById("found"),
-    expanded: document.getElementById("expanded"),
-    unexpanded: document.getElementById("unexpanded")
-};
 
-window._pathfinderRun = function() {
-    if (window.Worker) {
-        pathfinderData.is_running = true;
-        pathfinder_controller.disable();
-        pathfinderProgressBar.style.width = "0%";
-        pathfinderReverseProgressBar.style.width = "0%";
-        if (pathfinderData.settings.search === 'BDBFS') {
-            pathfinderProgressBar.style.backgroundColor = "rgba(0, 255, 255, 0.5)";
-        }
-        if (pathfinderWorker != null) {
-            pathfinderWorker.terminate();
-        }
-        pathfinderWorker = new Worker("src/PathfinderWorker.js");
-        pathfinderWorker.onmessage = (msg) => {
-            switch(msg.data[0]) {
-                case MessageType.ERROR:
-                    pathfinderData.is_running = false;
-                    pathfinder_controller.enable();
-                    pathfinderProgressBar.style.backgroundColor = "rgba(255, 255, 255, 0.5)";
-                    pathfinderProgressBar.style.width = "0%";
-                    pathfinderReverseProgressBar.style.width = "0%";
-                    console.log("pathfinder task encountered an error.");
-                    pathfinderWorker.terminate();
-                    break;
-                case MessageType.RESULT:
-                    pathfinderData.is_running = false;
-                    pathfinder_controller.enable();
-                    pathfinderData.scen_out = msg.data[1];
-                    pathfinderWorker.terminate();
-                    // TODO: provide option to delay loading found path instead of always instantly loading
-                    new Scenario(pathfinderData.scen_out);
-                    pathfinderProgressBar.style.backgroundColor = "rgba(255, 255, 255, 0.5)";
-                    pathfinderProgressBar.style.width = "100%";
-                    pathfinderReverseProgressBar.style.width = "0%";
-                    break;
-                case MessageType.DATA:
-                    let data = JSON.parse(msg.data[1]);
-                    switch (data.content) {
-                        case ContentType.PATHFINDER_PROGRESS:
-                            pathfinderProgressBar.style.width = 100 * data.estimatedProgress + "%";
-                            break;
-                        case ContentType.PATHFINDER_BD_PROGRESS:
-                            pathfinderProgressBar.style.width = 100 * data.estimatedProgress_s + "%";
-                            pathfinderReverseProgressBar.style.width = 100 * data.estimatedProgress_t + "%";
-                            break;
-                        case ContentType.PATHFINDER_UPDATE:
-                            pathfinderStats.div.style.display = "block";
-                            pathfinderStats.found.innerText = data.found;
-                            pathfinderStats.expanded.innerText = data.expanded;
-                            pathfinderStats.unexpanded.innerText = data.unexpanded;
-                    }
-            }
-        }
-        pathfinderWorker.postMessage([
-            WorkerType.PATHFINDER, pathfinderData.config_i,
-            pathfinderData.config_f, JSON.stringify(pathfinderData.settings)
-        ]);
-        console.log("Started pathfinder task");
-    } else {
-        console.log("Browser does not support web workers.");
-    }
+window._pathfinderRun = async function() {
+    pathfinderData.is_running = true;
+    pathfinder_controller.disable();
+    pathfinderData.scen_out = pathfinder(pathfinderData.config_i, pathfinderData.config_f, JSON.stringify(pathfinderData.settings));
+    pathfinder_controller.enable();
+    new Scenario(pathfinderData.scen_out);
 }
 
 /* ****************************** */
@@ -278,7 +204,6 @@ window._pathfinderRun = function() {
 /* ****************************** */
 // GUI elements for general settings
 export const gGraphicsGui = new GUI( { title: "Graphics", width: 160, container: document.getElementById("controlBar") } ).close();
-let style_controller;
 
 // GUI elements for Visualizer Mode
 export const gAnimGui = new GUI( { title: "Animation", container: document.getElementById("controlBar") } );
@@ -287,6 +212,7 @@ export const gScenGui = new GUI( { title: "Scenario", container: document.getEle
 // GUI elements for Configurizer Mode
 export const gModuleBrushGui = new GUI( { title: "Brush", container: document.getElementById("controlBar") } ).hide();
 export const gLayerGui = new GUI( { title: "Layer", container: document.getElementById("controlBar") } ).hide();
+export const gSelectedModuleGui = new GUI( { title: "Selected Module", container: document.getElementById("controlBar") } ).hide();
 export const zSliceController = gLayerGui.add(moduleBrush, 'zSlice', VisConfigData.bounds.z.min - 2, VisConfigData.bounds.z.max + 2, 1).name("Layer").onChange((value) => {
     if (window._isPainterModeActive) {
         updateVisibleModules(value);
@@ -295,13 +221,17 @@ export const zSliceController = gLayerGui.add(moduleBrush, 'zSlice', VisConfigDa
 
 // GUI element for Pathfinder and developer options
 export const gPathfinderGui = new GUI( { title: "Pathfinder", container: document.getElementById("controlBar") } ).close();
-export const gModeGui = new GUI( { title: "View/Edit", width: 160, container: document.getElementById("controlBar") } );
+export const gDevGui = new GUI( { title: "Dev Menu", width: 160, container: document.getElementById("controlBar") } );
+
+// Global variables for module selection
+let selectedModule = null;
+const selectedModuleColor = { color: 0x808080 };
 
 document.addEventListener("DOMContentLoaded", async function () {
     // Visualizer Controls
     gAnimGui.add(new GuiGlobalsHelper('gwAnimSpeed', 1.0, SliderType.QUADRATIC), 'value', 0.0, 5.0, 0.1).name("Anim Speed");
     gAnimGui.add(new GuiGlobalsHelper('gwAutoAnimate', false), 'value').name("Auto Animate");
-    style_controller = gGraphicsGui.add(window.gwUser, 'toggleCameraStyle').name("Toggle Camera Style");
+    gGraphicsGui.add(window.gwUser, 'toggleCameraStyle').name("Toggle Camera Style");
     gGraphicsGui.add(window, '_toggleBackgroundColor').name("Toggle Background Color");
     gGraphicsGui.add(window, '_toggleFullbright').name("Toggle Fullbright");
     gAnimGui.add(window, '_requestForwardAnim').name("Step Forward");
@@ -314,27 +244,12 @@ document.addEventListener("DOMContentLoaded", async function () {
             updateVisibleModules(moduleBrush.zSlice);
         }
     });
-    gModuleBrushGui.add(moduleBrush, 'type', {
-            "Cube": ModuleType.CUBE,
-            "Rhombic Dodecahedron": ModuleType.RHOMBIC_DODECAHEDRON,
-            "Catom": ModuleType.CATOM
-        }).name("Module Type").onChange((value) => {
-            gReferenceModule.swapType(value);
-            gHighlightModule.swapType(value);
-    });
     gLayerGui.add(window, '_autoCenterConfig').name("Auto-Center Configuration")
     gLayerGui.add(window, '_clearConfig').name("Clear Configuration")
     // Pathfinder and debug Controls
     pathfinder_controller = gPathfinderGui.add(window, '_pathfinderRun').name("Run Pathfinder").disable();
     gPathfinderGui.add(pathfinderData.settings, 'name').name("Name");
     gPathfinderGui.add(pathfinderData.settings, 'description').name("Description");
-    gPathfinderGui.add(pathfinderData.settings, 'movePaths', {
-        "Pivoting Cube": [ "Moves/PivotCube" ],
-        "Sliding Cube": [ "Moves/SlideCube" ],
-        "NASA Cube": [ "Moves/SlideNASA" ],
-        "Rhombic Dodecahedron": [ "Moves/RhombicDodecahedron" ],
-        "Catom": [ "Moves/Catom" ]
-    }).name("Move Set");
     heuristic_setter = gPathfinderGui.add(pathfinderData.settings, 'heuristic',
         ['MRSH-1', 'Symmetric Difference', 'Manhattan Distance', 'Chebyshev Distance']).name("Heuristic");
     gPathfinderGui.add(pathfinderData.settings, 'search', ['A*', 'BDBFS']).name("Search Type").onChange((value) => {
@@ -344,9 +259,9 @@ document.addEventListener("DOMContentLoaded", async function () {
             heuristic_setter.hide();
         }
     });
-    gModeGui.add(window, '_toggleMRWTMode').name("Toggle Painter/Viewer Mode");
+    gDevGui.add(window, '_toggleMRWTMode').name("MRWT Mode Toggle");
     // Add event listener for module placement
-    gCanvas.addEventListener('mousedown', (event) => {
+    document.addEventListener('mousedown', (event) => {
         if (event.button === 0 && !(event.shiftKey || event.ctrlKey)) {
             window._mouseHeld = true;
             setDrawMode(event);
@@ -358,27 +273,10 @@ document.addEventListener("DOMContentLoaded", async function () {
             window._mouseHeld = false;
         }
     });
-    gCanvas.addEventListener('mouseleave', (event) => {
-        if (window._isPainterModeActive) {
-            gHighlightModule.hide();
-        }
-    });
-    gCanvas.addEventListener('mousemove', handleModulePlacement);
-    gCanvas.addEventListener('wheel', (event) => {
-        if (event.ctrlKey && window._isPainterModeActive) {
-            if (gwUser.controls.enableZoom) {
-                gwUser.controls.enableZoom = false;
-            }
-            moduleBrush.zSlice += Math.sign(event.deltaY);
-            zSliceController.updateDisplay();
-            updateVisibleModules(moduleBrush.zSlice);
-        } else {
-            gwUser.controls.enableZoom = true;
-        }
-    });
+    document.addEventListener('mousemove', handleModulePlacement);
 
     // Create configuration button controls using object literals
-    gPathfinderGui.add({ 
+    gPathfinderGui.add({
         saveInitial: function() {
             window._autoCenterConfig();
             saveConfiguration(true);
@@ -388,8 +286,8 @@ document.addEventListener("DOMContentLoaded", async function () {
             }
         }
     }, 'saveInitial').name("Save Initial Config");
-    
-    gPathfinderGui.add({ 
+
+    gPathfinderGui.add({
         saveFinal: function() {
             window._autoCenterConfig();
             saveConfiguration(false);
@@ -401,72 +299,12 @@ document.addEventListener("DOMContentLoaded", async function () {
     }, 'saveFinal').name("Save Final Config");
 
     gPathfinderGui.add({
-        loadInitial: function() {
-            if (window.Worker) {
-                if (config2ScenWorker != null) {
-                    config2ScenWorker.terminate();
-                }
-                config2ScenWorker = new Worker("src/PathfinderWorker.js");
-                config2ScenWorker.postMessage([WorkerType.CONFIG2SCEN, pathfinderData.config_i]);
-                config2ScenWorker.onmessage = (msg) => {
-                    switch (msg.data[0]) {
-                        case MessageType.ERROR:
-                            console.log("config2Scen task encountered an error.");
-                            config2ScenWorker.terminate();
-                            break;
-                        case MessageType.RESULT:
-                            config2ScenWorker.terminate();
-                            new Scenario(msg.data[1]);
-                            break;
-                        case MessageType.DATA:
-                            // Currently unused for config2Scen
-                            console.log(msg.data[1]);
-                    }
-                }
-                console.log("Started config2Scen task");
-            } else {
-                console.log("Browser does not support web workers.");
-            }
-        }
-    }, 'loadInitial').name("Load Initial Config");
-
-    gPathfinderGui.add({
-        loadFinal: function() {
-            if (window.Worker) {
-                if (config2ScenWorker != null) {
-                    config2ScenWorker.terminate();
-                }
-                config2ScenWorker = new Worker("src/PathfinderWorker.js");
-                config2ScenWorker.postMessage([WorkerType.CONFIG2SCEN, pathfinderData.config_f]);
-                config2ScenWorker.onmessage = (msg) => {
-                    switch (msg.data[0]) {
-                        case MessageType.ERROR:
-                            console.log("config2Scen task encountered an error.");
-                            config2ScenWorker.terminate();
-                            break;
-                        case MessageType.RESULT:
-                            config2ScenWorker.terminate();
-                            new Scenario(msg.data[1]);
-                            break;
-                        case MessageType.DATA:
-                            // Currently unused for config2Scen
-                            console.log(msg.data[1]);
-                    }
-                }
-                console.log("Started config2Scen task");
-            } else {
-                console.log("Browser does not support web workers.");
-            }
-        }
-    }, 'loadFinal').name("Load Final Config");
-    
-    gPathfinderGui.add({ 
         downloadInitial: function() {
             downloadConfiguration(true);
         }
     }, 'downloadInitial').name("Download Initial");
-    
-    gPathfinderGui.add({ 
+
+    gPathfinderGui.add({
         downloadFinal: function() {
             downloadConfiguration(false);
         }
@@ -479,23 +317,15 @@ document.addEventListener("DOMContentLoaded", async function () {
         _folder.add(_exampleLoaders, ex).name(ex);
     }
 
-    // Following code only works with certain server backends (that allow fetching directories).
-    //  Purpose was to automatically identify all elements in the /Scenarios/ subfolder.
-    //
-    // await fetch("./Scenarios/").then(async response => {
-    //     let scen, item, name, filepath;
-    //     let raw = await response.text();
-    //     let el = document.createElement('html');
-    //     el.innerHTML = raw;
-    //     let list = el.getElementsByClassName("file scen");
-    //     for (item in list) {
-    //         name = list[item].title;
-    //         if (!name) { continue; }
-    //         name = name.split('.')[0];
-    //         _exampleLoaders[name] = _generateExampleLoader(name);
-    //         _folder.add(_exampleLoaders, name).name(name);
-    //     }
-    // });
+    // Add color picker for selected module
+    gSelectedModuleGui.addColor(selectedModuleColor, 'color')
+        .name('Color')
+        .onChange((value) => {
+            if (selectedModule) {
+                selectedModule.color = value;
+                selectedModule.mesh.material.uniforms.diffuse.value.setFromColor(new THREE.Color(value));
+            }
+        });
 });
 
 /**
@@ -509,7 +339,7 @@ function updateVisibleModules(zSlice) {
     moduleIds.forEach((id) => {
         const module = gModules[id];
         const moduleZ = Math.round(module.pos.z);
-        
+
         updateModuleVisibility(module, moduleZ, zSlice);
     });
 }
@@ -525,15 +355,15 @@ function updateModuleVisibility(module, moduleZ, zSlice) {
     let isVisible = false;
     let opacity = OPACITY_SETTINGS.TRANSPARENT;
     let distance = Math.abs(moduleZ - zSlice);
-    
+
     const maxDistance = moduleBrush.adjSlicesVisible ? LAYER_SETTINGS.ADJACENT_DISTANCE : 0;
     isVisible = distance <= maxDistance;
-    
+
     // Set opacity based on visibility and whether it's the current slice
-    opacity = isVisible ? 
-        (isCurrentSlice ? OPACITY_SETTINGS.FULLY_OPAQUE : OPACITY_SETTINGS.ADJACENT_SLICE) : 
+    opacity = isVisible ?
+        (isCurrentSlice ? OPACITY_SETTINGS.FULLY_OPAQUE : OPACITY_SETTINGS.ADJACENT_SLICE) :
         OPACITY_SETTINGS.TRANSPARENT;
-    
+
     // Apply visibility and opacity settings
     module.visible = isVisible;
     module.mesh.material.uniforms.opacity = { value: opacity };
@@ -556,7 +386,7 @@ function showAllModules() {
     });
 }
 
-function getMousePosition(event) {
+function getClickPosition(event) {
     // Get the canvas element and its dimensions
     const canvas = gRenderer.domElement;
     const rect = canvas.getBoundingClientRect();
@@ -590,10 +420,11 @@ function setDrawMode(event) {
     if (!window._isPainterModeActive) return;
 
     // Set draw mode based on module presence
-    let mousePos = getMousePosition(event);
+    let clickPos = getClickPosition(event);
+    if (!clickPos) return;
 
-    const existingModule = getModuleAtPosition(mousePos.x, mousePos.y, mousePos.z);
-    if (!existingModule) {
+    let module = getModuleAtPosition(clickPos.x, clickPos.y, clickPos.z);
+    if (!module) {
         window._drawMode = DRAW_MODES.PLACE;
     } else {
         window._drawMode = DRAW_MODES.ERASE;
@@ -605,21 +436,23 @@ function setDrawMode(event) {
  * @param {MouseEvent} event - The mouse event
  */
 function handleModulePlacement(event) {
-    // Only paint modules when clicking on main view in painter mode
-    if (!window._isPainterModeActive) return;
+    // Only process left clicks when in MRWT mode
+    if (!window._mouseHeld || !window._isPainterModeActive) return;
 
-    if (document.elementFromPoint(event.clientX, event.clientY).id !== "mainView") {
-        gHighlightModule.hide();
-        return;
+    // Check if the click is on a UI element
+    const path = event.path || (event.composedPath && event.composedPath());
+    for (const element of path || []) {
+        if (element.classList &&
+            (element.classList.contains('lil-gui') ||
+             element.classList.contains('dg'))) {
+            return; // Click was on GUI, don't place a module
+        }
     }
 
-    gHighlightModule.show();
-    let mousePos = getMousePosition(event)
-    gHighlightModule.setPosition(mousePos);
+    let clickPos = getClickPosition(event);
+    if (!clickPos) return;
 
-    if (!window._mouseHeld) return;
-    
-    toggleModuleAtPosition(mousePos.x, mousePos.y, mousePos.z);
+    toggleModuleAtPosition(clickPos.x, clickPos.y, clickPos.z);
 }
 
 /**
@@ -629,30 +462,70 @@ function handleModulePlacement(event) {
  * @param {number} z - Z grid position
  */
 function toggleModuleAtPosition(x, y, z) {
-    const existingModule = getModuleAtPosition(x, y, z);
-
-    // Invalidate move sequence and reset progress bar
-    pathfinderProgressBar.style.width = "0%";
-    window.gwMoveSetSequence.invalidate();
-
-    if (!existingModule && window._drawMode === DRAW_MODES.PLACE) {
+    let module = getModuleAtPosition(x, y, z);
+    if (!module && window._drawMode === DRAW_MODES.PLACE) {
         // Create a new module at the position
-        const pos = new THREE.Vector3(x, y, z);
-
-        // Convert moduleBrush.color (which is an object with r,g,b properties) to a THREE.Color
-        const color = new THREE.Color(
-            moduleBrush.color.r,
-            moduleBrush.color.g,
-            moduleBrush.color.b
-        );
-
-        const module = new Module(moduleBrush.type, VisConfigData.nextModID, pos, color.getHex(), MODULE_SETTINGS.SCALE);
-
+        let pos = new THREE.Vector3(x, y, z);
+        let module = new ModuleClass(ModuleType.CUBE, VisConfigData.nextModID, pos, moduleBrush.color, MODULE_SETTINGS.SCALE);
         if (moduleBrush.static) {
             module.markStatic();
         }
         updateModuleVisibility(module, z, moduleBrush.zSlice);
-    } else if (existingModule && window._drawMode === DRAW_MODES.ERASE) {
-        gModules[existingModule.id].destroy();
+    } else if (module && window._drawMode === DRAW_MODES.ERASE) {
+        gModules[module.id].destroy();
+    }
+}
+
+// Add click handler for module selection
+document.addEventListener('click', (event) => {
+    // Only handle selection if not in painter mode
+    if (window._isPainterModeActive) return;
+
+    // Check if click is on GUI
+    const path = event.path || (event.composedPath && event.composedPath());
+    for (const element of path || []) {
+        if (element.classList &&
+            (element.classList.contains('lil-gui') ||
+             element.classList.contains('dg'))) {
+            return; // Click was on GUI, don't handle selection
+        }
+    }
+
+    // Get mouse position in normalized device coordinates
+    const mouse = new THREE.Vector2();
+    const rect = gRenderer.domElement.getBoundingClientRect();
+    mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+    mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+    // Create raycaster
+    const raycaster = new THREE.Raycaster();
+    raycaster.setFromCamera(mouse, gwUser.camera);
+
+    // Get all module meshes
+    const moduleMeshes = Object.values(gModules).map(module => module.mesh);
+
+    // Find intersections
+    const intersects = raycaster.intersectObjects(moduleMeshes);
+
+    if (intersects.length > 0) {
+        // Find the module that owns the intersected mesh
+        const intersectedModule = Object.values(gModules).find(module =>
+            module.mesh === intersects[0].object
+        );
+        selectModule(intersectedModule);
+    } else {
+        selectModule(null);
+    }
+});
+
+// Add module selection functionality
+function selectModule(module) {
+    selectedModule = module;
+    if (module) {
+        selectedModuleColor.color = module.color;
+        gSelectedModuleGui.show();
+        gSelectedModuleGui.updateDisplay();
+    } else {
+        gSelectedModuleGui.hide();
     }
 }
