@@ -98,13 +98,13 @@ window._toggleFullbright = function() {
 // Painter Mode Toggle
 window._toggleMRWTMode = function() {
     window._isPainterModeActive = !window._isPainterModeActive;
-
+    
     // Toggle GUI elements visibility
     gAnimGui.show(gAnimGui._hidden);
     gScenGui.show(gScenGui._hidden);
     gModuleBrushGui.show(gModuleBrushGui._hidden);
     gLayerGui.show(gLayerGui._hidden);
-
+    
     if (window._isPainterModeActive) {
         // Hide perspective controller and swap to ortho view
         style_controller.hide();
@@ -114,7 +114,7 @@ window._toggleMRWTMode = function() {
         updateVisibleModules(moduleBrush.zSlice);
         // Reset move sequence to initial state
         window.gwMoveSetSequence.reset();
-
+        
         // Configure controls for painter mode (panning only)
         setCameraControls(CAMERA_MODES.PAINTER);
     } else {
@@ -198,7 +198,6 @@ function _generateExampleLoader(name) {
 /* ****************************** */
 // TODO: I'm not sure this is the right place to put this functionality, feel free
 // to move it somewhere else if you can find a spot that makes more sense.
-const pathfinder = Module.cwrap("pathfinder", "string", ["string", "string", "string"]);
 let pathfinderWorker;
 let config2ScenWorker;
 let pathfinder_controller, heuristic_setter;
@@ -379,7 +378,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     });
 
     // Create configuration button controls using object literals
-    gPathfinderGui.add({
+    gPathfinderGui.add({ 
         saveInitial: function() {
             window._autoCenterConfig();
             saveConfiguration(true);
@@ -389,8 +388,8 @@ document.addEventListener("DOMContentLoaded", async function () {
             }
         }
     }, 'saveInitial').name("Save Initial Config");
-
-    gPathfinderGui.add({
+    
+    gPathfinderGui.add({ 
         saveFinal: function() {
             window._autoCenterConfig();
             saveConfiguration(false);
@@ -460,14 +459,14 @@ document.addEventListener("DOMContentLoaded", async function () {
             }
         }
     }, 'loadFinal').name("Load Final Config");
-
-    gPathfinderGui.add({
+    
+    gPathfinderGui.add({ 
         downloadInitial: function() {
             downloadConfiguration(true);
         }
     }, 'downloadInitial').name("Download Initial");
-
-    gPathfinderGui.add({
+    
+    gPathfinderGui.add({ 
         downloadFinal: function() {
             downloadConfiguration(false);
         }
@@ -510,7 +509,7 @@ function updateVisibleModules(zSlice) {
     moduleIds.forEach((id) => {
         const module = gModules[id];
         const moduleZ = Math.round(module.pos.z);
-
+        
         updateModuleVisibility(module, moduleZ, zSlice);
     });
 }
@@ -526,15 +525,15 @@ function updateModuleVisibility(module, moduleZ, zSlice) {
     let isVisible = false;
     let opacity = OPACITY_SETTINGS.TRANSPARENT;
     let distance = Math.abs(moduleZ - zSlice);
-
+    
     const maxDistance = moduleBrush.adjSlicesVisible ? LAYER_SETTINGS.ADJACENT_DISTANCE : 0;
     isVisible = distance <= maxDistance;
-
+    
     // Set opacity based on visibility and whether it's the current slice
-    opacity = isVisible ?
-        (isCurrentSlice ? OPACITY_SETTINGS.FULLY_OPAQUE : OPACITY_SETTINGS.ADJACENT_SLICE) :
+    opacity = isVisible ? 
+        (isCurrentSlice ? OPACITY_SETTINGS.FULLY_OPAQUE : OPACITY_SETTINGS.ADJACENT_SLICE) : 
         OPACITY_SETTINGS.TRANSPARENT;
-
+    
     // Apply visibility and opacity settings
     module.visible = isVisible;
     module.mesh.material.uniforms.opacity = { value: opacity };
@@ -619,7 +618,7 @@ function handleModulePlacement(event) {
     gHighlightModule.setPosition(mousePos);
 
     if (!window._mouseHeld) return;
-
+    
     toggleModuleAtPosition(mousePos.x, mousePos.y, mousePos.z);
 }
 
