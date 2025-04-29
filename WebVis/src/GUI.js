@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
 import { Scenario } from './Scenario.js';
 import { gScene, gLights, gRenderer, gModules, gReferenceModule, gModulePositions, gCanvas, gHighlightModule } from './main.js';
- import { moduleBrush, pathfinderData, WorkerType, MessageType, ContentType, VisConfigData, ModuleType, getModuleAtPosition } from './utils.js';
+import { moduleBrush, pathfinderData, WorkerType, MessageType, ContentType, VisConfigData, ModuleType, getModuleAtPosition } from './utils.js';
 import { CameraType } from "./utils.js";
 import { saveConfiguration, downloadConfiguration } from './utils.js';
 import { Module } from './Module.js';
@@ -637,7 +637,6 @@ function toggleModuleAtPosition(x, y, z) {
             moduleBrush.color.g,
             moduleBrush.color.b
         );
-
         const module = new Module(moduleBrush.type, VisConfigData.nextModID, pos, color.getHex(), MODULE_SETTINGS.SCALE);
         if (moduleBrush.static) {
             module.markStatic();
