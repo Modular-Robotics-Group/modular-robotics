@@ -5,6 +5,7 @@
 #include <iostream>
 #include <valarray>
 #include "Lattice.h"
+#include "../moves/MoveManager.h"
 #include "../search/ConfigurationSpace.h"
 
 #ifndef FLIP_Y_COORD
@@ -62,15 +63,14 @@ void LatticeSetup::Preprocess(std::istream& is_s, std::istream& is_t) {
         preInitData.fullNonStatic = true;
     } else {
         preInitData.fullNonStatic = false;
-        int staticSize = 1;
+        int staticSize = 0;
         for (int i = 0; i < order; i++) {
             if (const int staticAxisSize = maxStaticCoords[i] - minStaticCoords[i]; staticAxisSize > staticSize) {
                 staticSize = staticAxisSize;
             }
         }
-        preInitData.staticConfigSize = staticSize;
-        std::ranges::transform(minStaticCoords, minStaticCoords.begin(),
-                               [](const int coord) { return -coord; });
+        preInitData.staticConfigSize = staticSize + 1;
+        std::ranges::transform(minStaticCoords, minStaticCoords.begin(), [](const int coord) { return -coord; });
         const std::valarray<int> zero_offset(minStaticCoords.data(), minStaticCoords.size());
         preInitData.staticZeroOffset_s = zero_offset;
     }
@@ -139,11 +139,9 @@ void LatticeSetup::SetupFromJson(std::istream& is) {
     nlohmann::json j;
     is >> j;
     std::cout << "\tCreating Lattice...   ";
-    if (j.contains("tensorPadding")) {
-        Lattice::InitLattice(j["order"], j["axisSize"], j["tensorPadding"]);
-    } else {
-        Lattice::InitLattice(j["order"], j["axisSize"]);
-    }
+    const int axisSize = preInitData.staticConfigSize + 2 * preInitData.maxConnectionDistance * preInitData.nonStaticCount;
+    const int paddingSize = MoveManager::MaxDistance();
+    Lattice::InitLattice(j["order"], axisSize, paddingSize);
     std::cout << "Done." << std::endl << "\tConfiguring Adjacency Checks...   ";
     if (adjCheckOverride == NONE) {
         if (j.contains("adjacencyMode")) {
@@ -182,10 +180,12 @@ void LatticeSetup::SetupFromJson(std::istream& is) {
     std::cout << "Done." << std::endl << "\tConstructing Non-Static Modules...   ";
     for (const auto& module : j["modules"]) {
         std::vector<int> position = module["position"];
-        std::transform(position.begin(), position.end(), position.begin(),
-                    [](const int coord) { return coord; });
+        std::ranges::transform(position, position.begin(), [](const int coord) {
+            return coord + preInitData.maxConnectionDistance * preInitData.nonStaticCount;
+        });
         std::valarray<int> coords(position.data(), position.size());
         coords += Lattice::boundaryOffset;
+        coords += preInitData.staticZeroOffset_s;
 #if FLIP_Y_COORD
         coords[1] = Lattice::AxisSize() - coords[1] - 1;
 #endif
@@ -252,10 +252,12 @@ Configuration LatticeSetup::SetupFinalFromJson(std::istream& is) {
     for (const auto& module : j["modules"]) {
         if (module["static"] == true) continue;
         std::vector<int> position = module["position"];
-        std::transform(position.begin(), position.end(), position.begin(),
-                    [](const int coord) { return coord; });
+        std::ranges::transform(position, position.begin(), [](const int coord) {
+            return coord + preInitData.maxConnectionDistance * preInitData.nonStaticCount;
+        });
         std::valarray<int> coords(position.data(), position.size());
         coords += Lattice::boundaryOffset;
+        coords += preInitData.staticZeroOffset_t;
 #if FLIP_Y_COORD
         coords[1] = Lattice::AxisSize() - coords[1] - 1;
 #endif

@@ -157,6 +157,16 @@ int main(int argc, char* argv[]) {
     }
 #endif
 
+    // Preprocess moves
+    if (movesFolder.empty()) {
+        MoveManager::PreprocessMoves();
+    } else {
+        MoveManager::PreprocessMoves(movesFolder);
+    }
+
+    // Preprocess configurations
+    LatticeSetup::Preprocess(initialFile, finalFile);
+
     // Set up Lattice
     std::cout << "Initializing Lattice..." << std::endl;
     // Set up edge-check override if needed
