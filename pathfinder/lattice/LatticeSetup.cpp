@@ -11,7 +11,98 @@
 #define FLIP_Y_COORD false
 #endif
 
+ConfigPreprocessData LatticeSetup::preprocessData;
+
 AdjOverride LatticeSetup::adjCheckOverride = NONE;
+
+void LatticeSetup::Preprocess(const std::string& filename_s, const std::string& filename_t) {
+    std::ifstream file_s(filename_s);
+    if (!file_s.is_open()) {
+        std::cerr << "Unable to open file " << filename_s << std::endl;
+        return;
+    }
+    std::ifstream file_t(filename_t);
+    if (!file_t.is_open()) {
+        std::cerr << "Unable to open file " << filename_t << std::endl;
+        return;
+    }
+    Preprocess(file_s, file_t);
+    file_s.close();
+    file_t.close();
+}
+
+void LatticeSetup::Preprocess(std::istream& is_s, std::istream& is_t) {
+    // Preprocess initial state
+    nlohmann::json j_s;
+    is_s >> j_s;
+    int order = j_s["order"];
+    std::vector<int> minStaticCoords(order);
+    std::vector<int> maxStaticCoords(order);
+    bool staticCoordsInitialized = false;
+    DEBUG("Preprocessing initial state..." << std::endl);
+    for (const auto& module : j_s["modules"]) {
+        std::vector<int> position = module["position"];
+        if (module["static"]) {
+            if (!staticCoordsInitialized) {
+                minStaticCoords = position;
+                maxStaticCoords = position;
+                staticCoordsInitialized = true;
+            } else for (int i = 0; i < order; i++) {
+                if (position[i] < minStaticCoords[i]) {
+                    minStaticCoords[i] = position[i];
+                } else if (position[i] > maxStaticCoords[i]) {
+                    maxStaticCoords[i] = position[i];
+                }
+            }
+        } else {
+            preprocessData.nonStaticCount++;
+        }
+    }
+    if (!staticCoordsInitialized) {
+        preprocessData.fullNonStatic = true;
+    } else {
+        preprocessData.fullNonStatic = false;
+        int staticSize = 1;
+        for (int i = 0; i < order; i++) {
+            if (const int staticAxisSize = maxStaticCoords[i] - minStaticCoords[i]; staticAxisSize > staticSize) {
+                staticSize = staticAxisSize;
+            }
+        }
+        preprocessData.staticConfigSize = staticSize;
+        std::ranges::transform(minStaticCoords, minStaticCoords.begin(),
+                               [](const int coord) { return -coord; });
+        const std::valarray<int> zero_offset(minStaticCoords.data(), minStaticCoords.size());
+        preprocessData.staticZeroOffset_s = zero_offset;
+    }
+    // Preprocess final state
+    nlohmann::json j_t;
+    is_s >> j_t;
+    staticCoordsInitialized = false;
+    DEBUG("Preprocessing final state..." << std::endl);
+    for (const auto& module : j_t["modules"]) {
+        std::vector<int> position = module["position"];
+        if (module["static"]) {
+            if (!staticCoordsInitialized) {
+                minStaticCoords = position;
+                maxStaticCoords = position;
+                staticCoordsInitialized = true;
+            } else for (int i = 0; i < order; i++) {
+                if (position[i] < minStaticCoords[i]) {
+                    minStaticCoords[i] = position[i];
+                } else if (position[i] > maxStaticCoords[i]) {
+                    maxStaticCoords[i] = position[i];
+                }
+            }
+        }
+    }
+    if (!preprocessData.fullNonStatic) {
+        std::ranges::transform(minStaticCoords, minStaticCoords.begin(),
+                               [](const int coord) { return -coord; });
+        const std::valarray<int> zero_offset(minStaticCoords.data(), minStaticCoords.size());
+        preprocessData.staticZeroOffset_t = zero_offset;
+    }
+    DEBUG("Preprocessing complete." << std::endl);
+}
 
 void LatticeSetup::SetupFromJson(const std::string& filename) {
     std::ifstream file(filename);
