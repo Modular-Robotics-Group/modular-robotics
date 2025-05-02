@@ -62,7 +62,7 @@ jobs:
         echo "build-output-dir=${{ github.workspace }}/build" >> "$GITHUB_OUTPUT"
 
     - name: Install Boost (Windows)
-      run: vcpkg install boost-system boost-filesystem boost-dll boost-any boost-container-hash boost-smart-ptr boost-format
+      run: vcpkg install
       shell: pwsh
       if: matrix.os == 'windows-latest'
 
@@ -72,7 +72,7 @@ jobs:
       if: matrix.os == 'ubuntu-latest'
 
     - name: Install Boost (MacOS)
-      run: brew install boost
+      run: brew install boost@1.85
       shell: bash
       if: matrix.os == 'macos-latest'
 
