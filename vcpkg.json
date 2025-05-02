@@ -1,0 +1,12 @@
+{
+  "dependencies": [ "boost-system", "boost-filesystem", "boost-dll", "boost-any", "boost-container-hash", "boost-smart-ptr", "boost-format" ],
+  "overrides": [
+    { "name": "boost-system", "version": "1.83.0" },
+    { "name": "boost-filesystem", "version": "1.83.0" },
+    { "name": "boost-dll", "version": "1.83.0" },
+    { "name": "boost-any", "version": "1.83.0" },
+    { "name": "boost-container-hash", "version": "1.83.0" },
+    { "name": "boost-smart-ptr", "version": "1.83.0" },
+    { "name": "boost-format", "version": "1.83.0" }
+  ]
+}
