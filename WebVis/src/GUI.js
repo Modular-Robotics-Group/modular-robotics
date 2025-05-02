@@ -606,12 +606,13 @@ function handleModulePlacement(event) {
         gHighlightModule.hide();
         return;
     }
-    gHighlightModule.show();
     let mousePos = getMousePosition(event)
-    gHighlightModule.setPosition(mousePos);
-    if (!window._mouseHeld) return;
-
-    toggleModuleAtPosition(mousePos.x, mousePos.y, mousePos.z);
+    if (moduleBrush.type === 0 || (mousePos.x + mousePos.y + mousePos.z) % 2 === 0) {
+        gHighlightModule.setPosition(mousePos);
+        gHighlightModule.show();
+    }
+    if (!window._mouseHeld || !gHighlightModule.mesh.visible) return;
+    toggleModuleAtPosition(gHighlightModule.parentMesh.position.x, gHighlightModule.parentMesh.position.y, gHighlightModule.parentMesh.position.z);
 }
 
 /**
