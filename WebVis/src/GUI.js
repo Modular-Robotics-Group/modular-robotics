@@ -201,15 +201,15 @@ let config2ScenWorker;
 let pathfinder_controller, heuristic_setter;
 
 const pathfinderProgressBar = document.getElementById("pathfinderProgressBar");
- const pathfinderReverseProgressBar = document.getElementById("pathfinderReverseProgressBar");
- const pathfinderStats = {
-     div: document.getElementById("statsDiv"),
-     found: document.getElementById("found"),
-     expanded: document.getElementById("expanded"),
-     unexpanded: document.getElementById("unexpanded")
- };
+const pathfinderReverseProgressBar = document.getElementById("pathfinderReverseProgressBar");
+const pathfinderStats = {
+    div: document.getElementById("statsDiv"),
+    found: document.getElementById("found"),
+    expanded: document.getElementById("expanded"),
+    unexpanded: document.getElementById("unexpanded")
+};
 
- window._pathfinderRun = function() {
+window._pathfinderRun = function() {
     if (window.Worker) {
         pathfinderData.is_running = true;
         pathfinder_controller.disable();
@@ -599,7 +599,7 @@ function setDrawMode(event) {
  * @param {MouseEvent} event - The mouse event
  */
 function handleModulePlacement(event) {
-    // Only process left clicks when in MRWT mode
+    // Only paint modules when clicking on main view in painter mode
     if (!window._isPainterModeActive) return;
 
     if (document.elementFromPoint(event.clientX, event.clientY).id !== "mainView") {
