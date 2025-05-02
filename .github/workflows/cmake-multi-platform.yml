@@ -71,6 +71,11 @@ jobs:
       shell: bash
       if: matrix.os == 'macos-latest'
 
+    - name: Configure Boost (MacOS)
+      run: brew link boost@1.85
+      shell: bash
+      if: matrix.os == 'macos-latest'
+
     - name: Install Nlohmann-JSON (Ubuntu)
       run: sudo apt install nlohmann-json3-dev
       shell: bash
