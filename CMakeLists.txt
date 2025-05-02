@@ -21,7 +21,7 @@ if(${LINK_TBB})
     find_package(TBB REQUIRED COMPONENTS tbb)
 endif()
 
-find_package(Boost REQUIRED COMPONENTS filesystem system)
+find_package(Boost 1.83 REQUIRED COMPONENTS filesystem system)
 if(Boost_FOUND)
     include_directories(${Boost_INCLUDE_DIRS})
 endif()
