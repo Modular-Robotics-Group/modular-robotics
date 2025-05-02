@@ -8,5 +8,6 @@
     { "name": "boost-container-hash", "version": "1.83.0" },
     { "name": "boost-smart-ptr", "version": "1.83.0" },
     { "name": "boost-format", "version": "1.83.0" }
-  ]
+  ],
+  "builtin-baseline": "caa7579a1c48e2ca770f6ccf98cb03db95642631"
 }
