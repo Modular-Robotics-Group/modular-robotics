@@ -243,10 +243,15 @@ private:
     static std::vector<MoveBase*> _movesToFree;
     // Vector containing all move offsets
     static std::vector<std::valarray<int>> _offsets;
+    // Int representing maximum (Chebyshev) distance a move can cover
+    static int _maxDist;
 public:
     // Never instantiate MoveManager
     MoveManager() = delete;
     MoveManager(const MoveManager&) = delete;
+
+    // Preprocess moves
+    static void PreprocessMoves(const std::string& movePath = "Moves/");
 
     // Initialize Move Manager
     static void InitMoveManager(int order, int maxDistance);
@@ -277,6 +282,9 @@ public:
 
     // Get a vector of pairs of modules to move and moves to make in order to reach an adjacent state
     static std::vector<std::pair<Module*, MoveBase*>> FindParallelMovesToState(const std::set<ModuleData>& modData);
+
+    // Get maximum Chebyshev distance a move can cover
+    static const int MaxDistance();
 
     friend class MoveOffsetHeuristicCache;
 

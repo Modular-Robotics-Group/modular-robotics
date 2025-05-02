@@ -700,6 +700,45 @@ bool Move3d::MoveCheck(const CoordTensor<int>& tensor, const Module& mod) {
 std::vector<MoveBase*> MoveManager::_moves;
 CoordTensor<std::vector<MoveBase*>> MoveManager::_movesByOffset(1, 1, {});
 std::vector<std::valarray<int>> MoveManager::_offsets;
+int MoveManager::_maxDist = 0;
+
+void MoveManager::PreprocessMoves(const std::string& movePath) {
+    nlohmann::json moveJson;
+    for (const auto& moveFile : std::filesystem::recursive_directory_iterator(movePath)) {
+        if (!moveFile.is_regular_file()) continue;
+        std::ifstream(moveFile.path()) >> moveJson;
+        for (const auto& moveDef : moveJson["moves"]) {
+            int x = 0, y = 0, z = 0;
+            int xMax = 0, yMax = 0, zMax = 0;
+            int xIni = 0, yIni = 0, zIni = 0;
+            for (const std::vector<std::string> slice : moveDef["def"]) {
+                for (const auto& line : slice) {
+                    for (const auto c: line) {
+                        if (c == Move::NOCHECK) {
+                            x++;
+                            continue;
+                        } else if (c == Move::INITIAL) {
+                            xIni = x;
+                            yIni = y;
+                            zIni = z;
+                            x++;
+                            continue;
+                        }
+                        xMax = std::max(xMax, x);
+                        yMax = std::max(yMax, y);
+                        zMax = std::max(zMax, z);
+                        x++;
+                    }
+                    x = 0;
+                    y++;
+                }
+                y = 0;
+                z++;
+            }
+            _maxDist = std::max({_maxDist, xIni, xMax - xIni, yIni, yMax - yIni, zIni, zMax - zIni});
+        }
+    }
+}
 
 void MoveManager::InitMoveManager(const int order, const int maxDistance) {
     _movesByOffset = std::move(CoordTensor<std::vector<MoveBase*>>(order, 2 * maxDistance,
@@ -1251,3 +1290,8 @@ std::vector<std::pair<Module*, MoveBase*>> MoveManager::FindParallelMovesToState
     }
     return parallelMoves;
 }
+
+const int MoveManager::MaxDistance() {
+    return _maxDist;
+}
+
