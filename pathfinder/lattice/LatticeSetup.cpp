@@ -11,7 +11,7 @@
 #define FLIP_Y_COORD false
 #endif
 
-ConfigPreprocessData LatticeSetup::preprocessData;
+ConfigPreprocessData LatticeSetup::preInitData;
 
 AdjOverride LatticeSetup::adjCheckOverride = NONE;
 
@@ -55,24 +55,24 @@ void LatticeSetup::Preprocess(std::istream& is_s, std::istream& is_t) {
                 }
             }
         } else {
-            preprocessData.nonStaticCount++;
+            preInitData.nonStaticCount++;
         }
     }
     if (!staticCoordsInitialized) {
-        preprocessData.fullNonStatic = true;
+        preInitData.fullNonStatic = true;
     } else {
-        preprocessData.fullNonStatic = false;
+        preInitData.fullNonStatic = false;
         int staticSize = 1;
         for (int i = 0; i < order; i++) {
             if (const int staticAxisSize = maxStaticCoords[i] - minStaticCoords[i]; staticAxisSize > staticSize) {
                 staticSize = staticAxisSize;
             }
         }
-        preprocessData.staticConfigSize = staticSize;
+        preInitData.staticConfigSize = staticSize;
         std::ranges::transform(minStaticCoords, minStaticCoords.begin(),
                                [](const int coord) { return -coord; });
         const std::valarray<int> zero_offset(minStaticCoords.data(), minStaticCoords.size());
-        preprocessData.staticZeroOffset_s = zero_offset;
+        preInitData.staticZeroOffset_s = zero_offset;
     }
     if (j_s.contains("adjacencyOffsets")) {
         int maxConnectDist = 0;
@@ -83,9 +83,9 @@ void LatticeSetup::Preprocess(std::istream& is_s, std::istream& is_t) {
                 }
             }
         }
-        preprocessData.maxConnectionDistance = maxConnectDist;
+        preInitData.maxConnectionDistance = maxConnectDist;
     } else {
-        preprocessData.maxConnectionDistance = 1;
+        preInitData.maxConnectionDistance = 1;
     }
     // Preprocess final state
     nlohmann::json j_t;
@@ -108,15 +108,15 @@ void LatticeSetup::Preprocess(std::istream& is_s, std::istream& is_t) {
             }
         }
     }
-    if (!preprocessData.fullNonStatic) {
+    if (!preInitData.fullNonStatic) {
         if (!staticCoordsInitialized) {
             // No static modules given in final state, have to assume offset is same
-            preprocessData.staticZeroOffset_t = preprocessData.staticZeroOffset_s;
+            preInitData.staticZeroOffset_t = preInitData.staticZeroOffset_s;
         } else {
             std::ranges::transform(minStaticCoords, minStaticCoords.begin(),
                                    [](const int coord) { return -coord; });
             const std::valarray<int> zero_offset(minStaticCoords.data(), minStaticCoords.size());
-            preprocessData.staticZeroOffset_t = zero_offset;
+            preInitData.staticZeroOffset_t = zero_offset;
         }
     }
     DEBUG("Preprocessing complete." << std::endl);

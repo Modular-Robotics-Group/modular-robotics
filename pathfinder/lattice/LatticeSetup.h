@@ -21,7 +21,7 @@ struct ConfigPreprocessData {
 };
 
 namespace LatticeSetup {
-    extern ConfigPreprocessData preprocessData;
+    extern ConfigPreprocessData preInitData;
 
     extern AdjOverride adjCheckOverride;
 
