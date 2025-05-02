@@ -1,13 +1,13 @@
 {
   "dependencies": [ "boost-system", "boost-filesystem", "boost-dll", "boost-any", "boost-container-hash", "boost-smart-ptr", "boost-format", "nlohmann-json", "getopt-win32" ],
   "overrides": [
-    { "name": "boost-system", "version": "1.84.0" },
-    { "name": "boost-filesystem", "version": "1.84.0" },
-    { "name": "boost-dll", "version": "1.84.0" },
-    { "name": "boost-any", "version": "1.84.0" },
-    { "name": "boost-container-hash", "version": "1.84.0" },
-    { "name": "boost-smart-ptr", "version": "1.84.0" },
-    { "name": "boost-format", "version": "1.84.0" }
+    { "name": "boost-system", "version": "1.85.0" },
+    { "name": "boost-filesystem", "version": "1.85.0" },
+    { "name": "boost-dll", "version": "1.85.0" },
+    { "name": "boost-any", "version": "1.85.0" },
+    { "name": "boost-container-hash", "version": "1.85.0" },
+    { "name": "boost-smart-ptr", "version": "1.85.0" },
+    { "name": "boost-format", "version": "1.85.0" }
   ],
   "builtin-baseline": "59aeb8fe8fe1c980de6bd5ba634cf21024522d81"
 }
