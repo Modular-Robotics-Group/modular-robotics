@@ -221,6 +221,7 @@ void LatticeSetup::SetupFromJson(std::istream& is) {
         for (const auto& bound : j["boundaries"]) {
             std::valarray<int> coords = bound;
             coords += Lattice::boundaryOffset;
+            coords += preInitData.staticZeroOffset_s;
 #if FLIP_Y_COORD
             coords[1] = Lattice::AxisSize() - coords[1] - 1;
 #endif
