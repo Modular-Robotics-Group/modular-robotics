@@ -37,6 +37,11 @@ const MODULE_SETTINGS = Object.freeze({
     SCALE:            0.9
 })
 
+const TOOL_MODES = Object.freeze({
+    EDIT:       0,
+    PICK_COLOR: 1
+})
+
 const DRAW_MODES = Object.freeze({
     ERASE:  -1,
     PLACE:   0
@@ -116,6 +121,8 @@ window._toggleMRWTMode = function() {
         window.gwMoveSetSequence.reset();
         // Configure controls for painter mode (panning only)
         setCameraControls(CAMERA_MODES.PAINTER);
+        // Set tool to edit
+        window._toolMode = TOOL_MODES.EDIT;
     } else {
         style_controller.show();
         // Show all modules when exiting painter mode
@@ -255,6 +262,7 @@ export const gScenGui = new GUI( { title: "Scenario", container: document.getEle
 
 // GUI elements for Configurizer Mode
 export const gModuleBrushGui = new GUI( { title: "Brush", container: document.getElementById("controlBar") } ).hide();
+let brushColor_selector;
 export const gLayerGui = new GUI( { title: "Layer", container: document.getElementById("controlBar") } ).hide();
 export const gSelectedModuleGui = new GUI( { title: "Selected Module", container: document.getElementById("controlBar") } ).hide();
 export const zSliceController = gLayerGui.add(moduleBrush, 'zSlice', VisConfigData.bounds.z.min - 2, VisConfigData.bounds.z.max + 2, 1).name("Layer").onChange((value) => {
@@ -280,7 +288,8 @@ document.addEventListener("DOMContentLoaded", async function () {
     gAnimGui.add(window, '_requestForwardAnim').name("Step Forward");
     gAnimGui.add(window, '_requestBackwardAnim').name("Step Backward");
     // Configurizer Controls
-    gModuleBrushGui.addColor(moduleBrush, 'color').name("Module Color");
+    brushColor_selector = gModuleBrushGui.addColor(moduleBrush, 'color').name("Module Color");
+    gModuleBrushGui.add({ beginColorPick: () => { window._toolMode = TOOL_MODES.PICK_COLOR } }, 'beginColorPick');
     gModuleBrushGui.add(moduleBrush, 'static').name("Static Module");
     gLayerGui.add(moduleBrush, 'adjSlicesVisible').name("Visualize Adjacent Layers").onChange((value) => {
         if (window._isPainterModeActive) {
@@ -301,7 +310,7 @@ document.addEventListener("DOMContentLoaded", async function () {
                     : "Moves/RhombicDodecahedron"
             );
     });
-    gLayerGui.add(window, '_clearConfig').name("Clear Configuration")
+    gLayerGui.add(window, '_clearConfig').name("Clear Configuration");
     // Pathfinder and debug Controls
     pathfinder_controller = gPathfinderGui.add(window, '_pathfinderRun').name("Run Pathfinder").disable();
     gPathfinderGui.add(pathfinderData.settings, 'name').name("Name");
@@ -334,6 +343,9 @@ document.addEventListener("DOMContentLoaded", async function () {
     document.addEventListener('mouseup', (event) => {
         if (event.button === 0) {
             window._mouseHeld = false;
+        }
+        if (window._toolMode === TOOL_MODES.PICK_COLOR) {
+            window._toolMode = TOOL_MODES.EDIT;
         }
     });
     gCanvas.addEventListener('mouseleave', (event) => {
@@ -586,7 +598,22 @@ function handleModulePlacement(event) {
         gHighlightModule.show();
     }
     if (!window._mouseHeld || !gHighlightModule.mesh.visible) return;
-    toggleModuleAtPosition(gHighlightModule.parentMesh.position.x, gHighlightModule.parentMesh.position.y, gHighlightModule.parentMesh.position.z);
+    switch (window._toolMode) {
+        case TOOL_MODES.PICK_COLOR:
+            copyColorFromModule(gHighlightModule.parentMesh.position.x, gHighlightModule.parentMesh.position.y, gHighlightModule.parentMesh.position.z)
+            break;
+        case TOOL_MODES.EDIT:
+            toggleModuleAtPosition(gHighlightModule.parentMesh.position.x, gHighlightModule.parentMesh.position.y, gHighlightModule.parentMesh.position.z);
+    }
+}
+
+function copyColorFromModule(x, y, z) {
+    const existingModule = getModuleAtPosition(x, y, z);
+
+    if (existingModule) {
+        const color = new THREE.Color(existingModule.color)
+        brushColor_selector.setValue({ r: color.r, g: color.g, b: color.b });
+    }
 }
 
 /**
