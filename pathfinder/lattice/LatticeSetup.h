@@ -17,6 +17,7 @@ struct ConfigPreprocessData {
     std::valarray<int> staticZeroOffset_t;
     int staticConfigSize = 0;
     int nonStaticCount = 0;
+    int maxConnectionDistance;
 };
 
 namespace LatticeSetup {

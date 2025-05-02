@@ -74,9 +74,22 @@ void LatticeSetup::Preprocess(std::istream& is_s, std::istream& is_t) {
         const std::valarray<int> zero_offset(minStaticCoords.data(), minStaticCoords.size());
         preprocessData.staticZeroOffset_s = zero_offset;
     }
+    if (j_s.contains("adjacencyOffsets")) {
+        int maxConnectDist = 0;
+        for (const auto& offset : j_s["adjacencyOffsets"]) {
+            for (int i = 0; i < order && i < offset.size(); i++) {
+                if (offset[i] > maxConnectDist) {
+                    maxConnectDist = offset[i];
+                }
+            }
+        }
+        preprocessData.maxConnectionDistance = maxConnectDist;
+    } else {
+        preprocessData.maxConnectionDistance = 1;
+    }
     // Preprocess final state
     nlohmann::json j_t;
-    is_s >> j_t;
+    is_t >> j_t;
     staticCoordsInitialized = false;
     DEBUG("Preprocessing final state..." << std::endl);
     for (const auto& module : j_t["modules"]) {
@@ -96,10 +109,15 @@ void LatticeSetup::Preprocess(std::istream& is_s, std::istream& is_t) {
         }
     }
     if (!preprocessData.fullNonStatic) {
-        std::ranges::transform(minStaticCoords, minStaticCoords.begin(),
-                               [](const int coord) { return -coord; });
-        const std::valarray<int> zero_offset(minStaticCoords.data(), minStaticCoords.size());
-        preprocessData.staticZeroOffset_t = zero_offset;
+        if (!staticCoordsInitialized) {
+            // No static modules given in final state, have to assume offset is same
+            preprocessData.staticZeroOffset_t = preprocessData.staticZeroOffset_s;
+        } else {
+            std::ranges::transform(minStaticCoords, minStaticCoords.begin(),
+                                   [](const int coord) { return -coord; });
+            const std::valarray<int> zero_offset(minStaticCoords.data(), minStaticCoords.size());
+            preprocessData.staticZeroOffset_t = zero_offset;
+        }
     }
     DEBUG("Preprocessing complete." << std::endl);
 }
