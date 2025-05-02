@@ -169,7 +169,7 @@ function _generateExampleLoader(name) {
 // to move it somewhere else if you can find a spot that makes more sense.
 let pathfinderWorker;
 let config2ScenWorker;
-let pathfinder_controller, heuristic_setter;
+let pathfinder_controller, moveset_selector, heuristic_setter;
 
 const pathfinderProgressBar = document.getElementById("pathfinderProgressBar");
 const pathfinderReverseProgressBar = document.getElementById("pathfinderReverseProgressBar");
@@ -294,13 +294,19 @@ document.addEventListener("DOMContentLoaded", async function () {
         }).name("Module Type").onChange((value) => {
             gReferenceModule.swapType(value);
             gHighlightModule.swapType(value);
+            moveset_selector.setValue(value === ModuleType.CUBE
+                ? "Moves/PivotCube"
+                : value === ModuleType.CATOM
+                    ? "Moves/Catom"
+                    : "Moves/RhombicDodecahedron"
+            );
     });
     gLayerGui.add(window, '_clearConfig').name("Clear Configuration")
     // Pathfinder and debug Controls
     pathfinder_controller = gPathfinderGui.add(window, '_pathfinderRun').name("Run Pathfinder").disable();
     gPathfinderGui.add(pathfinderData.settings, 'name').name("Name");
     gPathfinderGui.add(pathfinderData.settings, 'description').name("Description");
-    gPathfinderGui.add(pathfinderData.settings, 'movePaths', {
+    moveset_selector = gPathfinderGui.add(pathfinderData.settings, 'movePaths', {
         "Pivoting Cube": [ "Moves/PivotCube" ],
         "Sliding Cube": [ "Moves/SlideCube" ],
         "NASA Cube": [ "Moves/SlideNASA" ],
