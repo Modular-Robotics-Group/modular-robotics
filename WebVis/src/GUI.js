@@ -125,35 +125,6 @@ window._toggleMRWTMode = function() {
     }
 }
 
-// Auto-Center
-window._autoCenterConfig = function() {
-    let shift = {
-        x: VisConfigData.bounds.x.min,
-        y: VisConfigData.bounds.y.min,
-        z: VisConfigData.bounds.z.min
-    };
-    gModulePositions.clear();
-    for (let module in gModules) {
-        gModules[module].pos.x -= shift.x;
-        gModules[module].pos.y -= shift.y;
-        gModules[module].pos.z -= shift.z;
-        gModules[module].parentMesh.position.sub(shift);
-        gModulePositions.set(JSON.stringify({
-            x: Math.round(gModules[module].pos.x),
-            y: Math.round(gModules[module].pos.y),
-            z: Math.round(gModules[module].pos.z)}),
-            gModules[module]);
-    }
-    let max = {
-        x: VisConfigData.bounds.x.max + shift.x,
-        y: VisConfigData.bounds.y.max + shift.y,
-        z: VisConfigData.bounds.z.max + shift.z
-    };
-    VisConfigData.clearBounds()
-    VisConfigData.updateBounds({x: 0, y: 0, z: 0});
-    VisConfigData.updateBounds(max);
-}
-
 // Clear
 window._clearConfig = function() {
     for (let module in gModules) {
@@ -324,7 +295,6 @@ document.addEventListener("DOMContentLoaded", async function () {
             gReferenceModule.swapType(value);
             gHighlightModule.swapType(value);
     });
-    gLayerGui.add(window, '_autoCenterConfig').name("Auto-Center Configuration")
     gLayerGui.add(window, '_clearConfig').name("Clear Configuration")
     // Pathfinder and debug Controls
     pathfinder_controller = gPathfinderGui.add(window, '_pathfinderRun').name("Run Pathfinder").disable();
@@ -382,7 +352,6 @@ document.addEventListener("DOMContentLoaded", async function () {
     // Create configuration button controls using object literals
     gPathfinderGui.add({
         saveInitial: function() {
-            window._autoCenterConfig();
             saveConfiguration(true);
             console.log("Initial configuration saved");
             if (!pathfinderData.is_running && JSON.parse(pathfinderData.config_f).exists) {
@@ -393,7 +362,6 @@ document.addEventListener("DOMContentLoaded", async function () {
 
     gPathfinderGui.add({
         saveFinal: function() {
-            window._autoCenterConfig();
             saveConfiguration(false);
             console.log("Final configuration saved");
             if (!pathfinderData.is_running && JSON.parse(pathfinderData.config_i).exists) {
