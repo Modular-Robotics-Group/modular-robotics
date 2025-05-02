@@ -62,7 +62,7 @@ jobs:
         echo "build-output-dir=${{ github.workspace }}/build" >> "$GITHUB_OUTPUT"
 
     - name: Prepare VCPKG (Windows)
-      run: vcpkg x-update-baseline
+      run: vcpkg x-update-baseline --add-initial-baseline
       shell: pwsh
       if: matrix.os == 'windows-latest'
 
