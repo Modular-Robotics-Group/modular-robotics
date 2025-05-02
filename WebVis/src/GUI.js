@@ -98,13 +98,13 @@ window._toggleFullbright = function() {
 // Painter Mode Toggle
 window._toggleMRWTMode = function() {
     window._isPainterModeActive = !window._isPainterModeActive;
-    
+
     // Toggle GUI elements visibility
     gAnimGui.show(gAnimGui._hidden);
     gScenGui.show(gScenGui._hidden);
     gModuleBrushGui.show(gModuleBrushGui._hidden);
     gLayerGui.show(gLayerGui._hidden);
-    
+
     if (window._isPainterModeActive) {
         // Hide perspective controller and swap to ortho view
         style_controller.hide();
@@ -114,14 +114,12 @@ window._toggleMRWTMode = function() {
         updateVisibleModules(moduleBrush.zSlice);
         // Reset move sequence to initial state
         window.gwMoveSetSequence.reset();
-        
         // Configure controls for painter mode (panning only)
         setCameraControls(CAMERA_MODES.PAINTER);
     } else {
         style_controller.show();
         // Show all modules when exiting painter mode
         showAllModules();
-
         // Restore full camera controls for normal mode
         setCameraControls(CAMERA_MODES.NORMAL);
     }
@@ -201,16 +199,17 @@ function _generateExampleLoader(name) {
 let pathfinderWorker;
 let config2ScenWorker;
 let pathfinder_controller, heuristic_setter;
-const pathfinderProgressBar = document.getElementById("pathfinderProgressBar");
-const pathfinderReverseProgressBar = document.getElementById("pathfinderReverseProgressBar");
-const pathfinderStats = {
-    div: document.getElementById("statsDiv"),
-    found: document.getElementById("found"),
-    expanded: document.getElementById("expanded"),
-    unexpanded: document.getElementById("unexpanded")
-};
 
-window._pathfinderRun = function() {
+const pathfinderProgressBar = document.getElementById("pathfinderProgressBar");
+ const pathfinderReverseProgressBar = document.getElementById("pathfinderReverseProgressBar");
+ const pathfinderStats = {
+     div: document.getElementById("statsDiv"),
+     found: document.getElementById("found"),
+     expanded: document.getElementById("expanded"),
+     unexpanded: document.getElementById("unexpanded")
+ };
+
+ window._pathfinderRun = function() {
     if (window.Worker) {
         pathfinderData.is_running = true;
         pathfinder_controller.disable();
@@ -279,7 +278,6 @@ window._pathfinderRun = function() {
 // GUI elements for general settings
 export const gGraphicsGui = new GUI( { title: "Graphics", width: 160, container: document.getElementById("controlBar") } ).close();
 let style_controller;
-
 // GUI elements for Visualizer Mode
 export const gAnimGui = new GUI( { title: "Animation", container: document.getElementById("controlBar") } );
 export const gScenGui = new GUI( { title: "Scenario", container: document.getElementById("controlBar") } ).close();
@@ -287,6 +285,7 @@ export const gScenGui = new GUI( { title: "Scenario", container: document.getEle
 // GUI elements for Configurizer Mode
 export const gModuleBrushGui = new GUI( { title: "Brush", container: document.getElementById("controlBar") } ).hide();
 export const gLayerGui = new GUI( { title: "Layer", container: document.getElementById("controlBar") } ).hide();
+export const gSelectedModuleGui = new GUI( { title: "Selected Module", container: document.getElementById("controlBar") } ).hide();
 export const zSliceController = gLayerGui.add(moduleBrush, 'zSlice', VisConfigData.bounds.z.min - 2, VisConfigData.bounds.z.max + 2, 1).name("Layer").onChange((value) => {
     if (window._isPainterModeActive) {
         updateVisibleModules(value);
@@ -296,6 +295,9 @@ export const zSliceController = gLayerGui.add(moduleBrush, 'zSlice', VisConfigDa
 // GUI element for Pathfinder and developer options
 export const gPathfinderGui = new GUI( { title: "Pathfinder", container: document.getElementById("controlBar") } ).close();
 export const gModeGui = new GUI( { title: "View/Edit", width: 160, container: document.getElementById("controlBar") } );
+// Global variables for module selection
+let selectedModule = null;
+const selectedModuleColor = { color: 0x808080 };
 
 document.addEventListener("DOMContentLoaded", async function () {
     // Visualizer Controls
@@ -378,7 +380,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     });
 
     // Create configuration button controls using object literals
-    gPathfinderGui.add({ 
+    gPathfinderGui.add({
         saveInitial: function() {
             window._autoCenterConfig();
             saveConfiguration(true);
@@ -388,8 +390,8 @@ document.addEventListener("DOMContentLoaded", async function () {
             }
         }
     }, 'saveInitial').name("Save Initial Config");
-    
-    gPathfinderGui.add({ 
+
+    gPathfinderGui.add({
         saveFinal: function() {
             window._autoCenterConfig();
             saveConfiguration(false);
@@ -459,14 +461,13 @@ document.addEventListener("DOMContentLoaded", async function () {
             }
         }
     }, 'loadFinal').name("Load Final Config");
-    
-    gPathfinderGui.add({ 
+    gPathfinderGui.add({
         downloadInitial: function() {
             downloadConfiguration(true);
         }
     }, 'downloadInitial').name("Download Initial");
-    
-    gPathfinderGui.add({ 
+
+    gPathfinderGui.add({
         downloadFinal: function() {
             downloadConfiguration(false);
         }
@@ -479,23 +480,15 @@ document.addEventListener("DOMContentLoaded", async function () {
         _folder.add(_exampleLoaders, ex).name(ex);
     }
 
-    // Following code only works with certain server backends (that allow fetching directories).
-    //  Purpose was to automatically identify all elements in the /Scenarios/ subfolder.
-    //
-    // await fetch("./Scenarios/").then(async response => {
-    //     let scen, item, name, filepath;
-    //     let raw = await response.text();
-    //     let el = document.createElement('html');
-    //     el.innerHTML = raw;
-    //     let list = el.getElementsByClassName("file scen");
-    //     for (item in list) {
-    //         name = list[item].title;
-    //         if (!name) { continue; }
-    //         name = name.split('.')[0];
-    //         _exampleLoaders[name] = _generateExampleLoader(name);
-    //         _folder.add(_exampleLoaders, name).name(name);
-    //     }
-    // });
+    // Add color picker for selected module
+    gSelectedModuleGui.addColor(selectedModuleColor, 'color')
+        .name('Color')
+        .onChange((value) => {
+            if (selectedModule) {
+                selectedModule.color = value;
+                selectedModule.mesh.material.uniforms.diffuse.value.setFromColor(new THREE.Color(value));
+            }
+        });
 });
 
 /**
@@ -509,7 +502,7 @@ function updateVisibleModules(zSlice) {
     moduleIds.forEach((id) => {
         const module = gModules[id];
         const moduleZ = Math.round(module.pos.z);
-        
+
         updateModuleVisibility(module, moduleZ, zSlice);
     });
 }
@@ -525,15 +518,15 @@ function updateModuleVisibility(module, moduleZ, zSlice) {
     let isVisible = false;
     let opacity = OPACITY_SETTINGS.TRANSPARENT;
     let distance = Math.abs(moduleZ - zSlice);
-    
+
     const maxDistance = moduleBrush.adjSlicesVisible ? LAYER_SETTINGS.ADJACENT_DISTANCE : 0;
     isVisible = distance <= maxDistance;
-    
+
     // Set opacity based on visibility and whether it's the current slice
-    opacity = isVisible ? 
-        (isCurrentSlice ? OPACITY_SETTINGS.FULLY_OPAQUE : OPACITY_SETTINGS.ADJACENT_SLICE) : 
+    opacity = isVisible ?
+        (isCurrentSlice ? OPACITY_SETTINGS.FULLY_OPAQUE : OPACITY_SETTINGS.ADJACENT_SLICE) :
         OPACITY_SETTINGS.TRANSPARENT;
-    
+
     // Apply visibility and opacity settings
     module.visible = isVisible;
     module.mesh.material.uniforms.opacity = { value: opacity };
@@ -591,9 +584,10 @@ function setDrawMode(event) {
 
     // Set draw mode based on module presence
     let mousePos = getMousePosition(event);
+    if (!mousePos) return;
 
-    const existingModule = getModuleAtPosition(mousePos.x, mousePos.y, mousePos.z);
-    if (!existingModule) {
+    let module = getModuleAtPosition(mousePos.x, mousePos.y, mousePos.z);
+    if (!module) {
         window._drawMode = DRAW_MODES.PLACE;
     } else {
         window._drawMode = DRAW_MODES.ERASE;
@@ -605,20 +599,18 @@ function setDrawMode(event) {
  * @param {MouseEvent} event - The mouse event
  */
 function handleModulePlacement(event) {
-    // Only paint modules when clicking on main view in painter mode
+    // Only process left clicks when in MRWT mode
     if (!window._isPainterModeActive) return;
 
     if (document.elementFromPoint(event.clientX, event.clientY).id !== "mainView") {
         gHighlightModule.hide();
         return;
     }
-
     gHighlightModule.show();
     let mousePos = getMousePosition(event)
     gHighlightModule.setPosition(mousePos);
-
     if (!window._mouseHeld) return;
-    
+
     toggleModuleAtPosition(mousePos.x, mousePos.y, mousePos.z);
 }
 
@@ -645,14 +637,66 @@ function toggleModuleAtPosition(x, y, z) {
             moduleBrush.color.g,
             moduleBrush.color.b
         );
-
         const module = new Module(moduleBrush.type, VisConfigData.nextModID, pos, color.getHex(), MODULE_SETTINGS.SCALE);
-
         if (moduleBrush.static) {
             module.markStatic();
         }
         updateModuleVisibility(module, z, moduleBrush.zSlice);
     } else if (existingModule && window._drawMode === DRAW_MODES.ERASE) {
         gModules[existingModule.id].destroy();
+    }
+}
+
+// Add click handler for module selection
+document.addEventListener('click', (event) => {
+    // Only handle selection if not in painter mode
+    if (window._isPainterModeActive) return;
+
+    // Check if click is on GUI
+    const path = event.path || (event.composedPath && event.composedPath());
+    for (const element of path || []) {
+        if (element.classList &&
+            (element.classList.contains('lil-gui') ||
+             element.classList.contains('dg'))) {
+            return; // Click was on GUI, don't handle selection
+        }
+    }
+
+    // Get mouse position in normalized device coordinates
+    const mouse = new THREE.Vector2();
+    const rect = gRenderer.domElement.getBoundingClientRect();
+    mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+    mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+    // Create raycaster
+    const raycaster = new THREE.Raycaster();
+    raycaster.setFromCamera(mouse, gwUser.camera);
+
+    // Get all module meshes
+    const moduleMeshes = Object.values(gModules).map(module => module.mesh);
+
+    // Find intersections
+    const intersects = raycaster.intersectObjects(moduleMeshes);
+
+    if (intersects.length > 0) {
+        // Find the module that owns the intersected mesh
+        const intersectedModule = Object.values(gModules).find(module =>
+            module.mesh === intersects[0].object
+        );
+        selectModule(intersectedModule);
+    } else {
+        selectModule(null);
+    }
+});
+
+// Add module selection functionality
+function selectModule(module) {
+    selectedModule = module;
+    if (module) {
+        selectedModuleColor.color = module.color;
+        gSelectedModuleGui.show();
+        gSelectedModuleGui.updateDisplay();
+    } else {
+        gSelectedModuleGui.hide();
     }
 }
