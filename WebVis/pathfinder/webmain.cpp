@@ -91,6 +91,16 @@ extern "C" {
         ModuleProperties::LinkProperties();
         std::cout << "Properties successfully linked: " << ModuleProperties::PropertyCount() << std::endl;
 
+        // Preprocess moves
+        for (const auto& path : settings_json["movePaths"]) {
+            MoveManager::PreprocessMoves(path);
+        }
+
+        // Preprocess configurations
+        LatticeSetup::Preprocess(config_i_stream, config_f_stream);
+        config_i_stream = std::stringstream(config_i);
+        config_f_stream = std::stringstream(config_f);
+
         // Set up Lattice
         std::cout << "Initializing Lattice..." << std::endl;
         LatticeSetup::SetupFromJson(config_i_stream);
