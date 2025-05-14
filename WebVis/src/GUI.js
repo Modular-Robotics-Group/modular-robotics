@@ -559,11 +559,33 @@ function getMousePosition(event) {
     raycaster.setFromCamera(mouse, camera);
     raycaster.ray.intersectPlane(plane, point);
 
-    return {
+    let roundedPoint = {
         x: Math.round(point.x),
         y: Math.round(point.y),
         z: moduleBrush.zSlice
     };
+
+    if (moduleBrush.type === 0 || (roundedPoint.x + roundedPoint.y + roundedPoint.z) % 2 === 0) {
+        return roundedPoint
+    } else {
+        return {
+            x: roundedPoint.x + (((point.x + point.y) % 2 + 2) % 2 >= 1
+                ? ((point.x - point.y) % 2 + 2) % 2 >= 1
+                    ? 1
+                    : 0
+                : ((point.x - point.y) % 2 + 2) % 2 < 1
+                    ? -1
+                    : 0),
+            y: roundedPoint.y + (((point.x + point.y) % 2 + 2) % 2 >= 1
+                ? ((point.x - point.y) % 2 + 2) % 2 >= 1
+                    ? 0
+                    : 1
+                : ((point.x - point.y) % 2 + 2) % 2 < 1
+                    ? 0
+                    : -1),
+            z: roundedPoint.z
+        }
+    }
 }
 
 function setDrawMode(event) {
@@ -594,6 +616,9 @@ function handleModulePlacement(event) {
         return;
     }
     let mousePos = getMousePosition(event)
+    gHighlightModule.setPosition(mousePos);
+    gHighlightModule.show();
+    if (!window._mouseHeld || !gHighlightModule.mesh.visible) return;
     if (moduleBrush.type === 0 || (mousePos.x + mousePos.y + mousePos.z) % 2 === 0) {
         gHighlightModule.setPosition(mousePos);
         gHighlightModule.show();
