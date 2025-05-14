@@ -301,6 +301,7 @@ document.addEventListener("DOMContentLoaded", async function () {
             "Rhombic Dodecahedron": ModuleType.RHOMBIC_DODECAHEDRON,
             "Catom": ModuleType.CATOM
         }).name("Module Type").onChange((value) => {
+            window._clearConfig();
             gReferenceModule.swapType(value);
             gHighlightModule.swapType(value);
             moveset_selector.setValue(value === ModuleType.CUBE
