@@ -7,6 +7,7 @@
 #include "MoveManager.h"
 #include "../coordtensor/CoordTensor.h"
 #include "../lattice/Lattice.h"
+#include "../lattice/LatticeSetup.h"
 #include "../utility/color_util.h"
 
 std::string Scenario::TryGetScenName(const std::string& initialFile) {
@@ -87,13 +88,14 @@ void Scenario::ExportToScen(const std::vector<const Configuration*>& path, const
     std::cout << "Done." << std::endl << "\tExporting initial state...   ";
     for (size_t id = 0; id < ModuleIdManager::Modules().size(); id++) {
         auto& mod = ModuleIdManager::Modules()[id];
+        auto coords = mod.coords - LatticeSetup::preInitData.fullOffset;
         if (Lattice::ignoreProperties) {
-            modDef % "" % id % (mod.moduleStatic ? 1 : 0) % mod.coords[0] % mod.coords[1] % (mod.coords.size() > 2
-                    ? mod.coords[2]
+            modDef % "" % id % (mod.moduleStatic ? 1 : 0) % coords[0] % coords[1] % (coords.size() > 2
+                    ? coords[2]
                     : 0);
         } else {
-            modDef % "" % id % (mod.properties.Find(COLOR_PROP_NAME))->CallFunction<int>("GetColorInt") % mod.
-                    coords[0] % mod.coords[1] % (mod.coords.size() > 2 ? mod.coords[2] : 0);
+            modDef % "" % id % (mod.properties.Find(COLOR_PROP_NAME))->CallFunction<int>("GetColorInt") % coords[0] %
+                    coords[1] % (coords.size() > 2 ? coords[2] : 0);
         }
         os << modDef.str() << std::endl;
     }
