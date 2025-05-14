@@ -39,7 +39,10 @@ void LatticeSetup::Preprocess(std::istream& is_s, std::istream& is_t) {
     int order = j_s["order"];
     std::vector<int> minStaticCoords(order);
     std::vector<int> maxStaticCoords(order);
+    std::vector<int> minNonStaticCoords(order);
+    std::vector<int> maxNonStaticCoords(order);
     bool staticCoordsInitialized = false;
+    bool nonStaticCoordsInitialized = false;
     DEBUG("Preprocessing initial state..." << std::endl);
     for (const auto& module : j_s["modules"]) {
         std::vector<int> position = module["position"];
@@ -56,6 +59,17 @@ void LatticeSetup::Preprocess(std::istream& is_s, std::istream& is_t) {
                 }
             }
         } else {
+            if (!nonStaticCoordsInitialized) {
+                minNonStaticCoords = position;
+                maxNonStaticCoords = position;
+                nonStaticCoordsInitialized = true;
+            } else for (int i = 0; i < order; i++) {
+                if (position[i] < minNonStaticCoords[i]) {
+                    minNonStaticCoords[i] = position[i];
+                } else if (position[i] > maxNonStaticCoords[i]) {
+                    maxNonStaticCoords[i] = position[i];
+                }
+            }
             preInitData.nonStaticCount++;
         }
     }
@@ -106,6 +120,12 @@ void LatticeSetup::Preprocess(std::istream& is_s, std::istream& is_t) {
                     maxStaticCoords[i] = position[i];
                 }
             }
+        } else for (int i = 0; i < order; i++) {
+            if (position[i] < minNonStaticCoords[i]) {
+                minNonStaticCoords[i] = position[i];
+            } else if (position[i] > maxNonStaticCoords[i]) {
+                maxNonStaticCoords[i] = position[i];
+            }
         }
     }
     if (!preInitData.fullNonStatic) {
@@ -119,6 +139,13 @@ void LatticeSetup::Preprocess(std::istream& is_s, std::istream& is_t) {
             preInitData.staticZeroOffset_t = zero_offset;
         }
     }
+    int nonStaticSize = 0;
+    for (int i = 0; i < order; i++) {
+        if (const int nonStaticAxisSize = maxNonStaticCoords[i] - minNonStaticCoords[i]; nonStaticAxisSize > nonStaticSize) {
+            nonStaticSize = nonStaticAxisSize;
+        }
+    }
+    preInitData.nonStaticConfigSize = nonStaticSize + 1;
     DEBUG("Preprocessing complete." << std::endl);
 }
 
@@ -142,11 +169,11 @@ void LatticeSetup::SetupFromJson(std::istream& is) {
     const int paddingSize = MoveManager::MaxDistance();
     if (preInitData.fullNonStatic) {
         if (j.contains("tensorPadding")) {
-            Lattice::InitLattice(j["order"], j["axisSize"], std::max(static_cast<int>(j["tensorPadding"]), paddingSize));
+            Lattice::InitLattice(j["order"], preInitData.nonStaticConfigSize + 2 * preInitData.maxConnectionDistance * preInitData.nonStaticCount, std::max(static_cast<int>(j["tensorPadding"]), paddingSize));
         } else {
-            Lattice::InitLattice(j["order"], j["axisSize"], paddingSize);
+            Lattice::InitLattice(j["order"], preInitData.nonStaticConfigSize + 2 * preInitData.maxConnectionDistance * preInitData.nonStaticCount, paddingSize);
         }
-        preInitData.fullOffset = Lattice::boundaryOffset;
+        preInitData.fullOffset = Lattice::boundaryOffset + preInitData.maxConnectionDistance * preInitData.nonStaticCount;
     } else {
         const int axisSize = preInitData.staticConfigSize + 2 * preInitData.maxConnectionDistance * preInitData.nonStaticCount;
         Lattice::InitLattice(j["order"], axisSize, paddingSize);
@@ -256,7 +283,7 @@ Configuration LatticeSetup::SetupFinalFromJson(std::istream& is) {
     is >> j;
     std::set<ModuleData> desiredState;
     std::valarray<int> placementOffset = preInitData.fullNonStatic
-                                             ? Lattice::boundaryOffset
+                                             ? preInitData.fullOffset
                                              : Lattice::boundaryOffset + preInitData.staticZeroOffset_t + preInitData.maxConnectionDistance * preInitData.nonStaticCount;
     for (const auto& module : j["modules"]) {
         if (module["static"] == true) continue;

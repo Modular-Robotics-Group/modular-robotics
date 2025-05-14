@@ -16,6 +16,7 @@ struct ConfigPreprocessData {
     std::valarray<int> staticZeroOffset_s;
     std::valarray<int> staticZeroOffset_t;
     int staticConfigSize = 0;
+    int nonStaticConfigSize = 0;
     int nonStaticCount = 0;
     int maxConnectionDistance;
     std::valarray<int> fullOffset;
