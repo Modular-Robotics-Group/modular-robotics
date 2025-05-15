@@ -619,11 +619,6 @@ function handleModulePlacement(event) {
     gHighlightModule.setPosition(mousePos);
     gHighlightModule.show();
     if (!window._mouseHeld || !gHighlightModule.mesh.visible) return;
-    if (moduleBrush.type === 0 || (mousePos.x + mousePos.y + mousePos.z) % 2 === 0) {
-        gHighlightModule.setPosition(mousePos);
-        gHighlightModule.show();
-    }
-    if (!window._mouseHeld || !gHighlightModule.mesh.visible) return;
     switch (window._toolMode) {
         case TOOL_MODES.PICK_COLOR:
             copyColorFromModule(gHighlightModule.parentMesh.position.x, gHighlightModule.parentMesh.position.y, gHighlightModule.parentMesh.position.z)
