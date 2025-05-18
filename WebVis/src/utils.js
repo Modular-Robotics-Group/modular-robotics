@@ -196,7 +196,7 @@ export function createPathfinderConfiguration() {
             : moduleBrush.type === ModuleType.RHOMBIC_DODECAHEDRON
                 ? "RHOMBIC_DODECAHEDRON"
                 : "CATOM",
-        order: maxZ === minZ ? 2 : 3, // 2D if flat across Z-plane, 3D otherwise
+        order: moduleBrush.type === 0 && maxZ === minZ ? 2 : 3, // 2D if flat across Z-plane, 3D otherwise
         axisSize: axisSize,
         adjacencyMode: moduleBrush.type === ModuleType.CUBE ? "Cube Face" : "Cube Edge",
         tensorPadding: 5,
