@@ -169,7 +169,7 @@ export function createPathfinderConfiguration() {
         // Convert module to pathfinder format
         modules.push({
             // Apparently the number of coordinates here matters, probably could be considered a bug on pathfinder's end
-            position: VisConfigData.bounds.z.max === VisConfigData.bounds.z.min ? [pos.x, pos.y] : [pos.x, pos.y, pos.z],
+            position: moduleBrush.type === 0 && VisConfigData.bounds.z.max === VisConfigData.bounds.z.min ? [pos.x, pos.y] : [pos.x, pos.y, pos.z],
             static: module.isStatic,
             properties: {
                 colorProperty: {
