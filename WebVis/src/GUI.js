@@ -333,6 +333,9 @@ document.addEventListener("DOMContentLoaded", async function () {
             }
         }
 
+        // Set flag to prevent camera reset during this operation
+        window._preventCameraReset = true;
+
         // Get mouse position in normalized device coordinates
         const mouse = new THREE.Vector2();
         const rect = gRenderer.domElement.getBoundingClientRect();
@@ -402,10 +405,18 @@ document.addEventListener("DOMContentLoaded", async function () {
                 // Right click handled by contextmenu listener
             }
         }
+
+        // Reset flag after a short delay
+        setTimeout(() => {
+            window._preventCameraReset = false;
+        }, 100); // 100ms delay
     });
 
     document.addEventListener('contextmenu', (event) => {
         event.preventDefault();
+
+        // Set flag to prevent camera reset during this operation
+        window._preventCameraReset = true;
 
         // Get mouse position in normalized device coordinates
         const mouse = new THREE.Vector2();
@@ -435,6 +446,11 @@ document.addEventListener("DOMContentLoaded", async function () {
                 intersectedModule.destroy();
             }
         }
+
+        // Reset flag after a short delay
+        setTimeout(() => {
+            window._preventCameraReset = false;
+        }, 100); // 100ms delay
     });
 
     // Visualizer Controls

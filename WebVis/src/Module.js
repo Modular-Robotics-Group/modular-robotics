@@ -120,6 +120,8 @@ export class Module {
         zSliceController.min(VisConfigData.bounds.z.min - 2);
         zSliceController.max(VisConfigData.bounds.z.max + 2);
         zSliceController.updateDisplay();
+        // Prevent camera updates if the flag is set
+        if (window._preventCameraReset) return;
         // Only update camera if we're not in the middle of adding modules
         if (!window._mouseHeld) {
             if (gUser.cameraStyle === CameraType.ORTHOGRAPHIC) {

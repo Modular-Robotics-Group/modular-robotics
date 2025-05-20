@@ -35,6 +35,9 @@ export class User {
     }
 
     resetCamera() {
+        // Prevent camera reset if the flag is set
+        if (window._preventCameraReset) return;
+
         // Don't reset camera if we're in the middle of adding modules
         if (window._mouseHeld || window._isAddingBlocks) return;
 
@@ -63,6 +66,9 @@ export class User {
     }
 
     resetMiniCamera() {
+        // Prevent camera reset if the flag is set
+        if (window._preventCameraReset) return;
+
         // Don't reset camera if we're in the middle of adding modules
         if (window._mouseHeld || window._isAddingBlocks) return;
 
