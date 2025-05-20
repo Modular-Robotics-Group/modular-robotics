@@ -1,4 +1,4 @@
-/* 
+/*
  * Module class
  * Modules contain their position, color, ID, etc. info,
  *  as well as their mesh
@@ -84,10 +84,13 @@ export class Module {
         zSliceController.min(VisConfigData.bounds.z.min - 2);
         zSliceController.max(VisConfigData.bounds.z.max + 2);
         zSliceController.updateDisplay();
-        if (gUser.cameraStyle === CameraType.ORTHOGRAPHIC) {
-            gUser.camera.position.z = 5.0 + Math.max(VisConfigData.bounds.x.max, VisConfigData.bounds.y.max, VisConfigData.bounds.z.max);
+        // Only update camera if we're not in the middle of adding modules
+        if (!window._mouseHeld) {
+            if (gUser.cameraStyle === CameraType.ORTHOGRAPHIC) {
+                gUser.camera.position.z = 5.0 + Math.max(VisConfigData.bounds.x.max, VisConfigData.bounds.y.max, VisConfigData.bounds.z.max);
+            }
+            gUser.resetMiniCamera();
         }
-        gUser.resetMiniCamera();
 
         // Update module ID data
         VisConfigData.nextModID = Math.max(VisConfigData.nextModID, id + 1);
@@ -111,17 +114,19 @@ export class Module {
         this.mesh.material.dispose();
 
         // Update configuration bounds data
-        VisConfigData.clearBounds();
         for (let module in gModules) {
             VisConfigData.updateBounds(gModules[module].pos);
         }
         zSliceController.min(VisConfigData.bounds.z.min - 2);
         zSliceController.max(VisConfigData.bounds.z.max + 2);
         zSliceController.updateDisplay();
-        if (gUser.cameraStyle === CameraType.ORTHOGRAPHIC) {
-            gUser.camera.position.z = 5.0 + Math.max(VisConfigData.bounds.x.max, VisConfigData.bounds.y.max, VisConfigData.bounds.z.max);
+        // Only update camera if we're not in the middle of adding modules
+        if (!window._mouseHeld) {
+            if (gUser.cameraStyle === CameraType.ORTHOGRAPHIC) {
+                gUser.camera.position.z = 5.0 + Math.max(VisConfigData.bounds.x.max, VisConfigData.bounds.y.max, VisConfigData.bounds.z.max);
+            }
+            gUser.resetMiniCamera();
         }
-        gUser.resetMiniCamera();
     }
 
     _setMeshMatrix(optionalPreTransform = new THREE.Matrix4()) {

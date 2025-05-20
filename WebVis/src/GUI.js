@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
 import { Scenario } from './Scenario.js';
-import { gScene, gLights, gRenderer, gModules, gReferenceModule, gModulePositions, gCanvas, gHighlightModule } from './main.js';
+import { gScene, gLights, gRenderer, gModules, gReferenceModule, gModulePositions, gCanvas, gHighlightModule, gUser } from './main.js';
 import { moduleBrush, pathfinderData, WorkerType, MessageType, ContentType, VisConfigData, ModuleType, getModuleAtPosition } from './utils.js';
 import { CameraType } from "./utils.js";
 import { saveConfiguration, downloadConfiguration } from './utils.js';
@@ -113,8 +113,8 @@ window._toggleMRWTMode = function() {
     if (window._isPainterModeActive) {
         // Hide perspective controller and swap to ortho view
         style_controller.hide();
-        gwUser.cameraStyle = CameraType.ORTHOGRAPHIC;
-        gwUser.resetCamera();
+        gUser.cameraStyle = CameraType.ORTHOGRAPHIC;
+        gUser.resetCamera();
         // Update module visibility based on current z-slice
         updateVisibleModules(moduleBrush.zSlice);
         // Reset move sequence to initial state
@@ -155,9 +155,11 @@ window._clearConfig = function() {
  * @param {boolean} options.zoom - Enable/disable zooming
  */
 function setCameraControls({ pan = true, rotate = true, zoom = true }) {
-    gwUser.controls.enablePan = pan;        // Panning (right/middle-click + drag)
-    gwUser.controls.enableRotate = rotate;  // Rotation (left-click + drag)
-    gwUser.controls.enableZoom = zoom;      // Zooming (scroll wheel)
+    if (gUser && gUser.controls) {
+        gUser.controls.enablePan = pan;        // Panning (right/middle-click + drag)
+        gUser.controls.enableRotate = rotate;  // Rotation (left-click + drag)
+        gUser.controls.enableZoom = zoom;      // Zooming (scroll wheel)
+    }
 }
 
 let _exampleLoaders = {};
@@ -264,7 +266,6 @@ export const gScenGui = new GUI( { title: "Scenario", container: document.getEle
 export const gModuleBrushGui = new GUI( { title: "Brush", container: document.getElementById("controlBar") } ).hide();
 let brushColor_selector;
 export const gLayerGui = new GUI( { title: "Layer", container: document.getElementById("controlBar") } ).hide();
-export const gSelectedModuleGui = new GUI( { title: "Selected Module", container: document.getElementById("controlBar") } ).hide();
 export const zSliceController = gLayerGui.add(moduleBrush, 'zSlice', VisConfigData.bounds.z.min - 2, VisConfigData.bounds.z.max + 2, 1).name("Layer").onChange((value) => {
     if (window._isPainterModeActive) {
         updateVisibleModules(value);
@@ -277,12 +278,170 @@ export const gModeGui = new GUI( { title: "View/Edit", width: 160, container: do
 // Global variables for module selection
 let selectedModule = null;
 const selectedModuleColor = { color: 0x808080 };
+export const gSelectedModuleGui = new GUI( { title: "Selected Module", container: document.getElementById("controlBar") } ).hide();
+let selectedModuleColorController; // Reference to the color controller
 
+// State flag for the special module selection mode
+window._isSelectModuleMode = false;
+
+// User interaction callbacks
+/* ****************************** */
+function window_resize_callback() {
+    const width = window.innerWidth * gCanvas._xscale;
+    const height = window.innerHeight * gCanvas._yscale;
+
+    let newAspect = width/height;
+    switch (gUser.cameraStyle) {
+        case CameraType.PERSPECTIVE: gUser.camera.aspect = newAspect; break;
+        case CameraType.ORTHOGRAPHIC: {
+            let oldAspect = gUser.camera.right / gUser.camera.top;
+            gUser.camera.left = gUser.camera.left * (newAspect / oldAspect);
+            gUser.camera.right = gUser.camera.right * (newAspect / oldAspect);
+            break;
+        }
+    }
+
+    gUser.camera.updateProjectionMatrix();
+    gRenderer.setSize(width, height);
+
+    // Mini View
+    gUser.miniCamera.aspect = newAspect;
+    gUser.miniCamera.updateProjectionMatrix();
+    gMiniRenderer.setSize(0.25 * width, 0.25 * height);
+}
+
+let mx = 0, my = 0;
+function mousemove_callback(event) {
+    mx = event.clientX;
+    my = event.clientY;
+}
+
+// Register callbacks only after page loads (Ensure this is only called once)
 document.addEventListener("DOMContentLoaded", async function () {
+    window.addEventListener('resize', window_resize_callback);
+    window.addEventListener('keydown', keydown_input_callback);
+    gCanvas.addEventListener('mousemove', mousemove_callback);
+
+    // Re-attach click and contextmenu listeners here to ensure they are added after DOMContentLoaded
+    document.addEventListener('click', (event) => {
+        // Check if click is on GUI
+        const path = event.path || (event.composedPath && event.composedPath());
+        for (const element of path || []) {
+            if (element.classList &&
+                (element.classList.contains('lil-gui') ||
+                 element.classList.contains('dg'))) {
+                return; // Click was on GUI, don't handle selection
+            }
+        }
+
+        // Get mouse position in normalized device coordinates
+        const mouse = new THREE.Vector2();
+        const rect = gRenderer.domElement.getBoundingClientRect();
+        mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+        mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+        // Create raycaster
+        const raycaster = new THREE.Raycaster();
+        raycaster.setFromCamera(mouse, gUser.camera); // Use gUser.camera here
+
+        // Get all module meshes
+        const moduleMeshes = Object.values(gModules).map(module => module.mesh);
+
+        // Find intersections with module meshes only
+        const intersects = raycaster.intersectObjects(moduleMeshes);
+
+        if (intersects.length > 0) {
+            const intersectedObject = intersects[0].object;
+             // Find the module that owns the intersected mesh
+            const intersectedModule = Object.values(gModules).find(module =>
+                module.mesh === intersectedObject
+            );
+
+            if (intersectedModule) {
+                if (window._isSelectModuleMode) { // Handle selection in select mode (Left Click)
+                     if (event.button === 0) { // Only select on left click in select mode
+                        selectModule(intersectedModule);
+                     }
+                    return; // Stop further processing in select mode
+                }
+
+                if (event.button === 0) { // Left click (create module) - only if not in select mode
+                    // Get face normal and calculate new position
+                    const face = intersects[0].face;
+                    const normal = face.normal.clone();
+
+                    // Convert normal to world space
+                    normal.transformDirection(intersectedObject.matrixWorld);
+
+                    // Calculate new position by adding rounded world normal to module position
+                    const modulePos = intersectedModule.pos.clone();
+                    const roundedNormal = normal.round();
+                    const newPos = modulePos.add(roundedNormal);
+
+                    // Create new module at the calculated position
+                    const color = new THREE.Color(
+                        moduleBrush.color.r,
+                        moduleBrush.color.g,
+                        moduleBrush.color.b
+                    );
+                    const module = new Module(moduleBrush.type, VisConfigData.nextModID, newPos, color.getHex(), MODULE_SETTINGS.SCALE);
+                     // Ensure the newly created module is visible and rendered normally
+                    module.mesh.visible = true;
+                    module.mesh.material.uniforms.opacity = { value: 1.0 };
+                    module.mesh.material.uniforms.line_divisor = { value: 1 };
+
+                    if (moduleBrush.static) {
+                        module.markStatic();
+                    }
+
+                    // Update configuration bounds to include the new module
+                    VisConfigData.updateBounds(newPos);
+                    zSliceController.min(VisConfigData.bounds.z.min - 2);
+                    zSliceController.max(VisConfigData.bounds.z.max + 2);
+                    zSliceController.updateDisplay();
+                }
+                // Right click handled by contextmenu listener
+            }
+        }
+    });
+
+    document.addEventListener('contextmenu', (event) => {
+        event.preventDefault();
+
+        // Get mouse position in normalized device coordinates
+        const mouse = new THREE.Vector2();
+        const rect = gRenderer.domElement.getBoundingClientRect();
+        mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+        mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+        // Create raycaster
+        const raycaster = new THREE.Raycaster();
+        raycaster.setFromCamera(mouse, gUser.camera); // Use gUser.camera here
+
+        // Get all module meshes
+        const moduleMeshes = Object.values(gModules).map(module => module.mesh);
+
+        // Find intersections with module meshes only
+        const intersects = raycaster.intersectObjects(moduleMeshes);
+
+        if (intersects.length > 0) {
+            const intersectedObject = intersects[0].object;
+             // Find the module that owns the intersected mesh
+            const intersectedModule = Object.values(gModules).find(module =>
+                module.mesh === intersectedObject
+            );
+
+            if (intersectedModule) {
+                // Destroy the clicked module
+                intersectedModule.destroy();
+            }
+        }
+    });
+
     // Visualizer Controls
     gAnimGui.add(new GuiGlobalsHelper('gwAnimSpeed', 1.0, SliderType.QUADRATIC), 'value', 0.0, 5.0, 0.1).name("Anim Speed");
     gAnimGui.add(new GuiGlobalsHelper('gwAutoAnimate', false), 'value').name("Auto Animate");
-    style_controller = gGraphicsGui.add(window.gwUser, 'toggleCameraStyle').name("Toggle Camera Style");
+    style_controller = gGraphicsGui.add(gUser, 'toggleCameraStyle').name("Toggle Camera Style");
     gGraphicsGui.add(window, '_toggleBackgroundColor').name("Toggle Background Color");
     gGraphicsGui.add(window, '_toggleFullbright').name("Toggle Fullbright");
     gAnimGui.add(window, '_requestForwardAnim').name("Step Forward");
@@ -293,7 +452,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     gModuleBrushGui.add(moduleBrush, 'static').name("Static Module");
     gLayerGui.add(moduleBrush, 'adjSlicesVisible').name("Visualize Adjacent Layers").onChange((value) => {
         if (window._isPainterModeActive) {
-            updateVisibleModules(moduleBrush.zSlice);
+            updateVisibleModules(value);
         }
     });
     gModuleBrushGui.add(moduleBrush, 'type', {
@@ -337,13 +496,18 @@ document.addEventListener("DOMContentLoaded", async function () {
     gCanvas.addEventListener('mousedown', (event) => {
         if (event.button === 0 && !(event.shiftKey || event.ctrlKey)) {
             window._mouseHeld = true;
+            window._isAddingBlocks = true; // Set flag when starting to add blocks
             setDrawMode(event);
             handleModulePlacement(event);
         }
     });
     document.addEventListener('mouseup', (event) => {
         if (event.button === 0) {
-            window._mouseHeld = false;
+            // Add a small delay before resetting flags to allow module creation/update logic to finish
+            setTimeout(() => {
+                window._mouseHeld = false;
+                window._isAddingBlocks = false; // Reset flag when mouse is released
+            }, 50); // 50ms delay
         }
         if (window._toolMode === TOOL_MODES.PICK_COLOR) {
             window._toolMode = TOOL_MODES.EDIT;
@@ -357,14 +521,16 @@ document.addEventListener("DOMContentLoaded", async function () {
     gCanvas.addEventListener('mousemove', handleModulePlacement);
     gCanvas.addEventListener('wheel', (event) => {
         if (event.ctrlKey && window._isPainterModeActive) {
-            if (gwUser.controls.enableZoom) {
-                gwUser.controls.enableZoom = false;
+            if (gUser.controls.enableZoom) {
+                gUser.controls.enableZoom = false;
             }
             moduleBrush.zSlice += Math.sign(event.deltaY);
             zSliceController.updateDisplay();
             updateVisibleModules(moduleBrush.zSlice);
         } else {
-            gwUser.controls.enableZoom = true;
+            if (gUser.controls) {
+                gUser.controls.enableZoom = true;
+            }
         }
     });
 
@@ -467,8 +633,8 @@ document.addEventListener("DOMContentLoaded", async function () {
         _folder.add(_exampleLoaders, ex).name(ex);
     }
 
-    // Add color picker for selected module
-    gSelectedModuleGui.addColor(selectedModuleColor, 'color')
+    // Add color picker control to gSelectedModuleGui
+    selectedModuleColorController = gSelectedModuleGui.addColor(selectedModuleColor, 'color') // Store the controller reference
         .name('Color')
         .onChange((value) => {
             if (selectedModule) {
@@ -476,6 +642,47 @@ document.addEventListener("DOMContentLoaded", async function () {
                 selectedModule.mesh.material.uniforms.diffuse.value.setFromColor(new THREE.Color(value));
             }
         });
+
+    // Add keydown listener for Cmd + A (or Ctrl + A) to toggle select module mode
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'a' && (event.metaKey || event.ctrlKey)) {
+            event.preventDefault(); // Prevent default browser behavior
+            event.stopImmediatePropagation(); // Stop all other handlers from receiving this event
+
+            window._isSelectModuleMode = !window._isSelectModuleMode;
+            console.log('Select Module Mode:', window._isSelectModuleMode);
+
+            // Toggle visibility of the selected module GUI
+            if (window._isSelectModuleMode) {
+                // If entering select mode, deselect any current module initially and show GUI container
+                 selectModule(null); // This will also show the GUI container via the selectModule function
+            } else {
+                // If exiting select mode, deselect any module and hide the GUI container
+                selectModule(null); // This will hide the GUI container
+            }
+        }
+    });
+
+    // Modified keydown_input_callback handles single key presses like 'p' and 'r'
+    function keydown_input_callback(event) {
+        //console.log('Keydown event fired.', event.key, event.metaKey, event.ctrlKey);
+        let key = event.key;
+
+        // This function now only handles single key presses
+        // Cmd+A handling is in the separate listener above.
+
+        switch (key) {
+            case 'r':
+                //console.log('Single r key pressed, resetting camera.');
+                gUser.resetCamera();
+                break;
+            case 'ArrowRight': _requestForwardAnim(); break;
+            case 'ArrowLeft': _requestBackwardAnim(); break;
+            case 'M': toggleRenderMode(); break;
+            case 'P': console.log(gRenderer.domElement); break;
+            default: break;
+        }
+    }
 });
 
 /**
@@ -542,7 +749,7 @@ function getMousePosition(event) {
     const rect = canvas.getBoundingClientRect();
 
     // Get camera's current view parameters
-    const camera = gwUser.camera;
+    const camera = gUser.camera;
 
     // Calculate the click position by casting ray onto plane parallel to camera
     // TODO: probably can tidy this bit up, most of it is pulled from an old stackoverflow answer
@@ -604,6 +811,7 @@ function handleModulePlacement(event) {
         gHighlightModule.hide();
         return;
     }
+
     let mousePos = getMousePosition(event)
     gHighlightModule.setPosition(mousePos);
     gHighlightModule.show();
@@ -659,55 +867,18 @@ function toggleModuleAtPosition(x, y, z) {
     }
 }
 
-// Add click handler for module selection
-document.addEventListener('click', (event) => {
-    // Only handle selection if not in painter mode
-    if (window._isPainterModeActive) return;
-
-    // Check if click is on GUI
-    const path = event.path || (event.composedPath && event.composedPath());
-    for (const element of path || []) {
-        if (element.classList &&
-            (element.classList.contains('lil-gui') ||
-             element.classList.contains('dg'))) {
-            return; // Click was on GUI, don't handle selection
-        }
-    }
-
-    // Get mouse position in normalized device coordinates
-    const mouse = new THREE.Vector2();
-    const rect = gRenderer.domElement.getBoundingClientRect();
-    mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-    mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
-
-    // Create raycaster
-    const raycaster = new THREE.Raycaster();
-    raycaster.setFromCamera(mouse, gwUser.camera);
-
-    // Get all module meshes
-    const moduleMeshes = Object.values(gModules).map(module => module.mesh);
-
-    // Find intersections
-    const intersects = raycaster.intersectObjects(moduleMeshes);
-
-    if (intersects.length > 0) {
-        // Find the module that owns the intersected mesh
-        const intersectedModule = Object.values(gModules).find(module =>
-            module.mesh === intersects[0].object
-        );
-        selectModule(intersectedModule);
-    } else {
-        selectModule(null);
-    }
-});
-
 // Add module selection functionality
 function selectModule(module) {
     selectedModule = module;
     if (module) {
-        selectedModuleColor.color = module.color;
+        // Convert the module's color to proper hex format
+        const color = new THREE.Color(module.color);
+        selectedModuleColor.color = color.getHex();
+
         gSelectedModuleGui.show();
-        gSelectedModuleGui.updateDisplay();
+        if (selectedModuleColorController) { // Check if controller exists before updating
+             selectedModuleColorController.updateDisplay();
+        }
     } else {
         gSelectedModuleGui.hide();
     }

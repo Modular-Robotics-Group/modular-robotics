@@ -73,8 +73,11 @@ export let VisConfigData = {
                 VisConfigData.bounds.z.max = pos.z;
             }
         }
-        window.gwScenarioCentroid = VisConfigData.getCentroid();
-        window.gwScenarioRadius = VisConfigData.getRadius();
+        // Only update camera-related values if we're not in the middle of adding modules
+        if (!window._mouseHeld) {
+            window.gwScenarioCentroid = VisConfigData.getCentroid();
+            window.gwScenarioRadius = VisConfigData.getRadius();
+        }
     },
     clearBounds: () => {
         VisConfigData.bounds.empty = true;
@@ -148,16 +151,16 @@ export function createPathfinderConfiguration() {
     // Get all modules from the global module positions map
     const modules = [];
     const positions = [];
-    
+
     // Track min/max coordinates to determine axis size
     let minX = Infinity, maxX = -Infinity;
     let minY = Infinity, maxY = -Infinity;
     let minZ = Infinity, maxZ = -Infinity;
-    
+
     gModulePositions.forEach((module, posKey) => {
         const pos = JSON.parse(posKey);
         positions.push([pos.x, pos.y, pos.z]);
-        
+
         // Update min/max coordinates
         minX = Math.min(minX, pos.x);
         maxX = Math.max(maxX, pos.x);
@@ -165,7 +168,7 @@ export function createPathfinderConfiguration() {
         maxY = Math.max(maxY, pos.y);
         minZ = Math.min(minZ, pos.z);
         maxZ = Math.max(maxZ, pos.z);
-        
+
         // Convert module to pathfinder format
         modules.push({
             // Apparently the number of coordinates here matters, probably could be considered a bug on pathfinder's end
@@ -178,14 +181,14 @@ export function createPathfinderConfiguration() {
             }
         });
     });
-    
+
     // Calculate axis size (max dimension + padding)
     const axisSize = Math.max(
         maxX - minX,
-        maxY - minY, 
+        maxY - minY,
         maxZ - minZ
     ) + 2; // Add padding of 1 on each side
-    
+
     // Create configuration object
     const config = {
         exists: true,
@@ -203,7 +206,7 @@ export function createPathfinderConfiguration() {
         modules: modules,
         boundaries: [] // Could be populated with actual boundaries if available
     };
-    
+
     return config;
 }
 
@@ -221,7 +224,7 @@ export function parseRgbString(rgbString) {
             return [r, g, b];
         }
     }
-    
+
     // Default fallback color (white)
     console.warn("Could not parse color:", rgbString);
     return [1.0, 1.0, 1.0];
@@ -230,15 +233,15 @@ export function parseRgbString(rgbString) {
 // Function to save current configuration as initial or final
 export function saveConfiguration(isInitial = true) {
     const config = createPathfinderConfiguration();
-    
+
     const configJSON = JSON.stringify(config);
-    
+
     if (isInitial) {
         pathfinderData.config_i = configJSON;
     } else {
         pathfinderData.config_f = configJSON;
     }
-    
+
     return configJSON;
 }
 
@@ -248,16 +251,16 @@ export function downloadConfiguration(isInitial = true) {
     const configName = isInitial
         ? pathfinderData.settings.name + "_initial.json"
         : pathfinderData.settings.name + "_final.json";
-    
+
     // Create blob and download link
     const blob = new Blob([configJSON], { type: "application/json" });
     const url = URL.createObjectURL(blob);
-    
+
     const link = document.createElement("a");
     link.href = url;
     link.download = configName;
     link.click();
-    
+
     // Clean up
     URL.revokeObjectURL(url);
 }
