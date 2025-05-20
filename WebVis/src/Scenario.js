@@ -33,8 +33,8 @@ export class Scenario {
         let scenarioName = metadataLines[0];
         let scenarioDescription = metadataLines[1];
         let scenarioModuleType = {"all":-1};
-        let moduleTypes = metadataLines[2].split(" ");
-        if(moduleTypes.length == 1){
+        let moduleTypes = metadataLines[2].split(" "); //multiple types of robot can be specified in a scene
+        if(moduleTypes.length == 1){ //only one type of robot specified
             switch (metadataLines[2]) {
                 case 'CUBE': scenarioModuleType["all"] = ModuleType.CUBE; break;
                 case 'RHOMBIC_DODECAHEDRON': scenarioModuleType["all"] = ModuleType.RHOMBIC_DODECAHEDRON; break;
@@ -42,7 +42,7 @@ export class Scenario {
                 default: console.log("Unknown module type ", metadataLines[2], " -- defaulting to CUBE"); scenarioModuleType["all"] = ModuleType.CUBE; break;
             }
         }
-        else{
+        else{ // more than one type specified
             for( let i = 0; i < moduleTypes.length; i+= 2){
                 let currentType;
                 switch (moduleTypes[i]) {
@@ -112,6 +112,8 @@ export class Scenario {
                 }
                 case 1: { // Module definitions
                     let moduleId = lineVals[0];
+                    
+                    //check if multiple robot types are declared
                     let currentType;
                     if(scenarioModuleType["all"] == -1){
                         currentType = scenarioModuleType[moduleId];
@@ -119,6 +121,7 @@ export class Scenario {
                     else{
                         currentType = scenarioModuleType["all"]
                     }
+
                     let vg = visgroups[lineVals[1]];
                     let pos = new THREE.Vector3(lineVals[2], lineVals[3], lineVals[4]);
                     new Module(currentType, moduleId, pos, vg.color, vg.scale);
@@ -138,6 +141,8 @@ export class Scenario {
                     let moverId = lineVals[0];
                     gModules[moverId].unMarkStatic(); // Set non-static if module moves
                     let anchorDirCode = lineVals[1];
+
+                    //check if multiple robot types are declared
                     let currentType;
                     if(scenarioModuleType["all"] == -1){
                         currentType = scenarioModuleType[moverId];
@@ -171,7 +176,7 @@ export class Scenario {
         gUser.miniCamera.position.z = centroid.z + radius + 3.0;
         gUser.miniControls.target.set(...centroid);
         let currentType = scenarioModuleType["all"];
-        if(currentType == -1){
+        if(currentType == -1){ //if multiple types are used, the mini view uses a cube for a reference
             currentType = 0;
         }
         
