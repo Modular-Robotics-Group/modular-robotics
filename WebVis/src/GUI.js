@@ -274,7 +274,6 @@ export const zSliceController = gLayerGui.add(moduleBrush, 'zSlice', VisConfigDa
 
 // GUI element for Pathfinder and developer options
 export const gPathfinderGui = new GUI( { title: "Pathfinder", container: document.getElementById("controlBar") } ).close();
-export const gModeGui = new GUI( { title: "View/Edit", width: 160, container: document.getElementById("controlBar") } );
 // Global variables for module selection
 let selectedModule = null;
 const selectedModuleColor = { color: 0x808080 };
@@ -491,7 +490,6 @@ document.addEventListener("DOMContentLoaded", async function () {
             heuristic_setter.hide();
         }
     });
-    gModeGui.add(window, '_toggleMRWTMode').name("Toggle Painter/Viewer Mode");
     // Add event listener for module placement
     gCanvas.addEventListener('mousedown', (event) => {
         if (event.button === 0 && !(event.shiftKey || event.ctrlKey)) {
