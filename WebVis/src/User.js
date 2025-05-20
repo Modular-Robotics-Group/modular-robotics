@@ -1,4 +1,4 @@
-/* 
+/*
  * User class
  * User is a wrapper around the three.js Camera observing the scene,
  *  containing view settings (projection type, zoom level, etc)
@@ -35,6 +35,9 @@ export class User {
     }
 
     resetCamera() {
+        // Don't reset camera if we're in the middle of adding modules
+        if (window._mouseHeld || window._isAddingBlocks) return;
+
         let newCamera;
         switch (this.cameraStyle) {
             case CameraType.PERSPECTIVE: newCamera = new THREE.PerspectiveCamera( 75, gCanvas.clientWidth / gCanvas.clientHeight, 0.1, 250.0 ); break;
@@ -60,6 +63,9 @@ export class User {
     }
 
     resetMiniCamera() {
+        // Don't reset camera if we're in the middle of adding modules
+        if (window._mouseHeld || window._isAddingBlocks) return;
+
         let initial_position = new THREE.Vector3(...window.gwScenarioCentroid);
         if (this.miniCamera) {
             initial_position.add(this.miniCamera.position).sub(this.miniControls.target);
@@ -85,7 +91,9 @@ export class User {
     }
 
     toggleCameraStyle() {
-        if (window._isPainterModeActive) return;
+        // Don't toggle if in painter mode, module selection mode, or when adding modules
+        if (window._isPainterModeActive || window._isSelectModuleMode || window._mouseHeld || window._isAddingBlocks) return;
+
         let newCameraStyle;
         switch(this.cameraStyle) {
             case CameraType.PERSPECTIVE: newCameraStyle = CameraType.ORTHOGRAPHIC; break;
@@ -116,7 +124,7 @@ function window_resize_callback() {
 
     gUser.camera.updateProjectionMatrix();
     gRenderer.setSize(width, height);
-    
+
     // Mini View
     gUser.miniCamera.aspect = newAspect;
     gUser.miniCamera.updateProjectionMatrix();
@@ -131,6 +139,17 @@ function mousemove_callback(event) {
 
 function keydown_input_callback(event) {
     let key = event.key;
+
+    // Skip if modifier keys are pressed (for Cmd+A or Ctrl+A)
+    if (event.metaKey || event.ctrlKey) {
+        return;
+    }
+
+    // Skip if we're in the middle of adding modules
+    if (window._mouseHeld || window._isAddingBlocks) {
+        return;
+    }
+
     switch (key) {
         case 'p': gUser.toggleCameraStyle(); break;
         case 'r': gUser.resetCamera(); break;
@@ -169,7 +188,7 @@ function selectModule(viewportX, viewportY) {
 
 window._requestForwardAnim = function () {
     if (window._isPainterModeActive) return;
-    window.gwNextAnimationRequested = true; 
+    window.gwNextAnimationRequested = true;
     window.gwForward = true;
 }
 window._requestBackwardAnim = function () {
