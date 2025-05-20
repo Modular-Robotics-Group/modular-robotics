@@ -6,6 +6,7 @@ Example use cases include:
 - Finding the shortest path from an initial configuration to a desired configuration
 - Analyzing and comparing the effectiveness of different models (ex: sliding vs pivoting)
 - Determining if a configuration is "super-rigid"
+- Testing metamodules
 
 ## Usage
 
