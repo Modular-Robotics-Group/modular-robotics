@@ -1,6 +1,6 @@
 Scenario NAME on this line
 Scenario DESCRIPTION on this line
-CUBE
+CUBE 1,2,3,11,12,13,15,21,22 CATOM 23
 
 0, 255,255,  0, 95      // Group definition: Group ID, r, g, b, size (1-100)
 1, 255,255,255, 85      // Bright orange    west of origin

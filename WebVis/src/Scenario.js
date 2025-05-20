@@ -32,13 +32,33 @@ export class Scenario {
         let metadataLines = metadataString.split('\n');
         let scenarioName = metadataLines[0];
         let scenarioDescription = metadataLines[1];
-        let scenarioModuleType;
-        switch (metadataLines[2]) {
-            case 'CUBE': scenarioModuleType = ModuleType.CUBE; break;
-            case 'RHOMBIC_DODECAHEDRON': scenarioModuleType = ModuleType.RHOMBIC_DODECAHEDRON; break;
-            case 'CATOM': scenarioModuleType = ModuleType.CATOM; break;
-            default: console.log("Unknown module type ", metadataLines[2], " -- defaulting to CUBE"); scenarioModuleType = ModuleType.CUBE; break;
+        let scenarioModuleType = {"all":-1};
+        let moduleTypes = metadataLines[2].split(" ");
+        if(moduleTypes.length == 1){
+            switch (metadataLines[2]) {
+                case 'CUBE': scenarioModuleType["all"] = ModuleType.CUBE; break;
+                case 'RHOMBIC_DODECAHEDRON': scenarioModuleType["all"] = ModuleType.RHOMBIC_DODECAHEDRON; break;
+                case 'CATOM': scenarioModuleType["all"] = ModuleType.CATOM; break;
+                default: console.log("Unknown module type ", metadataLines[2], " -- defaulting to CUBE"); scenarioModuleType["all"] = ModuleType.CUBE; break;
+            }
         }
+        else{
+            for( let i = 0; i < moduleTypes.length; i+= 2){
+                let currentType;
+                switch (moduleTypes[i]) {
+                    case 'CUBE': currentType = ModuleType.CUBE; break;
+                    case 'RHOMBIC_DODECAHEDRON': currentType = ModuleType.RHOMBIC_DODECAHEDRON; break;
+                    case 'CATOM': currentType = ModuleType.CATOM; break;
+                    default: console.log("Unknown module type ", metadataLines[2], " -- defaulting to CUBE"); currentType = ModuleType.CUBE; break;
+                }
+                let ids = moduleTypes[i+1].split(",") 
+                for( let j = 0; j < ids.length; j++){
+                    scenarioModuleType[ids[j]] = currentType;
+                }
+
+            }
+        }
+
 
         let visgroups = {}; // key-value pairs of 'visgroupId: visgroup'
         let dataLines = dataString.split('\n');
@@ -92,9 +112,16 @@ export class Scenario {
                 }
                 case 1: { // Module definitions
                     let moduleId = lineVals[0];
+                    let currentType;
+                    if(scenarioModuleType["all"] == -1){
+                        currentType = scenarioModuleType[moduleId];
+                    }
+                    else{
+                        currentType = scenarioModuleType["all"]
+                    }
                     let vg = visgroups[lineVals[1]];
                     let pos = new THREE.Vector3(lineVals[2], lineVals[3], lineVals[4]);
-                    new Module(scenarioModuleType, moduleId, pos, vg.color, vg.scale);
+                    new Module(currentType, moduleId, pos, vg.color, vg.scale);
                     gModules[moduleId].markStatic(); // Initially set all modules static
 
                     if (!minCoords) {
@@ -111,10 +138,18 @@ export class Scenario {
                     let moverId = lineVals[0];
                     gModules[moverId].unMarkStatic(); // Set non-static if module moves
                     let anchorDirCode = lineVals[1];
+                    let currentType;
+                    if(scenarioModuleType["all"] == -1){
+                        currentType = scenarioModuleType[moverId];
+                    }
+                    else{
+                        currentType = scenarioModuleType["all"]
+                    }
+
                     let deltaPos = new THREE.Vector3(lineVals[2], lineVals[3], lineVals[4]);
                     // TODO if we add more move types, this needs to be changed
                     let moveType = anchorDirCode > 0 ? MoveType.PIVOT : MoveType.SLIDING;
-                    moveSet.moves.push(new Move(moverId, anchorDirCode, deltaPos, moveType, scenarioModuleType));
+                    moveSet.moves.push(new Move(moverId, anchorDirCode, deltaPos, moveType, currentType));
                     moveSet.checkpoint = moveSet.checkpointMove || checkpointMove;
                     break;
                 }
@@ -135,8 +170,13 @@ export class Scenario {
         gUser.miniCamera.position.y = centroid.y;
         gUser.miniCamera.position.z = centroid.z + radius + 3.0;
         gUser.miniControls.target.set(...centroid);
-        gReferenceModule.swapType(scenarioModuleType);
-        gHighlightModule.swapType(scenarioModuleType);
+        let currentType = scenarioModuleType["all"];
+        if(currentType == -1){
+            currentType = 0;
+        }
+        
+        gReferenceModule.swapType(currentType);
+        gHighlightModule.swapType(currentType);
 
         window.gwMoveSetSequence = new MoveSetSequence(moveSets);
         window.gwScenarioCentroid = centroid;
