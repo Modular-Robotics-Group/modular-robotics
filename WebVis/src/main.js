@@ -135,7 +135,7 @@ gScene.add(axesHelper);
 
 // Once the page loads, automatically load an example scenario
 document.addEventListener("DOMContentLoaded", async function () {
-    new Scenario(await fetch('./Scenarios/3x3 Metamodule.scen').then(response => response.text()));
+    new Scenario(await fetch('./Scenarios/Multiple Models.scen').then(response => response.text()));
 });
 
 /* ****************************** */
