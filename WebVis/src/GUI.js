@@ -145,6 +145,25 @@ window._clearConfig = function() {
     // Invalidate move sequence and reset progress bar
     pathfinderProgressBar.style.width = "0%";
     window.gwMoveSetSequence.invalidate();
+
+    // Automatically enter painter mode after clearing
+    window._isPainterModeActive = true;
+
+    // Toggle GUI elements visibility
+    gAnimGui.show(gAnimGui._hidden);
+    gScenGui.show(gScenGui._hidden);
+    gModuleBrushGui.show(gModuleBrushGui._hidden);
+    gLayerGui.show(gLayerGui._hidden);
+
+    // Hide perspective controller and swap to ortho view
+    style_controller.hide();
+    gUser.cameraStyle = CameraType.ORTHOGRAPHIC;
+    gUser.resetCamera();
+
+    // Configure controls for painter mode (panning only)
+    setCameraControls(CAMERA_MODES.PAINTER);
+    // Set tool to edit
+    window._toolMode = TOOL_MODES.EDIT;
 }
 
 /**
@@ -258,6 +277,7 @@ window._pathfinderRun = function() {
 // GUI elements for general settings
 export const gGraphicsGui = new GUI( { title: "Graphics", width: 160, container: document.getElementById("controlBar") } ).close();
 let style_controller;
+
 // GUI elements for Visualizer Mode
 export const gAnimGui = new GUI( { title: "Animation", container: document.getElementById("controlBar") } );
 export const gScenGui = new GUI( { title: "Scenario", container: document.getElementById("controlBar") } ).close();
@@ -267,6 +287,12 @@ export const gModuleBrushGui = new GUI( { title: "Brush", container: document.ge
 let brushColor_selector;
 export const gLayerGui = new GUI( { title: "Layer", container: document.getElementById("controlBar") } ).hide();
 export const zSliceController = gLayerGui.add(moduleBrush, 'zSlice', VisConfigData.bounds.z.min - 2, VisConfigData.bounds.z.max + 2, 1).name("Layer").onChange((value) => {
+    if (window._isPainterModeActive) {
+        updateVisibleModules(value);
+    }
+});
+
+gLayerGui.add(moduleBrush, 'adjSlicesVisible').name("Visualize Adjacent Layers").onChange((value) => {
     if (window._isPainterModeActive) {
         updateVisibleModules(value);
     }
@@ -282,6 +308,9 @@ let selectedModuleColorController; // Reference to the color controller
 
 // State flag for the special module selection mode
 window._isSelectModuleMode = false;
+
+// Add a processing flag to prevent double-clicks
+let _isProcessingClick = false;
 
 // User interaction callbacks
 /* ****************************** */
@@ -303,10 +332,11 @@ function window_resize_callback() {
     gUser.camera.updateProjectionMatrix();
     gRenderer.setSize(width, height);
 
-    // Mini View
-    gUser.miniCamera.aspect = newAspect;
-    gUser.miniCamera.updateProjectionMatrix();
-    gMiniRenderer.setSize(0.25 * width, 0.25 * height);
+    // Mini View - only update if gMiniRenderer exists
+    if (gUser.miniCamera && gUser.miniCamera.aspect) {
+        gUser.miniCamera.aspect = newAspect;
+        gUser.miniCamera.updateProjectionMatrix();
+    }
 }
 
 let mx = 0, my = 0;
@@ -323,12 +353,19 @@ document.addEventListener("DOMContentLoaded", async function () {
 
     // Re-attach click and contextmenu listeners here to ensure they are added after DOMContentLoaded
     document.addEventListener('click', (event) => {
+        // Prevent double-clicks
+        if (_isProcessingClick) {
+            return;
+        }
+        _isProcessingClick = true;
+
         // Check if click is on GUI
         const path = event.path || (event.composedPath && event.composedPath());
         for (const element of path || []) {
             if (element.classList &&
                 (element.classList.contains('lil-gui') ||
                  element.classList.contains('dg'))) {
+                _isProcessingClick = false;
                 return; // Click was on GUI, don't handle selection
             }
         }
@@ -344,7 +381,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 
         // Create raycaster
         const raycaster = new THREE.Raycaster();
-        raycaster.setFromCamera(mouse, gUser.camera); // Use gUser.camera here
+        raycaster.setFromCamera(mouse, gUser.camera);
 
         // Get all module meshes
         const moduleMeshes = Object.values(gModules).map(module => module.mesh);
@@ -354,20 +391,21 @@ document.addEventListener("DOMContentLoaded", async function () {
 
         if (intersects.length > 0) {
             const intersectedObject = intersects[0].object;
-             // Find the module that owns the intersected mesh
+            // Find the module that owns the intersected mesh
             const intersectedModule = Object.values(gModules).find(module =>
                 module.mesh === intersectedObject
             );
 
             if (intersectedModule) {
                 if (window._isSelectModuleMode) { // Handle selection in select mode (Left Click)
-                     if (event.button === 0) { // Only select on left click in select mode
+                    if (event.button === 0) { // Only select on left click in select mode
                         selectModule(intersectedModule);
-                     }
+                    }
+                    _isProcessingClick = false;
                     return; // Stop further processing in select mode
                 }
 
-                if (event.button === 0) { // Left click (create module) - only if not in select mode
+                if (event.button === 0 && !window._isSelectModuleMode) { // Left click (create module) - only if not in select mode
                     // Get face normal and calculate new position
                     const face = intersects[0].face;
                     const normal = face.normal.clone();
@@ -380,35 +418,61 @@ document.addEventListener("DOMContentLoaded", async function () {
                     const roundedNormal = normal.round();
                     const newPos = modulePos.add(roundedNormal);
 
-                    // Create new module at the calculated position
-                    const color = new THREE.Color(
-                        moduleBrush.color.r,
-                        moduleBrush.color.g,
-                        moduleBrush.color.b
-                    );
-                    const module = new Module(moduleBrush.type, VisConfigData.nextModID, newPos, color.getHex(), MODULE_SETTINGS.SCALE);
-                     // Ensure the newly created module is visible and rendered normally
-                    module.mesh.visible = true;
-                    module.mesh.material.uniforms.opacity = { value: 1.0 };
-                    module.mesh.material.uniforms.line_divisor = { value: 1 };
+                    // Place module if it's on the same z-slice in painter mode, or always in 3D mode
+                    if (!window._isPainterModeActive || (window._isPainterModeActive && Math.round(newPos.z) === Math.round(modulePos.z))) {
+                        // Create new module at the calculated position
+                        const color = new THREE.Color(
+                            moduleBrush.color.r,
+                            moduleBrush.color.g,
+                            moduleBrush.color.b
+                        );
+                        const module = new Module(moduleBrush.type, VisConfigData.nextModID, newPos, color.getHex(), MODULE_SETTINGS.SCALE);
+                        // Ensure the newly created module is visible and rendered normally
+                        module.mesh.visible = true;
+                        module.mesh.material.uniforms.opacity = { value: 1.0 };
+                        module.mesh.material.uniforms.line_divisor = { value: 1 };
 
-                    if (moduleBrush.static) {
-                        module.markStatic();
+                        if (moduleBrush.static) {
+                            module.markStatic();
+                        }
+
+                        // Update configuration bounds to include the new module
+                        VisConfigData.updateBounds(newPos);
+                        zSliceController.min(VisConfigData.bounds.z.min - 2);
+                        zSliceController.max(VisConfigData.bounds.z.max + 2);
+                        zSliceController.updateDisplay();
+
+                        // If this is the first module (nextModID will be 1 after this module is created)
+                        if (VisConfigData.nextModID === 1) {
+                            // Exit painter mode
+                            window._isPainterModeActive = false;
+
+                            // Toggle GUI elements visibility
+                            gAnimGui.show(gAnimGui._hidden);
+                            gScenGui.show(gScenGui._hidden);
+                            gModuleBrushGui.show(gModuleBrushGui._hidden);
+                            gLayerGui.show(gLayerGui._hidden);
+
+                            // Show perspective controller and restore 3D view
+                            style_controller.show();
+                            gUser.cameraStyle = CameraType.PERSPECTIVE;
+                            gUser.resetCamera();
+
+                            // Restore full camera controls
+                            setCameraControls(CAMERA_MODES.NORMAL);
+
+                            // Show all modules
+                            showAllModules();
+                        }
                     }
-
-                    // Update configuration bounds to include the new module
-                    VisConfigData.updateBounds(newPos);
-                    zSliceController.min(VisConfigData.bounds.z.min - 2);
-                    zSliceController.max(VisConfigData.bounds.z.max + 2);
-                    zSliceController.updateDisplay();
                 }
-                // Right click handled by contextmenu listener
             }
         }
 
-        // Reset flag after a short delay
+        // Reset flags after a short delay
         setTimeout(() => {
             window._preventCameraReset = false;
+            _isProcessingClick = false;
         }, 100); // 100ms delay
     });
 
@@ -459,17 +523,13 @@ document.addEventListener("DOMContentLoaded", async function () {
     style_controller = gGraphicsGui.add(gUser, 'toggleCameraStyle').name("Toggle Camera Style");
     gGraphicsGui.add(window, '_toggleBackgroundColor').name("Toggle Background Color");
     gGraphicsGui.add(window, '_toggleFullbright').name("Toggle Fullbright");
+    gGraphicsGui.add(window, '_clearConfig').name("Clear Configuration");
     gAnimGui.add(window, '_requestForwardAnim').name("Step Forward");
     gAnimGui.add(window, '_requestBackwardAnim').name("Step Backward");
     // Configurizer Controls
     brushColor_selector = gModuleBrushGui.addColor(moduleBrush, 'color').name("Module Color");
     gModuleBrushGui.add({ beginColorPick: () => { window._toolMode = TOOL_MODES.PICK_COLOR } }, 'beginColorPick');
     gModuleBrushGui.add(moduleBrush, 'static').name("Static Module");
-    gLayerGui.add(moduleBrush, 'adjSlicesVisible').name("Visualize Adjacent Layers").onChange((value) => {
-        if (window._isPainterModeActive) {
-            updateVisibleModules(value);
-        }
-    });
     gModuleBrushGui.add(moduleBrush, 'type', {
             "Cube": ModuleType.CUBE,
             "Rhombic Dodecahedron": ModuleType.RHOMBIC_DODECAHEDRON,
@@ -485,7 +545,6 @@ document.addEventListener("DOMContentLoaded", async function () {
                     : "Moves/RhombicDodecahedron"
             );
     });
-    gLayerGui.add(window, '_clearConfig').name("Clear Configuration");
     // Pathfinder and debug Controls
     pathfinder_controller = gPathfinderGui.add(window, '_pathfinderRun').name("Run Pathfinder").disable();
     gPathfinderGui.add(pathfinderData.settings, 'name').name("Name");
@@ -876,6 +935,29 @@ function toggleModuleAtPosition(x, y, z) {
             module.markStatic();
         }
         updateModuleVisibility(module, z, moduleBrush.zSlice);
+
+        // If this is the first module (nextModID will be 1 after this module is created)
+        if (VisConfigData.nextModID === 1) {
+            // Exit painter mode
+            window._isPainterModeActive = false;
+
+            // Toggle GUI elements visibility
+            gAnimGui.show(gAnimGui._hidden);
+            gScenGui.show(gScenGui._hidden);
+            gModuleBrushGui.show(gModuleBrushGui._hidden);
+            gLayerGui.show(gLayerGui._hidden);
+
+            // Show perspective controller and restore 3D view
+            style_controller.show();
+            gUser.cameraStyle = CameraType.PERSPECTIVE;
+            gUser.resetCamera();
+
+            // Restore full camera controls
+            setCameraControls(CAMERA_MODES.NORMAL);
+
+            // Show all modules
+            showAllModules();
+        }
     } else if (existingModule && window._drawMode === DRAW_MODES.ERASE) {
         gModules[existingModule.id].destroy();
     }
@@ -889,11 +971,17 @@ function selectModule(module) {
         const color = new THREE.Color(module.color);
         selectedModuleColor.color = color.getHex();
 
-        gSelectedModuleGui.show();
-        if (selectedModuleColorController) { // Check if controller exists before updating
-             selectedModuleColorController.updateDisplay();
+        // Show the GUI and update the color controller
+        if (gSelectedModuleGui) {
+            gSelectedModuleGui.show();
+        }
+        if (selectedModuleColorController) {
+            selectedModuleColorController.updateDisplay();
         }
     } else {
-        gSelectedModuleGui.hide();
+        // Hide the GUI when no module is selected
+        if (gSelectedModuleGui) {
+            gSelectedModuleGui.hide();
+        }
     }
 }
