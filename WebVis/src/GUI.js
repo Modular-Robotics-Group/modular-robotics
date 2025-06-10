@@ -9,17 +9,17 @@ import { Module } from './Module.js';
 
 // Exact filenames of example scenarios in /Scenarios/
 let EXAMPLE_SCENARIOS = [
-    '2x2x2 Metamodule',
     '3x3 Metamodule',
-    'Cube Debugging',
-    'RD Debugging',
-    'Slide Debugging',
-	'3x3 Metamodule Sub-case 1',
-	'3x3 Metamodule Sub-case 2',
-	'3x3 Metamodule Sub-case 3',
-    'Parallel Move Debugging',
-    'Parallel Monkey Move',
-    'Catom Debugging'
+    'Cube Example',
+    'RD Example',
+    'Slide Example',
+    'Catom Example',
+	// '3x3 Metamodule Sub-case 1',
+	// '3x3 Metamodule Sub-case 2',
+	// '3x3 Metamodule Sub-case 3',
+    'Parallel Move Example',
+    // 'Parallel Monkey Move',
+    // '2x2x2 Metamodule'
 ]
 
 // Opacity settings for changing layers / visualizing adjacent layers
