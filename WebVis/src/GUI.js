@@ -20,6 +20,7 @@ let EXAMPLE_SCENARIOS = [
     'Parallel Move Example',
     // 'Parallel Monkey Move',
     // '2x2x2 Metamodule'
+    "socg2025",
 ]
 
 // Opacity settings for changing layers / visualizing adjacent layers
