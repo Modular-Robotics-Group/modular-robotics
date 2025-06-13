@@ -95,7 +95,7 @@ export class Scenario {
                     let vg = visgroups[lineVals[1]];
                     let pos = new THREE.Vector3(lineVals[2], lineVals[3], lineVals[4]);
                     new Module(scenarioModuleType, moduleId, pos, vg.color, vg.scale);
-                    gModules[moduleId].markStatic(); // Initially set all modules static
+                    // gModules[moduleId].markStatic(); // Initially set all modules static
 
                     if (!minCoords) {
                         minCoords = new THREE.Vector3(lineVals[2], lineVals[3], lineVals[4]);
