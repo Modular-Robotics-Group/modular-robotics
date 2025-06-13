@@ -256,7 +256,7 @@ window._pathfinderRun = function() {
 /* GUI setup */
 /* ****************************** */
 // GUI elements for general settings
-export const gGraphicsGui = new GUI( { title: "Graphics", width: 160, container: document.getElementById("controlBar") } ).close();
+export const gGraphicsGui = new GUI( { title: "Graphics", container: document.getElementById("controlBar") } ).close();
 let style_controller;
 // GUI elements for Visualizer Mode
 export const gAnimGui = new GUI( { title: "Animation", container: document.getElementById("controlBar") } );
@@ -275,7 +275,7 @@ export const zSliceController = gLayerGui.add(moduleBrush, 'zSlice', VisConfigDa
 
 // GUI element for Pathfinder and developer options
 export const gPathfinderGui = new GUI( { title: "Pathfinder", container: document.getElementById("controlBar") } ).close();
-export const gModeGui = new GUI( { title: "View/Edit", width: 160, container: document.getElementById("controlBar") } );
+export const gModeGui = new GUI( { title: "View/Edit", container: document.getElementById("controlBar") } );
 // Global variables for module selection
 let selectedModule = null;
 const selectedModuleColor = { color: 0x808080 };
