@@ -256,17 +256,17 @@ window._pathfinderRun = function() {
 /* GUI setup */
 /* ****************************** */
 // GUI elements for general settings
-export const gGraphicsGui = new GUI( { title: "Graphics", container: document.getElementById("controlBar") } ).close();
+export const gGraphicsGui = new GUI( { title: "Graphics",width: window.innerWidth*.1, container: document.getElementById("controlBar") } ).close();
 let style_controller;
 // GUI elements for Visualizer Mode
-export const gAnimGui = new GUI( { title: "Animation", container: document.getElementById("controlBar") } );
-export const gScenGui = new GUI( { title: "Scenario", container: document.getElementById("controlBar") } ).close();
+export const gAnimGui = new GUI( { title: "Animation",width: window.innerWidth*.1, container: document.getElementById("controlBar") } );
+export const gScenGui = new GUI( { title: "Scenario",width: window.innerWidth*.1, container: document.getElementById("controlBar") } ).close();
 
 // GUI elements for Configurizer Mode
-export const gModuleBrushGui = new GUI( { title: "Brush", container: document.getElementById("controlBar") } ).hide();
+export const gModuleBrushGui = new GUI( { title: "Brush",width: window.innerWidth*.1, container: document.getElementById("controlBar") } ).hide();
 let brushColor_selector;
-export const gLayerGui = new GUI( { title: "Layer", container: document.getElementById("controlBar") } ).hide();
-export const gSelectedModuleGui = new GUI( { title: "Selected Module", container: document.getElementById("controlBar") } ).hide();
+export const gLayerGui = new GUI( { title: "Layer",width: window.innerWidth*.1, container: document.getElementById("controlBar") } ).hide();
+export const gSelectedModuleGui = new GUI( { title: "Selected Module",width: window.innerWidth*.1, container: document.getElementById("controlBar") } ).hide();
 export const zSliceController = gLayerGui.add(moduleBrush, 'zSlice', VisConfigData.bounds.z.min - 2, VisConfigData.bounds.z.max + 2, 1).name("Layer").onChange((value) => {
     if (window._isPainterModeActive) {
         updateVisibleModules(value);
@@ -274,8 +274,8 @@ export const zSliceController = gLayerGui.add(moduleBrush, 'zSlice', VisConfigDa
 });
 
 // GUI element for Pathfinder and developer options
-export const gPathfinderGui = new GUI( { title: "Pathfinder", container: document.getElementById("controlBar") } ).close();
-export const gModeGui = new GUI( { title: "View/Edit", container: document.getElementById("controlBar") } );
+export const gPathfinderGui = new GUI( { title: "Pathfinder",width: window.innerWidth*.1, container: document.getElementById("controlBar") } ).close();
+export const gModeGui = new GUI( { title: "View/Edit",width: window.innerWidth*.1, container: document.getElementById("controlBar") } );
 // Global variables for module selection
 let selectedModule = null;
 const selectedModuleColor = { color: 0x808080 };
