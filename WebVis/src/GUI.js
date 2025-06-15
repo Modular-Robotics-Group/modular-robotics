@@ -9,17 +9,19 @@ import { Module } from './Module.js';
 
 // Exact filenames of example scenarios in /Scenarios/
 let EXAMPLE_SCENARIOS = [
-    '2x2x2 Metamodule',
     '3x3 Metamodule',
-    'Cube Debugging',
-    'RD Debugging',
-    'Slide Debugging',
-	'3x3 Metamodule Sub-case 1',
-	'3x3 Metamodule Sub-case 2',
-	'3x3 Metamodule Sub-case 3',
-    'Parallel Move Debugging',
-    'Parallel Monkey Move',
-    'Catom Debugging',
+    'Cube Example',
+    'RD Example',
+    'Slide Example',
+    'Catom Example',
+	// '3x3 Metamodule Sub-case 1',
+	// '3x3 Metamodule Sub-case 2',
+	// '3x3 Metamodule Sub-case 3',
+    'Parallel Move Example',
+    // 'Parallel Monkey Move',
+    // '2x2x2 Metamodule'
+    "socg2025",
+    // "socg2025-2piv+slide",
     'Catom Triangle Debugging'
 ]
 
@@ -255,17 +257,17 @@ window._pathfinderRun = function() {
 /* GUI setup */
 /* ****************************** */
 // GUI elements for general settings
-export const gGraphicsGui = new GUI( { title: "Graphics", width: 160, container: document.getElementById("controlBar") } ).close();
+export const gGraphicsGui = new GUI( { title: "Graphics",width: window.innerWidth*.1, container: document.getElementById("controlBar") } ).close();
 let style_controller;
 // GUI elements for Visualizer Mode
-export const gAnimGui = new GUI( { title: "Animation", container: document.getElementById("controlBar") } );
-export const gScenGui = new GUI( { title: "Scenario", container: document.getElementById("controlBar") } ).close();
+export const gAnimGui = new GUI( { title: "Animation",width: window.innerWidth*.1, container: document.getElementById("controlBar") } );
+export const gScenGui = new GUI( { title: "Scenario",width: window.innerWidth*.1, container: document.getElementById("controlBar") } ).close();
 
 // GUI elements for Configurizer Mode
-export const gModuleBrushGui = new GUI( { title: "Brush", container: document.getElementById("controlBar") } ).hide();
+export const gModuleBrushGui = new GUI( { title: "Brush",width: window.innerWidth*.1, container: document.getElementById("controlBar") } ).hide();
 let brushColor_selector;
-export const gLayerGui = new GUI( { title: "Layer", container: document.getElementById("controlBar") } ).hide();
-export const gSelectedModuleGui = new GUI( { title: "Selected Module", container: document.getElementById("controlBar") } ).hide();
+export const gLayerGui = new GUI( { title: "Layer",width: window.innerWidth*.1, container: document.getElementById("controlBar") } ).hide();
+export const gSelectedModuleGui = new GUI( { title: "Selected Module",width: window.innerWidth*.1, container: document.getElementById("controlBar") } ).hide();
 export const zSliceController = gLayerGui.add(moduleBrush, 'zSlice', VisConfigData.bounds.z.min - 2, VisConfigData.bounds.z.max + 2, 1).name("Layer").onChange((value) => {
     if (window._isPainterModeActive) {
         updateVisibleModules(value);
@@ -273,8 +275,8 @@ export const zSliceController = gLayerGui.add(moduleBrush, 'zSlice', VisConfigDa
 });
 
 // GUI element for Pathfinder and developer options
-export const gPathfinderGui = new GUI( { title: "Pathfinder", container: document.getElementById("controlBar") } ).close();
-export const gModeGui = new GUI( { title: "View/Edit", width: 160, container: document.getElementById("controlBar") } );
+export const gPathfinderGui = new GUI( { title: "Pathfinder",width: window.innerWidth*.1, container: document.getElementById("controlBar") } ).close();
+export const gModeGui = new GUI( { title: "View/Edit",width: window.innerWidth*.1, container: document.getElementById("controlBar") } );
 // Global variables for module selection
 let selectedModule = null;
 const selectedModuleColor = { color: 0x808080 };
