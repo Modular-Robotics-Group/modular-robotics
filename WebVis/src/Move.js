@@ -17,7 +17,7 @@ function constructAdc(ad) {
 
 function parseAdc(adc) {
     let anchorDir;
-    switch (Math.abs(adc)) {
+    switch (Math.abs(adc % 1000)) {
         // Generic sliding move
         case 0:  anchorDir = new THREE.Vector3( 0.0,  0.0,  0.0 ); break; // generic slide
 
@@ -105,7 +105,7 @@ export class Move {
             step.postTrans = _translationDir.clone().multiplyScalar(midsphere);
             step.preTrans = step.postTrans.clone().negate();
             step.maxAngle = step.deltaPos.abs().sum() * dihedral;
-        } 
+        }
         this.steps.push(step);
     }
 
@@ -131,41 +131,76 @@ export class Move {
         let faceDist = ModuleData.get(this.moduleType)['facedist'];
         let edgeDist = ModuleData.get(this.moduleType)['edgedist'];
 
+        let isTriMove = this.adc >= 1000;
         let anchorDir = parseAdc(this.adc);
         let step1 = {}, step2 = {};
 
-        step1.maxAngle = dihedral;
-        step1.maxPct = 0.5;
-        step2.maxAngle = dihedral;
-        step2.maxPct = 1.0;
+        if (isTriMove) {
+            // Pivot across triangle face
+            dihedral = 1.23095941734 // arctan(1 - sqrt(2) / 2, sqrt(2) - 1) * 2
+            step1.maxAngle = dihedral;
+            step1.maxPct = 0.5;
+            step2.maxAngle = dihedral;
+            step2.maxPct = 1.0;
 
-        // Delta positions for each step
-        let dp1 = this.deltaPos.clone().multiply(anchorDir.abs()).normalize();
-        let dp2 = this.deltaPos.clone().sub(dp1);
+            // Delta positions for each step
+            let dp2 = this.deltaPos.clone().multiply(anchorDir.abs()).normalize();
+            let dp1 = this.deltaPos.clone().sub(dp2);
 
-        // Catom movement will take place in a plane
-        // "Bump axis" is the normal to this plane
-        let bumpAxis = anchorDir.sgn().sub(dp1.sgn());
-        this.bumpAxis = bumpAxis;
+            // Bump Axis
+            let bumpAxis = anchorDir.sgn().sub(dp2.sgn());
+            this.bumpAxis = bumpAxis;
 
-        // Rotation axes for each step
-        let ra1 = dp1.clone().cross(anchorDir).normalize();
-        let ra2 = dp2.clone().cross(bumpAxis).normalize().negate();
+            // Triangle rotation axes for each step
+            let ra1 = dp1.clone().cross(anchorDir).normalize();
+            let ra2 = this.deltaPos.clone().cross(bumpAxis).normalize();
 
-        step1.deltaPos = dp1;
-        step1.rotAxis = ra1;
-        step2.deltaPos = dp2.clone().applyAxisAngle(ra1, dihedral);
-        step2.rotAxis = dp1.equals(dp2) ? ra1 : ra2.clone().applyAxisAngle(ra1, dihedral);
+            step1.deltaPos = dp1;
+            step1.rotAxis = ra1;
+            step2.deltaPos = dp2;
+            step2.rotAxis = ra2;
 
-        // Translations: along the deltaPos direction by faceDist,
-        //  and along the bumpAxis direction by edgeDist
-        step1.postTrans = dp1.clone().setLength(faceDist).add(bumpAxis.clone().setLength(edgeDist));
-        step1.preTrans = step1.postTrans.clone().negate();
+            // Translations
+            step1.postTrans = dp1.clone().setLength(edgeDist).add(dp2.clone().setLength(0.5)).add(bumpAxis.clone().setLength(0.5));
+            step1.preTrans = step1.postTrans.clone().negate();
 
-        step2.postTrans = dp1.equals(dp2) ? 
-            dp2.clone().setLength(edgeDist).add(bumpAxis.clone().setLength(faceDist)).applyAxisAngle(ra1.clone().negate(), dihedral)
-            : dp2.clone().setLength(edgeDist).add(bumpAxis.clone().setLength(faceDist).negate()).applyAxisAngle(ra1, dihedral);
-        step2.preTrans = step2.postTrans.clone().negate();
+            step2.postTrans = this.deltaPos.sgn().multiplyScalar(0.5).add(bumpAxis.clone().setLength(edgeDist));
+            step2.preTrans = step2.postTrans.clone().negate();
+        } else {
+            // Pivot across square face
+            step1.maxAngle = dihedral;
+            step1.maxPct = 0.5;
+            step2.maxAngle = dihedral;
+            step2.maxPct = 1.0;
+
+            // Delta positions for each step
+            let dp1 = this.deltaPos.clone().multiply(anchorDir.abs()).normalize();
+            let dp2 = this.deltaPos.clone().sub(dp1);
+
+            // Catom movement will take place in a plane
+            // "Bump axis" is the normal to this plane
+            let bumpAxis = anchorDir.sgn().sub(dp1.sgn());
+            this.bumpAxis = bumpAxis;
+
+            // Rotation axes for each step
+            let ra1 = dp1.clone().cross(anchorDir).normalize();
+            let ra2 = dp2.clone().cross(bumpAxis).normalize().negate();
+
+            step1.deltaPos = dp1;
+            step1.rotAxis = ra1;
+            step2.deltaPos = dp2.clone().applyAxisAngle(ra1, dihedral);
+            step2.rotAxis = dp1.equals(dp2) ? ra1 : ra2.clone().applyAxisAngle(ra1, dihedral);
+
+            // Translations: along the deltaPos direction by faceDist,
+            //  and along the bumpAxis direction by edgeDist
+            step1.postTrans = dp1.clone().setLength(faceDist).add(bumpAxis.clone().setLength(edgeDist));
+            step1.preTrans = step1.postTrans.clone().negate();
+
+            step2.postTrans = dp1.equals(dp2) ?
+                dp2.clone().setLength(edgeDist).add(bumpAxis.clone().setLength(faceDist)).applyAxisAngle(ra1.clone().negate(), dihedral)
+                : dp2.clone().setLength(edgeDist).add(bumpAxis.clone().setLength(faceDist).negate()).applyAxisAngle(ra1, dihedral);
+            step2.preTrans = step2.postTrans.clone().negate();
+        }
 
         this.steps.push(step1);
         this.steps.push(step2);
@@ -190,8 +225,12 @@ export class Move {
             newAdc = constructAdc(_endPos);
         } else if (this.moduleType == ModuleType.CATOM) {
         // Catom pivots
-            let reverseStepTwo = this.steps[1].deltaPos.clone().applyAxisAngle(this.steps[0].rotAxis, -ModuleData.get(this.moduleType)['dihedral']).negate().add(this.bumpAxis);
-            newAdc = constructAdc(reverseStepTwo);
+            if (this.adc >= 1000) {
+                newAdc = 1000 + constructAdc(parseAdc(this.adc).sgn().sub(this.deltaPos));
+            } else {
+                let reverseStepTwo = this.steps[1].deltaPos.clone().applyAxisAngle(this.steps[0].rotAxis, -ModuleData.get(this.moduleType)['dihedral']).negate().add(this.bumpAxis);
+                newAdc = constructAdc(reverseStepTwo);
+            }
         } else {
         // All others
             newAdc = this.adc;

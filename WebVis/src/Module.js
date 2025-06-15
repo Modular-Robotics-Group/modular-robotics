@@ -151,7 +151,7 @@ export class Module {
 
     finishMove(move) {
         let i;
-        if (move.moveType !== MoveType.SLIDING) {
+        if (move.moveType !== MoveType.SLIDING && move.adc < 1000) {
             for (i = 0; i < move.steps.length; i++) {
                 let step = move.steps[i];
                 let rotate = new THREE.Matrix4().makeRotationAxis(step.rotAxis, step.maxAngle);

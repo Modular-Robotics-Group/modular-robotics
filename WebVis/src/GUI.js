@@ -19,7 +19,8 @@ let EXAMPLE_SCENARIOS = [
 	'3x3 Metamodule Sub-case 3',
     'Parallel Move Debugging',
     'Parallel Monkey Move',
-    'Catom Debugging'
+    'Catom Debugging',
+    'Catom Triangle Debugging'
 ]
 
 // Opacity settings for changing layers / visualizing adjacent layers
