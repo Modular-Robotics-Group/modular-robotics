@@ -18,7 +18,7 @@
       ]],
       "permGen": true,
       "animSeq": [
-        ["rd+x-z", [0, -1, -1]]
+        ["ctm-tri+x-z", [0, -1, -1]]
       ]
     },
     {
