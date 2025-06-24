@@ -13,8 +13,8 @@ import { zSliceController } from "./GUI.js";
 import { Move } from "./Move.js"
 
 const gTexLoader = new THREE.TextureLoader();
-let cubeTexture = gTexLoader.load('./resources/textures/box.png');
-let rdTexture = gTexLoader.load('./resources/textures/RD.png');
+let cubeTexture = gTexLoader.load('./resources/textures/box_plain.png');
+let rdTexture = gTexLoader.load('./resources/textures/RD_plain.png');
 let catomTexture = gTexLoader.load('./resources/textures/catom.png');
 
 // Interpolation function used for animation progress: Should map [0.0, 1.0] -> [0.0, 1.0]
