@@ -3,6 +3,11 @@
 import * as THREE from 'three';
 import { ModuleType } from "./utils.js";
 
+/* Cubes
+ * The following vertices are specified for a cube with edge length of 2.
+ * HOWEVER, in the final construction of the mesh geometry, the vertices will be normalized,
+ *  s.t. the module fits in a 1x1x1 bounding box.
+ */
 const _boxGeometryVertices = [
     // -, +, +, // A
     // +, +, +, // B
@@ -55,6 +60,12 @@ const _boxGeometryVertices = [
     { pos: [ 1.0, -1.0, -1.0], uv: [0.50, 0.25], edge: [1, 0, 0] }, // 35 | H
 ];
 
+/* RhombicDodecahedrons
+ * The following vertices are specified for a rhombicdodecahedron with edge length of sqrt(3).
+ * HOWEVER, in the final construction of the mesh geometry, the vertices will be normalized,
+ *  s.t. the module fits in a 1x1x1 bounding box.
+ *  Vertices are labeled (in comments) according to diagram at ../resources/doc/RhombicDodecahedronVertices.png
+ */
 const _rhombicDodecahedronGeometryVertices = [
     // -1.0, -1.0, -1.0, //  0 | A -- Obtuse vertices / Cube
     // -1.0, -1.0,  1.0, //  1 | B
@@ -155,6 +166,11 @@ const _rhombicDodecahedronGeometryVertices = [
     { pos: [-1.0, -1.0, -1.0], uv: [0.6250, 0.5518], edge: [1, 0, 0] }, // 71 | A
 ];
 
+/* Rhombicuboctahedrons, aka Catoms
+ * The following vertices are specified for a rhombicuboctahedron with edge length of 2.
+ * HOWEVER, in the final construction of the mesh geometry, the vertices will be normalized,
+ *  s.t. the module fits in a 1x1x1 bounding box.
+ */
 const opr = 2.414213; // One plus sqrt2
 const _catomGeometryVertices = [
     // -1.0,  1.0,  opr, // A // Front face
@@ -353,7 +369,7 @@ for (const vertex of _boxGeometryVertices) {
 }
 
 const _boxGeometry = new THREE.BufferGeometry();
-_boxGeometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(_boxVertexPositions.map((x) => x / 2.0)), 3));
+_boxGeometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(_boxVertexPositions.map((x) => x / 2.0)), 3)); // Normalize vertices s.t. geometry fits within 1x1x1 bounding box centered at origin
 _boxGeometry.setAttribute('uv', new THREE.BufferAttribute(new Float32Array(_boxVertexUvs), 2));
 _boxGeometry.setAttribute('edge', new THREE.BufferAttribute(new Float32Array(_boxVertexEdges), 3));
 _boxGeometry.computeVertexNormals();
@@ -370,7 +386,7 @@ for (const vertex of _rhombicDodecahedronGeometryVertices) {
 }
 
 const _rhombicDodecahedronGeometry = new THREE.BufferGeometry();
-_rhombicDodecahedronGeometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(_rhombicDodecahedronVertexPositions.map((x) => x / 2.0)), 3));
+_rhombicDodecahedronGeometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(_rhombicDodecahedronVertexPositions.map((x) => x / 2.0)), 3)); // Normalize vertices s.t. geometry fits within 1x1x1 bounding box centered at origin
 _rhombicDodecahedronGeometry.setAttribute('uv', new THREE.BufferAttribute(new Float32Array(_rhombicDodecahedronVertexUvs), 2));
 _rhombicDodecahedronGeometry.setAttribute('edge', new THREE.BufferAttribute(new Float32Array(_rhombicDodecahedronVertexEdges), 3));
 _rhombicDodecahedronGeometry.computeVertexNormals();
@@ -387,33 +403,37 @@ for (const vertex of _catomGeometryVertices) {
 }
 
 const _catomGeometry = new THREE.BufferGeometry();
-_catomGeometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(_catomVertexPositions.map((x) => x / (opr + 1))), 3));
+_catomGeometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(_catomVertexPositions.map((x) => x / (opr + 1))), 3)); // Normalize vertices s.t. geometry fits within 1x1x1 bounding box centered at origin
 _catomGeometry.setAttribute('uv', new THREE.BufferAttribute(new Float32Array(_catomVertexUvs), 2));
 _catomGeometry.setAttribute('edge', new THREE.BufferAttribute(new Float32Array(_catomVertexEdges), 3));
 _catomGeometry.computeVertexNormals();
 
-// facedist = distance from module origin to face centroid
-// edgedist = distance from face centroid to edge center
+// ModuleData: shape properties which are used to help calculate animation parameters
+// midsphere            = radius of midsphere
+// edgelength           = edge length
+// rotationMagnitude    = magnitude of a single step's rotation, in radians
+// facedist             = distance from module origin to face centroid
+// bumpdist             = distance from face centroid to edge center
 export const ModuleData = new Map([
     [ModuleType.CUBE, {
         'midsphere': 0.7071,
         'edgelength': 1.0,
-        'dihedral': THREE.MathUtils.degToRad(90.0),
+        'rotationMagnitude': THREE.MathUtils.degToRad(90.0),
         'geometry': _boxGeometry
     }],
     [ModuleType.RHOMBIC_DODECAHEDRON, {
         'midsphere': 0.8165,    // sqrt(6)/3 == 2*sqrt(2)/3 * edgelength
         'edgelength': 0.866,    // sqrt(3)/2
         'facedist': 0.7071,     // sqrt(2) == sqrt(6) * edgelength / 3
-        'dihedral': THREE.MathUtils.degToRad(60.0),
+        'rotationMagnitude': THREE.MathUtils.degToRad(60.0),
         'geometry': _rhombicDodecahedronGeometry
     }],
     [ModuleType.CATOM, {
         'midsphere': 0.76537,   // sqrt(2 - sqrt(2))
         'edgelength': 0.585787, // 2 / (2 + sqrt(2))
         'facedist': 0.7071,     // sqrt(2) / 2
-        'edgedist': 0.29289,    // 1 - sqrt(2) / 2
-        'dihedral': THREE.MathUtils.degToRad(90.0),
+        'bumpdist': 0.29289,    // 1 - sqrt(2) / 2  | (half of edgelength)
+        'rotationMagnitude': THREE.MathUtils.degToRad(90.0),
         'geometry': _catomGeometry
     }]
 ]);

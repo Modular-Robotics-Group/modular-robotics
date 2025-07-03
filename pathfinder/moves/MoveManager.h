@@ -61,7 +61,19 @@ namespace Move {
         RD_PYPZ = 23,
         RD_PYNZ = 26,
         RD_NYPZ = 53,
-        RD_NYNZ = 56
+        RD_NYNZ = 56,
+        CTM_TRI_PXPY = 1012,
+        CTM_TRI_PXNY = 1015,
+        CTM_TRI_NXPY = 1042,
+        CTM_TRI_NXNY = 1045,
+        CTM_TRI_PXPZ = 1013,
+        CTM_TRI_PXNZ = 1016,
+        CTM_TRI_NXPZ = 1043,
+        CTM_TRI_NXNZ = 1046,
+        CTM_TRI_PYPZ = 1023,
+        CTM_TRI_PYNZ = 1026,
+        CTM_TRI_NYPZ = 1053,
+        CTM_TRI_NYNZ = 1056
     };
 
     // For easily converting from string to enum
@@ -87,7 +99,19 @@ namespace Move {
             {"rd+y+z", RD_PYPZ},
             {"rd+y-z", RD_PYNZ},
             {"rd-y+z", RD_NYPZ},
-            {"rd-y-z", RD_NYNZ}
+            {"rd-y-z", RD_NYNZ},
+            {"ctm-tri+x+y", CTM_TRI_PXPY},
+            {"ctm-tri+x-y", CTM_TRI_PXNY},
+            {"ctm-tri-x+y", CTM_TRI_NXPY},
+            {"ctm-tri-x-y", CTM_TRI_NXNY},
+            {"ctm-tri+x+z", CTM_TRI_PXPZ},
+            {"ctm-tri+x-z", CTM_TRI_PXNZ},
+            {"ctm-tri-x+z", CTM_TRI_NXPZ},
+            {"ctm-tri-x-z", CTM_TRI_NXNZ},
+            {"ctm-tri+y+z", CTM_TRI_PYPZ},
+            {"ctm-tri+y-z", CTM_TRI_PYNZ},
+            {"ctm-tri-y+z", CTM_TRI_NYPZ},
+            {"ctm-tri-y-z", CTM_TRI_NYNZ}
     };
 
 
@@ -117,7 +141,19 @@ namespace Move {
             {RD_PYPZ, {RD_PYPZ, RD_NYPZ, RD_PYNZ}},
             {RD_PYNZ, {RD_PYNZ, RD_NYNZ, RD_PYPZ}},
             {RD_NYPZ, {RD_NYPZ, RD_PYPZ, RD_NYNZ}},
-            {RD_NYNZ, {RD_NYNZ, RD_PYNZ, RD_NYPZ}}
+            {RD_NYNZ, {RD_NYNZ, RD_PYNZ, RD_NYPZ}},
+            {CTM_TRI_PXPY, {CTM_TRI_NXPY, CTM_TRI_PXNY, CTM_TRI_PXPY}},
+            {CTM_TRI_PXNY, {CTM_TRI_NXNY, CTM_TRI_PXPY, CTM_TRI_PXNY}},
+            {CTM_TRI_NXPY, {CTM_TRI_PXPY, CTM_TRI_NXNY, CTM_TRI_NXPY}},
+            {CTM_TRI_NXNY, {CTM_TRI_PXNY, CTM_TRI_NXPY, CTM_TRI_NXNY}},
+            {CTM_TRI_PXPZ, {CTM_TRI_NXPZ, CTM_TRI_PXPZ, CTM_TRI_PXNZ}},
+            {CTM_TRI_PXNZ, {CTM_TRI_NXNZ, CTM_TRI_PXNZ, CTM_TRI_PXPZ}},
+            {CTM_TRI_NXPZ, {CTM_TRI_PXPZ, CTM_TRI_NXPZ, CTM_TRI_NXNZ}},
+            {CTM_TRI_NXNZ, {CTM_TRI_PXNZ, CTM_TRI_NXNZ, CTM_TRI_NXPZ}},
+            {CTM_TRI_PYPZ, {CTM_TRI_PYPZ, CTM_TRI_NYPZ, CTM_TRI_PYNZ}},
+            {CTM_TRI_PYNZ, {CTM_TRI_PYNZ, CTM_TRI_NYNZ, CTM_TRI_PYPZ}},
+            {CTM_TRI_NYPZ, {CTM_TRI_NYPZ, CTM_TRI_PYPZ, CTM_TRI_NYNZ}},
+            {CTM_TRI_NYNZ, {CTM_TRI_NYNZ, CTM_TRI_PYNZ, CTM_TRI_NYPZ}}
     };
 }
 

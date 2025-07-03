@@ -29,7 +29,19 @@ void Move::RotateAnim(Move::AnimType& anim, const int a, const int b) {
             {RD_PYPZ, { 0,  1,  1}},
             {RD_PYNZ, { 0,  1, -1}},
             {RD_NYPZ, { 0, -1,  1}},
-            {RD_NYNZ, { 0, -1, -1}}
+            {RD_NYNZ, { 0, -1, -1}},
+            {CTM_TRI_PXPY, { 1,  1,  0}},
+            {CTM_TRI_PXNY, { 1, -1,  0}},
+            {CTM_TRI_NXPY, {-1,  1,  0}},
+            {CTM_TRI_NXNY, {-1, -1,  0}},
+            {CTM_TRI_PXPZ, { 1,  0,  1}},
+            {CTM_TRI_PXNZ, { 1,  0, -1}},
+            {CTM_TRI_NXPZ, {-1,  0,  1}},
+            {CTM_TRI_NXNZ, {-1,  0, -1}},
+            {CTM_TRI_PYPZ, { 0,  1,  1}},
+            {CTM_TRI_PYNZ, { 0,  1, -1}},
+            {CTM_TRI_NYPZ, { 0, -1,  1}},
+            {CTM_TRI_NYNZ, { 0, -1, -1}}
     };
 
     static std::map<std::vector<int>, AnimType> OffsetToSlideAnim = {
@@ -60,9 +72,26 @@ void Move::RotateAnim(Move::AnimType& anim, const int a, const int b) {
             {{ 0, -1, -1}, RD_NYNZ}
     };
 
+    static std::map<std::vector<int>, AnimType> OffsetToCatomTriAnim = {
+        {{ 1,  1,  0}, CTM_TRI_PXPY},
+        {{ 1, -1,  0}, CTM_TRI_PXNY},
+        {{-1,  1,  0}, CTM_TRI_NXPY},
+        {{-1, -1,  0}, CTM_TRI_NXNY},
+        {{ 1,  0,  1}, CTM_TRI_PXPZ},
+        {{ 1,  0, -1}, CTM_TRI_PXNZ},
+        {{-1,  0,  1}, CTM_TRI_NXPZ},
+        {{-1,  0, -1}, CTM_TRI_NXNZ},
+        {{ 0,  1,  1}, CTM_TRI_PYPZ},
+        {{ 0,  1, -1}, CTM_TRI_PYNZ},
+        {{ 0, -1,  1}, CTM_TRI_NYPZ},
+        {{ 0, -1, -1}, CTM_TRI_NYNZ}
+    };
+
     auto offset = AnimToOffset[anim];
     std::swap(offset[a], offset[b]);
-    if (anim > GEN_SLIDE) {
+    if (anim > 1000) {
+        anim = OffsetToCatomTriAnim[offset];
+    } else if (anim > GEN_SLIDE) {
         anim = OffsetToAnim[offset];
     } else {
         anim = OffsetToSlideAnim[offset];

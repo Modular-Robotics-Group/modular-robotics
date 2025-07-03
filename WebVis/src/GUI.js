@@ -22,7 +22,7 @@ let EXAMPLE_SCENARIOS = [
     // '2x2x2 Metamodule'
     "socg2025",
     // "socg2025-2piv+slide",
-    'Catom Triangle Debugging'
+    'Catom Example 2'
 ]
 
 // Opacity settings for changing layers / visualizing adjacent layers
