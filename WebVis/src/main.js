@@ -135,7 +135,23 @@ gScene.add(axesHelper);
 
 // Once the page loads, automatically load an example scenario
 document.addEventListener("DOMContentLoaded", async function () {
-    new Scenario(await fetch('./Scenarios/3x3 Metamodule.scen').then(response => response.text()));
+
+    const urlParams = new URL(document.location.toString()).searchParams;
+
+    if(urlParams.get("presenting")){
+        console.log("Presentation Mode");
+        let fileString = String(urlParams.get("file"))
+        console.log(fileString)
+        console.log(fileString.toString());
+
+        let scen = urlParams.get("file");
+        new Scenario(await fetch('./Scenarios/' + scen + ".scen").then (response => response.text()));
+    }
+    else{
+        console.log("Normal Mode");
+        new Scenario(await fetch('./Scenarios/3x3 Metamodule.scen').then(response => response.text()));
+    }
+
 });
 
 /* ****************************** */

@@ -16,6 +16,8 @@ function Visgroup(r, g, b, scale) {
 //  and moves/MoveSetSequence is loaded globally into window.gwMoveSetSequence
 export class Scenario {
     constructor(rawString) {
+        // console.log(rawString)
+
         for (let module in gModules) gModules[module].destroy();
         cancelActiveMove();
 
@@ -25,9 +27,12 @@ export class Scenario {
 
         // remove '\r' characters
         rawString = rawString.replace(/\r/g, '');
+        // console.log(rawString);
         let _dataStartIndex = rawString.indexOf('\n\n');
         let metadataString = rawString.substring(0, _dataStartIndex);
         let dataString = rawString.substring(_dataStartIndex + 2);
+
+        console.log("datasctring", dataString)
 
         let metadataLines = metadataString.split('\n');
         let scenarioName = metadataLines[0];
