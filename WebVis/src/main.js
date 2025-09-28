@@ -144,6 +144,11 @@ document.addEventListener("DOMContentLoaded", async function () {
         console.log(fileString)
         console.log(fileString.toString());
 
+        if(urlParams.get("speed")){
+            window.gwAnimSpeed = urlParams.get("speed");
+        }
+        window.gwAutoAnimate = true;
+
         let scen = urlParams.get("file");
         new Scenario(await fetch('./Scenarios/' + scen + ".scen").then (response => response.text()));
     }
