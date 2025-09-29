@@ -148,7 +148,8 @@ document.addEventListener("DOMContentLoaded", async function () {
             window.gwAnimSpeed = urlParams.get("speed");
         }
         window.gwAutoAnimate = true;
-
+	gScene.remove(axesHelper);
+	
         let scen = urlParams.get("file");
         new Scenario(await fetch('./Scenarios/' + scen + ".scen").then (response => response.text()));
     }

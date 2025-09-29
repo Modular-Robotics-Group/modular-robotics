@@ -1,0 +1,17 @@
+Scenario NAME on this line
+Scenario DESCRIPTION on this line
+CUBE
+
+0, 255,255,  0, 95      // Group definition: Group ID, r, g, b, size (1-100)
+1, 255,255,255, 85      //
+
+11,  1,  0,  0,  1          //  convex rotation
+12,  1,  1,  0,  1
+13,  1,  0,  1,  1
+14,  0,  1,  1,  1
+21,  1,  5,  0,  1          //  slide
+22,  1,  6,  0,  1
+24,  0,  6,  1,  1
+
+*14, -2,  -1,  1,  0
+24, -1, -1, 0, 0
