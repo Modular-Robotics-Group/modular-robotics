@@ -85,6 +85,8 @@ export let pathfinderData = {
     config_i: '{"exists": false}',
     config_f: '{"exists": false}',
     scen_out: 'INVALID SCENE',
+    currentScenario: null, // Stores the currently loaded scenario content
+    currentScenarioName: null, // Stores the name of the currently loaded scenario
     settings: {
         name: "WebPathfinder-Out",
         description: "Output produced by a valid Pathfinder run.",
@@ -256,6 +258,35 @@ export function downloadConfiguration(isInitial = true) {
     const link = document.createElement("a");
     link.href = url;
     link.download = configName;
+    link.click();
+    
+    // Clean up
+    URL.revokeObjectURL(url);
+}
+
+// Function to download scenario file
+export function downloadScenario() {
+    // Try to export current scenario first, then pathfinder output
+    let scenarioContent = pathfinderData.currentScenario || pathfinderData.scen_out;
+    
+    console.log("Download scenario called - currentScenario:", pathfinderData.currentScenario ? "exists" : "null");
+    console.log("Download scenario called - scen_out:", pathfinderData.scen_out);
+    
+    if (!scenarioContent || scenarioContent === 'INVALID SCENE') {
+        console.warn("No valid scenario to download. Please load a scenario first.");
+        return;
+    }
+    
+    // Use current scenario name if available, otherwise use settings name
+    const scenarioName = (pathfinderData.currentScenarioName || pathfinderData.settings.name) + ".scen";
+    
+    // Create blob and download link
+    const blob = new Blob([scenarioContent], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = scenarioName;
     link.click();
     
     // Clean up

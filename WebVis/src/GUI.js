@@ -4,7 +4,7 @@ import { Scenario } from './Scenario.js';
 import { gScene, gLights, gRenderer, gModules, gReferenceModule, gModulePositions, gCanvas, gHighlightModule } from './main.js';
 import { moduleBrush, pathfinderData, WorkerType, MessageType, ContentType, VisConfigData, ModuleType, getModuleAtPosition } from './utils.js';
 import { CameraType } from "./utils.js";
-import { saveConfiguration, downloadConfiguration } from './utils.js';
+import { saveConfiguration, downloadConfiguration, downloadScenario } from './utils.js';
 import { Module } from './Module.js';
 
 // Exact filenames of example scenarios in /Scenarios/
@@ -257,17 +257,17 @@ window._pathfinderRun = function() {
 /* GUI setup */
 /* ****************************** */
 // GUI elements for general settings
-export const gGraphicsGui = new GUI( { title: "Graphics",width: window.innerWidth*.1, container: document.getElementById("controlBar") } ).close();
+export const gGraphicsGui = new GUI( { title: "Graphics",width: window.innerWidth*.08, container: document.getElementById("controlBar") } ).close();
 let style_controller;
 // GUI elements for Visualizer Mode
-export const gAnimGui = new GUI( { title: "Animation",width: window.innerWidth*.1, container: document.getElementById("controlBar") } );
-export const gScenGui = new GUI( { title: "Scenario",width: window.innerWidth*.1, container: document.getElementById("controlBar") } ).close();
+export const gAnimGui = new GUI( { title: "Animation",width: window.innerWidth*.08, container: document.getElementById("controlBar") } );
+export const gScenGui = new GUI( { title: "Scenario",width: window.innerWidth*.08, container: document.getElementById("controlBar") } ).close();
 
 // GUI elements for Configurizer Mode
-export const gModuleBrushGui = new GUI( { title: "Brush",width: window.innerWidth*.1, container: document.getElementById("controlBar") } ).hide();
+export const gModuleBrushGui = new GUI( { title: "Brush",width: window.innerWidth*.08, container: document.getElementById("controlBar") } ).hide();
 let brushColor_selector;
-export const gLayerGui = new GUI( { title: "Layer",width: window.innerWidth*.1, container: document.getElementById("controlBar") } ).hide();
-export const gSelectedModuleGui = new GUI( { title: "Selected Module",width: window.innerWidth*.1, container: document.getElementById("controlBar") } ).hide();
+export const gLayerGui = new GUI( { title: "Layer",width: window.innerWidth*.08, container: document.getElementById("controlBar") } ).hide();
+export const gSelectedModuleGui = new GUI( { title: "Selected Module",width: window.innerWidth*.08, container: document.getElementById("controlBar") } ).hide();
 export const zSliceController = gLayerGui.add(moduleBrush, 'zSlice', VisConfigData.bounds.z.min - 2, VisConfigData.bounds.z.max + 2, 1).name("Layer").onChange((value) => {
     if (window._isPainterModeActive) {
         updateVisibleModules(value);
@@ -275,8 +275,9 @@ export const zSliceController = gLayerGui.add(moduleBrush, 'zSlice', VisConfigDa
 });
 
 // GUI element for Pathfinder and developer options
-export const gPathfinderGui = new GUI( { title: "Pathfinder",width: window.innerWidth*.1, container: document.getElementById("controlBar") } ).close();
-export const gModeGui = new GUI( { title: "View/Edit",width: window.innerWidth*.1, container: document.getElementById("controlBar") } );
+export const gPathfinderGui = new GUI( { title: "Pathfinder",width: window.innerWidth*.12, container: document.getElementById("controlBar") } ).close();
+export const gExportGui = new GUI( { title: "Export",width: window.innerWidth*.08, container: document.getElementById("controlBar") } );
+export const gModeGui = new GUI( { title: "View/Edit",width: window.innerWidth*.12, container: document.getElementById("controlBar") } );
 // Global variables for module selection
 let selectedModule = null;
 const selectedModuleColor = { color: 0x808080 };
@@ -451,17 +452,25 @@ document.addEventListener("DOMContentLoaded", async function () {
             }
         }
     }, 'loadFinal').name("Load Final Config");
-    gPathfinderGui.add({
+
+    // Export Controls
+    gExportGui.add({
         downloadInitial: function() {
             downloadConfiguration(true);
         }
     }, 'downloadInitial').name("Download Initial");
 
-    gPathfinderGui.add({
+    gExportGui.add({
         downloadFinal: function() {
             downloadConfiguration(false);
         }
     }, 'downloadFinal').name("Download Final");
+
+    gExportGui.add({
+        downloadScenario: function() {
+            downloadScenario();
+        }
+    }, 'downloadScenario').name("Download Scenario");
 
     const _folder = gScenGui.addFolder("Example Scenarios");
     for (let i in EXAMPLE_SCENARIOS) {
