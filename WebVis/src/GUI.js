@@ -1,10 +1,10 @@
 import * as THREE from 'three';
 import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
 import { Scenario } from './Scenario.js';
-import { gScene, gLights, gRenderer, gModules, gReferenceModule, gModulePositions, gCanvas, gHighlightModule } from './main.js';
+import { gScene, gLights, gRenderer, gModules, gReferenceModule, gModulePositions, gCanvas, gHighlightModule, cancelActiveMove } from './main.js';
 import { moduleBrush, pathfinderData, WorkerType, MessageType, ContentType, VisConfigData, ModuleType, getModuleAtPosition } from './utils.js';
 import { CameraType } from "./utils.js";
-import { saveConfiguration, downloadConfiguration, downloadScenario } from './utils.js';
+import { saveConfiguration, downloadConfiguration, downloadScenario, downloadCurrentConfiguration, parseConfigurationJSON } from './utils.js';
 import { Module } from './Module.js';
 
 // Exact filenames of example scenarios in /Scenarios/
@@ -65,6 +65,88 @@ const SliderType = Object.freeze({
     LINEAR: 0,
     QUADRATIC: 1
 });
+
+/**
+ * Load a configuration from JSON and display it in the scene
+ * @param {string} configJSON - The JSON string of the configuration
+ * @returns {boolean} - True if successful, false otherwise
+ */
+function loadConfigurationFromJSON(configJSON) {
+    const configData = parseConfigurationJSON(configJSON);
+
+    if (!configData) {
+        console.error("Failed to parse configuration JSON");
+        return false;
+    }
+
+    // Clear existing modules
+    for (let module in gModules) {
+        gModules[module].destroy();
+    }
+    cancelActiveMove();
+
+    // Reset Data
+    VisConfigData.nextModID = 0;
+    VisConfigData.clearBounds();
+
+    // Invalidate move sequence
+    window.gwMoveSetSequence.invalidate();
+
+    // Create modules from configuration
+    configData.modules.forEach((moduleData, index) => {
+        const pos = moduleData.position;
+        // Handle 2D positions (add z=0) or 3D positions
+        const position = new THREE.Vector3(
+            pos[0],
+            pos[1],
+            pos.length === 3 ? pos[2] : 0
+        );
+
+        // Parse color - can be array [r,g,b] or hex number
+        let colorHex;
+        const colorData = moduleData.properties?.colorProperty?.color;
+        if (Array.isArray(colorData)) {
+            // Convert RGB array to hex
+            const r = colorData[0];
+            const g = colorData[1];
+            const b = colorData[2];
+            colorHex = (r << 16) | (g << 8) | b;
+        } else if (typeof colorData === 'number') {
+            colorHex = colorData;
+        } else {
+            colorHex = 0xFFFFFF; // Default white
+        }
+
+        // Create the module
+        const module = new Module(configData.moduleType, index, position, colorHex, 0.9);
+
+        // Set static property if specified
+        if (moduleData.static) {
+            module.markStatic();
+        }
+    });
+
+    // Position camera
+    const centroid = VisConfigData.getCentroid();
+    const radius = VisConfigData.getRadius();
+
+    gwUser.camera.position.x = centroid.x;
+    gwUser.camera.position.y = centroid.y;
+    gwUser.camera.position.z = centroid.z + radius + 3.0;
+    gwUser.controls.target.set(centroid.x, centroid.y, centroid.z);
+
+    gwUser.miniCamera.position.x = centroid.x;
+    gwUser.miniCamera.position.y = centroid.y;
+    gwUser.miniCamera.position.z = centroid.z + radius + 3.0;
+    gwUser.miniControls.target.set(centroid.x, centroid.y, centroid.z);
+
+    // Update reference module to match the loaded configuration type
+    gReferenceModule.swapType(configData.moduleType);
+    gHighlightModule.swapType(configData.moduleType);
+
+    console.log(`Loaded configuration "${configData.name}" with ${configData.modules.length} modules`);
+    return true;
+}
 
 class GuiGlobalsHelper {
     constructor(prop, defaultVal, sliderType = SliderType.LINEAR) {
@@ -276,7 +358,7 @@ export const zSliceController = gLayerGui.add(moduleBrush, 'zSlice', VisConfigDa
 
 // GUI element for Pathfinder and developer options
 export const gPathfinderGui = new GUI( { title: "Pathfinder",width: window.innerWidth*.12, container: document.getElementById("controlBar") } ).close();
-export const gExportGui = new GUI( { title: "Export",width: window.innerWidth*.08, container: document.getElementById("controlBar") } );
+export const gExportGui = new GUI( { title: "Import/Export",width: window.innerWidth*.08, container: document.getElementById("controlBar") } );
 export const gModeGui = new GUI( { title: "View/Edit",width: window.innerWidth*.12, container: document.getElementById("controlBar") } );
 // Global variables for module selection
 let selectedModule = null;
@@ -393,66 +475,6 @@ document.addEventListener("DOMContentLoaded", async function () {
         }
     }, 'saveFinal').name("Save Final Config");
 
-    gPathfinderGui.add({
-        loadInitial: function() {
-            if (window.Worker) {
-                if (config2ScenWorker != null) {
-                    config2ScenWorker.terminate();
-                }
-                config2ScenWorker = new Worker("src/PathfinderWorker.js");
-                config2ScenWorker.postMessage([WorkerType.CONFIG2SCEN, pathfinderData.config_i]);
-                config2ScenWorker.onmessage = (msg) => {
-                    switch (msg.data[0]) {
-                        case MessageType.ERROR:
-                            console.log("config2Scen task encountered an error.");
-                            config2ScenWorker.terminate();
-                            break;
-                        case MessageType.RESULT:
-                            config2ScenWorker.terminate();
-                            new Scenario(msg.data[1]);
-                            break;
-                        case MessageType.DATA:
-                            // Currently unused for config2Scen
-                            console.log(msg.data[1]);
-                    }
-                }
-                console.log("Started config2Scen task");
-            } else {
-                console.log("Browser does not support web workers.");
-            }
-        }
-    }, 'loadInitial').name("Load Initial Config");
-
-    gPathfinderGui.add({
-        loadFinal: function() {
-            if (window.Worker) {
-                if (config2ScenWorker != null) {
-                    config2ScenWorker.terminate();
-                }
-                config2ScenWorker = new Worker("src/PathfinderWorker.js");
-                config2ScenWorker.postMessage([WorkerType.CONFIG2SCEN, pathfinderData.config_f]);
-                config2ScenWorker.onmessage = (msg) => {
-                    switch (msg.data[0]) {
-                        case MessageType.ERROR:
-                            console.log("config2Scen task encountered an error.");
-                            config2ScenWorker.terminate();
-                            break;
-                        case MessageType.RESULT:
-                            config2ScenWorker.terminate();
-                            new Scenario(msg.data[1]);
-                            break;
-                        case MessageType.DATA:
-                            // Currently unused for config2Scen
-                            console.log(msg.data[1]);
-                    }
-                }
-                console.log("Started config2Scen task");
-            } else {
-                console.log("Browser does not support web workers.");
-            }
-        }
-    }, 'loadFinal').name("Load Final Config");
-
     // Export Controls
     gExportGui.add({
         downloadInitial: function() {
@@ -467,10 +489,28 @@ document.addEventListener("DOMContentLoaded", async function () {
     }, 'downloadFinal').name("Download Final");
 
     gExportGui.add({
+        importInitial: function() {
+            document.getElementById("initialConfigUploadButton").click();
+        }
+    }, 'importInitial').name("Import Initial");
+
+    gExportGui.add({
+        importFinal: function() {
+            document.getElementById("finalConfigUploadButton").click();
+        }
+    }, 'importFinal').name("Import Final");
+
+    gExportGui.add({
         downloadScenario: function() {
             downloadScenario();
         }
     }, 'downloadScenario').name("Download Scenario");
+
+    gExportGui.add({
+        downloadCurrent: function() {
+            downloadCurrentConfiguration();
+        }
+    }, 'downloadCurrent').name("Download Current");
 
     const _folder = gScenGui.addFolder("Example Scenarios");
     for (let i in EXAMPLE_SCENARIOS) {
@@ -488,6 +528,77 @@ document.addEventListener("DOMContentLoaded", async function () {
                 selectedModule.mesh.material.uniforms.diffuse.value.setFromColor(new THREE.Color(value));
             }
         });
+
+    // Add event listeners for configuration file uploads
+    const initialConfigUploadElement = document.getElementById("initialConfigUploadButton");
+    initialConfigUploadElement.onchange = (e) => {
+        const file = initialConfigUploadElement.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const jsonContent = e.target.result;
+            try {
+                // Store in pathfinder data for potential pathfinder use
+                pathfinderData.config_i = jsonContent;
+                console.log("Initial configuration loaded from file");
+
+                // Load and display the configuration directly
+                const success = loadConfigurationFromJSON(jsonContent);
+                if (success) {
+                    // Enable pathfinder if both configs are loaded
+                    if (!pathfinderData.is_running && JSON.parse(pathfinderData.config_f).exists) {
+                        pathfinder_controller.enable();
+                    }
+                } else {
+                    alert("Failed to load configuration. Please check the console for errors.");
+                }
+            } catch (error) {
+                console.error("Invalid JSON file:", error);
+                alert("Invalid JSON file. Please select a valid configuration file.");
+            }
+        }
+        reader.onerror = (e) => {
+            console.error("Error reading file:", e.target.error);
+        }
+        reader.readAsText(file);
+        // Reset the input so the same file can be selected again
+        initialConfigUploadElement.value = '';
+    }
+
+    const finalConfigUploadElement = document.getElementById("finalConfigUploadButton");
+    finalConfigUploadElement.onchange = (e) => {
+        const file = finalConfigUploadElement.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const jsonContent = e.target.result;
+            try {
+                // Store in pathfinder data for potential pathfinder use
+                pathfinderData.config_f = jsonContent;
+                console.log("Final configuration loaded from file");
+
+                // Load and display the configuration directly
+                const success = loadConfigurationFromJSON(jsonContent);
+                if (success) {
+                    // Enable pathfinder if both configs are loaded
+                    if (!pathfinderData.is_running && JSON.parse(pathfinderData.config_i).exists) {
+                        pathfinder_controller.enable();
+                    }
+                } else {
+                    alert("Failed to load configuration. Please check the console for errors.");
+                }
+            } catch (error) {
+                console.error("Invalid JSON file:", error);
+                alert("Invalid JSON file. Please select a valid configuration file.");
+            }
+        }
+        reader.onerror = (e) => {
+            console.error("Error reading file:", e.target.error);
+        }
+        reader.readAsText(file);
+        // Reset the input so the same file can be selected again
+        finalConfigUploadElement.value = '';
+    }
 });
 
 /**

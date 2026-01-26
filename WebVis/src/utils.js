@@ -268,27 +268,87 @@ export function downloadConfiguration(isInitial = true) {
 export function downloadScenario() {
     // Try to export current scenario first, then pathfinder output
     let scenarioContent = pathfinderData.currentScenario || pathfinderData.scen_out;
-    
+
     console.log("Download scenario called - currentScenario:", pathfinderData.currentScenario ? "exists" : "null");
     console.log("Download scenario called - scen_out:", pathfinderData.scen_out);
-    
+
     if (!scenarioContent || scenarioContent === 'INVALID SCENE') {
         console.warn("No valid scenario to download. Please load a scenario first.");
         return;
     }
-    
+
     // Use current scenario name if available, otherwise use settings name
     const scenarioName = (pathfinderData.currentScenarioName || pathfinderData.settings.name) + ".scen";
-    
+
     // Create blob and download link
     const blob = new Blob([scenarioContent], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
-    
+
     const link = document.createElement("a");
     link.href = url;
     link.download = scenarioName;
     link.click();
-    
+
     // Clean up
     URL.revokeObjectURL(url);
+}
+
+// Function to download current configuration state as JSON
+export function downloadCurrentConfiguration() {
+    const config = createPathfinderConfiguration();
+
+    if (!config || !config.exists) {
+        console.warn("No configuration to download. Please create a configuration first.");
+        return;
+    }
+
+    const configJSON = JSON.stringify(config, null, 2);
+    const configName = pathfinderData.settings.name + "_current.json";
+
+    // Create blob and download link
+    const blob = new Blob([configJSON], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = configName;
+    link.click();
+
+    // Clean up
+    URL.revokeObjectURL(url);
+}
+
+// Function to parse configuration JSON and return structured data
+// This is used by loadConfigurationFromJSON in GUI.js
+export function parseConfigurationJSON(configJSON) {
+    try {
+        const config = JSON.parse(configJSON);
+
+        if (!config.exists) {
+            console.warn("Configuration does not exist");
+            return null;
+        }
+
+        // Determine module type
+        let moduleType;
+        switch (config.moduleType) {
+            case 'CUBE': moduleType = ModuleType.CUBE; break;
+            case 'RHOMBIC_DODECAHEDRON': moduleType = ModuleType.RHOMBIC_DODECAHEDRON; break;
+            case 'CATOM': moduleType = ModuleType.CATOM; break;
+            default:
+                console.log("Unknown module type ", config.moduleType, " -- defaulting to CUBE");
+                moduleType = ModuleType.CUBE;
+                break;
+        }
+
+        return {
+            moduleType: moduleType,
+            modules: config.modules,
+            name: config.name,
+            description: config.description
+        };
+    } catch (error) {
+        console.error("Error parsing configuration:", error);
+        return null;
+    }
 }
