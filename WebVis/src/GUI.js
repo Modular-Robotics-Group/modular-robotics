@@ -301,10 +301,19 @@ window._pathfinderRun = function() {
                     pathfinder_controller.enable();
                     pathfinderData.scen_out = msg.data[1];
                     pathfinderWorker.terminate();
-                    // TODO: provide option to delay loading found path instead of always instantly loading
-                    new Scenario(pathfinderData.scen_out);
-                    pathfinderProgressBar.style.backgroundColor = "rgba(255, 255, 255, 0.5)";
-                    pathfinderProgressBar.style.width = "100%";
+
+                    // Check if the result is valid before trying to load it
+                    if (!pathfinderData.scen_out || pathfinderData.scen_out.length === 0 || pathfinderData.scen_out.trim() === '') {
+                        console.error("Pathfinder returned empty result - no path found");
+                        alert("Pathfinder could not find a path between the initial and final configurations.\n\nPossible reasons:\n1. Configurations are not connected (modules too far apart)\n2. Wrong move set selected for the module type\n3. Configurations have different number of modules\n4. Path requires too many moves (timeout)\n\nCheck the console for more details.");
+                        pathfinderProgressBar.style.backgroundColor = "rgba(255, 0, 0, 0.5)";
+                        pathfinderProgressBar.style.width = "100%";
+                    } else {
+                        // Valid result, load the scenario
+                        new Scenario(pathfinderData.scen_out);
+                        pathfinderProgressBar.style.backgroundColor = "rgba(0, 255, 0, 0.5)";
+                        pathfinderProgressBar.style.width = "100%";
+                    }
                     pathfinderReverseProgressBar.style.width = "0%";
                     break;
                 case MessageType.DATA:
@@ -454,8 +463,32 @@ document.addEventListener("DOMContentLoaded", async function () {
         }
     });
 
-    // Create configuration button controls using object literals
-    gPathfinderGui.add({
+    // Import/Export Controls
+    gExportGui.add({
+        import: function() {
+            document.getElementById("configUploadButton").click();
+        }
+    }, 'import').name("Import");
+
+    gExportGui.add({
+        downloadCurrent: function() {
+            downloadCurrentConfiguration();
+        }
+    }, 'downloadCurrent').name("Download Current");
+
+    gExportGui.add({
+        importScenario: function() {
+            document.getElementById("scenarioUploadButton").click();
+        }
+    }, 'importScenario').name("Import Scenario");
+
+    gExportGui.add({
+        downloadScenario: function() {
+            downloadScenario();
+        }
+    }, 'downloadScenario').name("Download Scenario");
+
+    gExportGui.add({
         saveInitial: function() {
             saveConfiguration(true);
             console.log("Initial configuration saved");
@@ -465,7 +498,7 @@ document.addEventListener("DOMContentLoaded", async function () {
         }
     }, 'saveInitial').name("Save Initial Config");
 
-    gPathfinderGui.add({
+    gExportGui.add({
         saveFinal: function() {
             saveConfiguration(false);
             console.log("Final configuration saved");
@@ -475,42 +508,43 @@ document.addEventListener("DOMContentLoaded", async function () {
         }
     }, 'saveFinal').name("Save Final Config");
 
-    // Export Controls
     gExportGui.add({
-        downloadInitial: function() {
-            downloadConfiguration(true);
+        viewInitial: function() {
+            try {
+                const config = JSON.parse(pathfinderData.config_i);
+                if (!config.exists) {
+                    alert("No initial configuration saved. Please save an initial configuration first.");
+                    return;
+                }
+                const success = loadConfigurationFromJSON(pathfinderData.config_i);
+                if (!success) {
+                    alert("Failed to load initial configuration. Please check the console for errors.");
+                }
+            } catch (error) {
+                console.error("Error loading initial configuration:", error);
+                alert("No initial configuration saved or invalid configuration.");
+            }
         }
-    }, 'downloadInitial').name("Download Initial");
+    }, 'viewInitial').name("View Initial Config");
 
     gExportGui.add({
-        downloadFinal: function() {
-            downloadConfiguration(false);
+        viewFinal: function() {
+            try {
+                const config = JSON.parse(pathfinderData.config_f);
+                if (!config.exists) {
+                    alert("No final configuration saved. Please save a final configuration first.");
+                    return;
+                }
+                const success = loadConfigurationFromJSON(pathfinderData.config_f);
+                if (!success) {
+                    alert("Failed to load final configuration. Please check the console for errors.");
+                }
+            } catch (error) {
+                console.error("Error loading final configuration:", error);
+                alert("No final configuration saved or invalid configuration.");
+            }
         }
-    }, 'downloadFinal').name("Download Final");
-
-    gExportGui.add({
-        importInitial: function() {
-            document.getElementById("initialConfigUploadButton").click();
-        }
-    }, 'importInitial').name("Import Initial");
-
-    gExportGui.add({
-        importFinal: function() {
-            document.getElementById("finalConfigUploadButton").click();
-        }
-    }, 'importFinal').name("Import Final");
-
-    gExportGui.add({
-        downloadScenario: function() {
-            downloadScenario();
-        }
-    }, 'downloadScenario').name("Download Scenario");
-
-    gExportGui.add({
-        downloadCurrent: function() {
-            downloadCurrentConfiguration();
-        }
-    }, 'downloadCurrent').name("Download Current");
+    }, 'viewFinal').name("View Final Config");
 
     const _folder = gScenGui.addFolder("Example Scenarios");
     for (let i in EXAMPLE_SCENARIOS) {
@@ -529,27 +563,18 @@ document.addEventListener("DOMContentLoaded", async function () {
             }
         });
 
-    // Add event listeners for configuration file uploads
-    const initialConfigUploadElement = document.getElementById("initialConfigUploadButton");
-    initialConfigUploadElement.onchange = (e) => {
-        const file = initialConfigUploadElement.files[0];
+    // Add event listener for configuration file upload
+    const configUploadElement = document.getElementById("configUploadButton");
+    configUploadElement.onchange = (e) => {
+        const file = configUploadElement.files[0];
         if (!file) return;
         const reader = new FileReader();
         reader.onload = (e) => {
             const jsonContent = e.target.result;
             try {
-                // Store in pathfinder data for potential pathfinder use
-                pathfinderData.config_i = jsonContent;
-                console.log("Initial configuration loaded from file");
-
                 // Load and display the configuration directly
                 const success = loadConfigurationFromJSON(jsonContent);
-                if (success) {
-                    // Enable pathfinder if both configs are loaded
-                    if (!pathfinderData.is_running && JSON.parse(pathfinderData.config_f).exists) {
-                        pathfinder_controller.enable();
-                    }
-                } else {
+                if (!success) {
                     alert("Failed to load configuration. Please check the console for errors.");
                 }
             } catch (error) {
@@ -562,42 +587,7 @@ document.addEventListener("DOMContentLoaded", async function () {
         }
         reader.readAsText(file);
         // Reset the input so the same file can be selected again
-        initialConfigUploadElement.value = '';
-    }
-
-    const finalConfigUploadElement = document.getElementById("finalConfigUploadButton");
-    finalConfigUploadElement.onchange = (e) => {
-        const file = finalConfigUploadElement.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            const jsonContent = e.target.result;
-            try {
-                // Store in pathfinder data for potential pathfinder use
-                pathfinderData.config_f = jsonContent;
-                console.log("Final configuration loaded from file");
-
-                // Load and display the configuration directly
-                const success = loadConfigurationFromJSON(jsonContent);
-                if (success) {
-                    // Enable pathfinder if both configs are loaded
-                    if (!pathfinderData.is_running && JSON.parse(pathfinderData.config_i).exists) {
-                        pathfinder_controller.enable();
-                    }
-                } else {
-                    alert("Failed to load configuration. Please check the console for errors.");
-                }
-            } catch (error) {
-                console.error("Invalid JSON file:", error);
-                alert("Invalid JSON file. Please select a valid configuration file.");
-            }
-        }
-        reader.onerror = (e) => {
-            console.error("Error reading file:", e.target.error);
-        }
-        reader.readAsText(file);
-        // Reset the input so the same file can be selected again
-        finalConfigUploadElement.value = '';
+        configUploadElement.value = '';
     }
 });
 

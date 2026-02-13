@@ -35,12 +35,8 @@
     <body>
         <div style="width:80%; height:2%; position:absolute; top:0; left:0; z-index:1; display:flex; align-items:center;">
             <div id="controlBar" style="height:100%; z-index:1; float:left;"></div>
-            <div style="height:100%; z-index:1; float:left; display:flex; align-items:center; margin-left:10px;">
-                <label for="scenarioUploadButton" style="cursor:pointer; padding:4px 8px; background-color:rgba(0,0,0,0.1); border-radius:3px; font-size:11px;">Import Scenario</label>
-                <input id="scenarioUploadButton" type="file" accept=".scen" style="display:none;"></input>
-                <input id="initialConfigUploadButton" type="file" accept=".json" style="display:none;"></input>
-                <input id="finalConfigUploadButton" type="file" accept=".json" style="display:none;"></input>
-            </div>
+            <input id="scenarioUploadButton" type="file" accept=".scen" style="display:none;"></input>
+            <input id="configUploadButton" type="file" accept=".json" style="display:none;"></input>
         </div>
         <div class="container" style="width:25%; height:100%; position:absolute; top:0; right:0; z-index:1; pointer-events: none">
             <div style="height:25%">
