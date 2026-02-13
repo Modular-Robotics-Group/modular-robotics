@@ -89,8 +89,11 @@ function loadConfigurationFromJSON(configJSON) {
     VisConfigData.nextModID = 0;
     VisConfigData.clearBounds();
 
-    // Invalidate move sequence
-    window.gwMoveSetSequence.invalidate();
+    // Reset and invalidate move sequence
+    if (window.gwMoveSetSequence) {
+        window.gwMoveSetSequence.reset();
+        window.gwMoveSetSequence.invalidate();
+    }
 
     // Create modules from configuration
     configData.modules.forEach((moduleData, index) => {
@@ -130,15 +133,15 @@ function loadConfigurationFromJSON(configJSON) {
     const centroid = VisConfigData.getCentroid();
     const radius = VisConfigData.getRadius();
 
-    gwUser.camera.position.x = centroid.x;
-    gwUser.camera.position.y = centroid.y;
-    gwUser.camera.position.z = centroid.z + radius + 3.0;
-    gwUser.controls.target.set(centroid.x, centroid.y, centroid.z);
+    window.gwUser.camera.position.x = centroid.x;
+    window.gwUser.camera.position.y = centroid.y;
+    window.gwUser.camera.position.z = centroid.z + radius + 3.0;
+    window.gwUser.controls.target.set(centroid.x, centroid.y, centroid.z);
 
-    gwUser.miniCamera.position.x = centroid.x;
-    gwUser.miniCamera.position.y = centroid.y;
-    gwUser.miniCamera.position.z = centroid.z + radius + 3.0;
-    gwUser.miniControls.target.set(centroid.x, centroid.y, centroid.z);
+    window.gwUser.miniCamera.position.x = centroid.x;
+    window.gwUser.miniCamera.position.y = centroid.y;
+    window.gwUser.miniCamera.position.z = centroid.z + radius + 3.0;
+    window.gwUser.miniControls.target.set(centroid.x, centroid.y, centroid.z);
 
     // Update reference module to match the loaded configuration type
     gReferenceModule.swapType(configData.moduleType);
@@ -588,7 +591,7 @@ document.addEventListener("DOMContentLoaded", async function () {
         reader.readAsText(file);
         // Reset the input so the same file can be selected again
         configUploadElement.value = '';
-    }
+    };
 });
 
 /**
