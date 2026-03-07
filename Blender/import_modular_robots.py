@@ -232,28 +232,6 @@ class Vec3:
                     self.x * other.y - self.y * other.x)
 
 
-def split_ccw(delta: Vec3, axis: Vec3):
-    """
-    Split a “planar” vector `v` (non‑zero in exactly two coordinates)
-    into two axis‑parallel parts whose sum is `v` and whose ordered pair
-    (first,second) gives a counter‑clockwise turn when looking along the
-    orthogonal vector `w`. """
-    # the two axes that appear in delta
-    i, j = [k for k, val in enumerate(delta) if not val == 0]
-
-    # build the two axis‑parallel pieces (preserve signs)
-    u_i = Vec3(0, 0, 0);
-    u_i[i] = delta[i]
-    u_j = Vec3(0, 0, 0);
-    u_j[j] = delta[j]
-
-    # order them so that u1 x u2 points the same way as w
-    if u_i.cross(u_j).dot(axis) < 0:
-        u_i, u_j = u_j, u_i
-
-    return u_i, u_j
-
-
 class UMLScenario:
     class RobotType:
         def __init__(self, identifier: int, color: Vec3, size: float):
@@ -370,7 +348,7 @@ class UMLScenario:
 
 
 class ScenarioImportHelper(bpy.types.Operator, ImportHelper):
-    """Import JSON and print to console"""
+    """Import UML scenario (*.scen)"""
     bl_idname = "import_scene.modular_robots"
     bl_label = "Import Modular Robots"
     bl_options = {'REGISTER', 'UNDO'}
@@ -487,18 +465,5 @@ def unregister():
     bpy.types.TOPBAR_MT_file_import.remove(ScenarioImportHelper.menu_import)
 
 
-def test():
-    v = Vec3(1, 0.5, 1)
-    vx = Vec3(1, 0, 0)
-    vy = Vec3(0, 1, 0)
-    print("{} * {} = {}".format(v, 2, v * 2))
-    print("{} * {} * {} = {}".format(v, 2, vy, v * 2 * vy))
-    print("{} x {} = {}".format(vx, vy, vx.cross(vy)))
-    print("{} projected {} = {}".format(v, 2, v.project2d(2)))
-    for i in range(3):
-        print("v[{}] = {}".format(i, v[i]))
-
-
 if __name__ == "__main__":
     register()
-    test()
