@@ -53,6 +53,19 @@ def get_or_create_cube_mesh(name="CubeMesh", size=1.0, force=False):
     mesh.update()
     return mesh
 
+def get_or_create_material(name, rgb=None):
+    """Create a Principled material with the given RGB (0‑1) color."""
+    mat = bpy.data.materials.get(name)
+    if mat:
+        return mat
+
+    mat = bpy.data.materials.new(name)
+    mat.use_nodes = True                     # enable node system
+    bsdf = mat.node_tree.nodes["Principled BSDF"]
+    bsdf.inputs["Base Color"].default_value = (*rgb, 1.0)   # RGBA
+    return mat
+
+
 
 def hex_color(rgb=None, r=None, g=None, b=None):
     if rgb:
@@ -334,7 +347,7 @@ class UMLScenario:
                     scenario.robot_types[
                         identifier] = UMLScenario.RobotType(identifier,
                                                             Vec3(r, g,
-                                                                 b),
+                                                                 b) * (1.0 / 255.0),
                                                             size / 100.0)
                 elif in_block == 1:
                     [identifier, robot_type, x, y, z] = values
@@ -412,18 +425,24 @@ class ScenarioImportHelper(bpy.types.Operator, ImportHelper):
             mesh = get_or_create_cube_mesh(
                 "RobotType[%02i]" % robot_type.identifier, robot_type.size,
                 True)
+            material = get_or_create_material("RobotType[%02i]" % robot_type.identifier, robot_type.color)
 
         objects = dict()
         keyframe = 1
         for robot in scenario.robots.values():
-            mesh = get_or_create_cube_mesh(
-                "RobotType[%02i]" % robot.type_identifier)
-            objects[robot.identifier] = bpy.data.objects.new(
-                "Robot.%03i" % robot.identifier, mesh)
-            objects[robot.identifier].location = tuple(robot.pos0)
-            uml_collection.objects.link(objects[robot.identifier])
-            objects[robot.identifier].keyframe_insert("location",
-                                                      frame=keyframe)
+            key = "RobotType[%02i]" % robot.type_identifier
+            mesh = get_or_create_cube_mesh(key)
+            material = get_or_create_material(key)
+            obj = bpy.data.objects.new(key, mesh)
+            if obj.data.materials:
+                obj.data.materials[0] = material  # replace first slot
+            else:
+                obj.data.materials.append(material)  # add new slot
+            obj.location = tuple(robot.pos0)
+            obj.keyframe_insert("location", frame=keyframe)
+
+            uml_collection.objects.link(obj)
+            objects[robot.identifier] = obj
         for step in scenario.steps:
             # if step.break_before:
             #     keyframe += keyframe_step
