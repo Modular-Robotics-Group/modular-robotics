@@ -1,3 +1,5 @@
+import math
+
 bl_info = {
     "name": "Import UML WebVis Scenario",
     "author": "Peter Kramer",
@@ -59,22 +61,56 @@ def new_gp_material(name:str, rgb:Vec3=None):
 
 
 def new_line_art(name:str,color:Vec3,width,collection):
-    gp = bpy.data.grease_pencils.new(name)
-    obj = bpy.data.objects.new(name, gp)
-    collection.objects.link(obj)
+    gp_data = bpy.data.grease_pencils.new(name)
+    gp_obj = bpy.data.objects.new(name, gp_data)
+    collection.objects.link(gp_obj)
 
-    layer = gp.layers.new(name="Line Art", set_active=True)
+    layer = gp_data.layers.new(name="Line Art", set_active=True)
     layer.frames.new(1)
 
     material = new_gp_material("Line Art", color)
-    gp.materials.append(material)
+    gp_data.materials.append(material)
 
-    mod = obj.modifiers.new(name="LineArt", type='LINEART')
+    mod = gp_obj.modifiers.new(name="LineArt", type='LINEART')
     mod.source_collection = collection
     mod.radius = width
     mod.target_layer = "Line Art"
     mod.target_material = material
-    return obj
+    return gp_obj
+
+def new_sun_light(name:str, euler:Vec3, collection):
+    light_data = bpy.data.lights.new(name=name, type='SUN')
+    sun_obj = bpy.data.objects.new(name=name, object_data=light_data)
+    collection.objects.link(sun_obj)
+    light_data.energy = 3.0
+    light_data.temperature = 6500
+    light_data.angle = 0.2
+    sun_obj.rotation_euler = (*euler,)
+    return sun_obj
+
+
+def new_camera(name:str, pos:Vec3, collection):
+    cam_data = bpy.data.cameras.new("Camera")
+    cam_obj = bpy.data.objects.new("Camera", cam_data)
+    collection.objects.link(cam_obj)
+    cam_obj.location = (*pos,)
+    cam_obj.rotation_euler = (0.95, 0.0, 2.35)
+    return cam_obj
+
+def new_ground_plane(name:str, pos:int, collection):
+    mesh = bpy.data.meshes.new(name)
+
+    bm = bmesh.new()
+    bmesh.ops.create_grid(bm, size=1024, x_segments=32, y_segments=32)
+    bm.to_mesh(mesh)
+    bm.free()
+
+    #todo: nice material
+    plane_obj = bpy.data.objects.new(name, mesh)
+    collection.objects.link(plane_obj)
+    plane_obj.location.z = pos
+
+    return plane_obj
 
 
 
@@ -223,7 +259,7 @@ class UMLScenario:
         meshes = dict()
         materials = dict()
         for (identifier, rtype) in self.robot_types.items():
-            mesh = new_cube_mesh("RobotType[%02i]" % identifier)
+            mesh = new_cube_mesh("RobotType[%02i]" % identifier, rtype.size)
             material = new_bsdf_material("RobotType[%02i]" % identifier,
                                          rtype.color)
             materials[identifier] = material
@@ -231,6 +267,7 @@ class UMLScenario:
 
         robots = dict()
         keyframe = 1
+        min_z = 1e32
         for (identifier, robot_data) in self.robots.items():
             name = "Robot[%02i]" % identifier
             material = materials[robot_data.type_identifier]
@@ -241,10 +278,8 @@ class UMLScenario:
             else:
                 robot.data.materials.append(material)  # add new slot
             robot.location = tuple(robot_data.pos0)
-            robot.scale = np.ones(3) * self.robot_types[
-                robot_data.type_identifier].size
-            robot.keyframe_insert("location", frame=keyframe)
-            robot.keyframe_insert("scale", frame=keyframe)
+            min_z = min(min_z, robot.location[2])
+            robot.keyframe_insert("delta_location", frame=keyframe)
 
             scen_coll.objects.link(robot)
             robots[robot_data.identifier] = robot
@@ -253,29 +288,33 @@ class UMLScenario:
             if step.break_before:
                 keyframe += keyframes_per_step
                 for robot in robots.values():
-                    robot.keyframe_insert("location", frame=keyframe)
+                    robot.keyframe_insert("delta_location", frame=keyframe)
 
             for move in step.moves:
                 robot = robots[move.robot_identifier]
                 step = move.transition_steps()
                 if step.shape == (3,):
-                    robot.location = tuple(np.array(robot.location) + step)
+                    robot.delta_location = tuple(np.array(robot.delta_location) + step)
                 else:
-                    robot.location = tuple(np.array(robot.location) + step[0])
-                    robot.keyframe_insert("location",
+                    robot.delta_location = tuple(np.array(robot.delta_location) + step[0])
+                    robot.keyframe_insert("delta_location",
                                           frame=keyframe + keyframes_per_step // 2)
-                    robot.location = tuple(np.array(robot.location) + step[1])
+                    robot.delta_location = tuple(np.array(robot.delta_location) + step[1])
+                min_z = min(min_z, robot.location[2] + robot.delta_location[2])
 
             keyframe += keyframes_per_step
             for (identifier, robot) in robots.items():
-                robot.keyframe_insert("location", frame=keyframe)
+                robot.keyframe_insert("delta_location", frame=keyframe)
                 if pause_keyframes > 0:
-                    robot.keyframe_insert("location",
+                    robot.keyframe_insert("delta_location",
                                           frame=keyframe + pause_keyframes)
             keyframe += pause_keyframes
 
         new_line_art("Line Art", np.zeros(3), 0.05, scen_coll)
-        bpy.context.scene.simulation_frame_end = keyframe
+        new_sun_light("SunLight", np.array([0.7854,0,0.7854]), scen_coll)
+        new_camera("Camera", np.ones(3) * 10, scen_coll)
+        new_ground_plane("GroundPlane", min_z - 0.5, scen_coll)
+        bpy.context.scene.frame_end = keyframe + keyframes_per_step
 
 
 class ScenarioImportHelper(bpy.types.Operator, ImportHelper):
