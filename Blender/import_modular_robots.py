@@ -97,6 +97,86 @@ def new_camera(name:str, pos:Vec3, collection):
     cam_obj.rotation_euler = (0.95, 0.0, 2.35)
     return cam_obj
 
+def new_shadow_catcher_material(name:str):
+    new_mat = bpy.data.materials.new(name)
+
+    new_mat.use_nodes = True
+    node_tree = new_mat.node_tree
+    nodes = node_tree.nodes
+    nodes.clear()
+    links = node_tree.links
+    links.clear()
+
+    new_node = nodes.new(type='ShaderNodeOutputMaterial')
+    new_node.is_active_output = True
+    new_node.target = 'ALL'
+    new_node.warning_propagation = 'ALL'
+
+    new_node = nodes.new(type='ShaderNodeBsdfDiffuse')
+    new_node.warning_propagation = 'ALL'
+    new_node.inputs[0].default_value = [1.0, 1.0, 1.0, 1.0]
+    new_node.inputs[1].default_value = 1.0
+
+    new_node = nodes.new(type='ShaderNodeShaderToRGB')
+    new_node.warning_propagation = 'ALL'
+
+    new_node = nodes.new(type='ShaderNodeRGBToBW')
+    new_node.warning_propagation = 'ALL'
+
+    new_node = nodes.new(type='ShaderNodeLightPath')
+    new_node.warning_propagation = 'ALL'
+
+    new_node = nodes.new(type='ShaderNodeEmission')
+    new_node.warning_propagation = 'ALL'
+    new_node.inputs[0].default_value = [1.0, 1.0, 1.0, 1.0]
+    new_node.inputs[1].default_value = 30.0
+
+    new_node = nodes.new(type='ShaderNodeMixShader')
+    new_node.warning_propagation = 'ALL'
+
+    new_node = nodes.new(type='ShaderNodeMix')
+    new_node.blend_type = 'MIX'
+    new_node.clamp_factor = True
+    new_node.clamp_result = False
+    new_node.data_type = 'RGBA'
+    new_node.factor_mode = 'UNIFORM'
+    new_node.warning_propagation = 'ALL'
+    new_node.inputs[6].default_value = [0.0, 0.0, 0.0, 1.0]
+    new_node.inputs[7].default_value = [1.0, 1.0, 1.0, 1.0]
+
+    new_node = nodes.new(type='ShaderNodeMath')
+    new_node.operation = 'MULTIPLY'
+    new_node.use_clamp = False
+    new_node.warning_propagation = 'ALL'
+
+    new_node = nodes.new(type='ShaderNodeAmbientOcclusion')
+    new_node.inside = False
+    new_node.only_local = False
+    new_node.samples = 16
+    new_node.warning_propagation = 'ALL'
+    new_node.inputs[0].default_value = [1.0, 1.0, 1.0, 1.0]
+    new_node.inputs[1].default_value = 16.0
+
+    new_node = nodes.new(type='ShaderNodeMath')
+    new_node.operation = 'MULTIPLY'
+    new_node.use_clamp = False
+    new_node.warning_propagation = 'ALL'
+    links.new(nodes["Diffuse BSDF"].outputs[0],
+              nodes["Shader to RGB"].inputs[0])
+    links.new(nodes["Shader to RGB"].outputs[0], nodes["RGB to BW"].inputs[0])
+    links.new(nodes["Mix Shader"].outputs[0],
+              nodes["Material Output"].inputs[0])
+    links.new(nodes["Mix"].outputs[2], nodes["Emission"].inputs[0])
+    links.new(nodes["Emission"].outputs[0], nodes["Mix Shader"].inputs[2])
+    links.new(nodes["Light Path"].outputs[0], nodes["Math"].inputs[0])
+    links.new(nodes["Math"].outputs[0], nodes["Mix Shader"].inputs[0])
+    links.new(nodes["Ambient Occlusion"].outputs[1],
+              nodes["Math.001"].inputs[1])
+    links.new(nodes["RGB to BW"].outputs[0], nodes["Math.001"].inputs[0])
+    links.new(nodes["Math.001"].outputs[0], nodes["Mix"].inputs[0])
+    links.new(nodes["Math.001"].outputs[0], nodes["Math"].inputs[1])
+    return new_mat
+
 def new_ground_plane(name:str, pos:int, collection):
     mesh = bpy.data.meshes.new(name)
 
@@ -105,8 +185,8 @@ def new_ground_plane(name:str, pos:int, collection):
     bm.to_mesh(mesh)
     bm.free()
 
-    #todo: nice material
     plane_obj = bpy.data.objects.new(name, mesh)
+    plane_obj.data.materials.append(new_shadow_catcher_material(name))
     collection.objects.link(plane_obj)
     plane_obj.location.z = pos
 
