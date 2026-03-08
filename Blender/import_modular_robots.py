@@ -12,10 +12,17 @@ bl_info = {
 import io
 import pathlib
 import traceback
+from typing import Annotated, Literal, TypeVar
 
+import bmesh
 import bpy
+import numpy as np
+import numpy.typing as npt
 from bpy.props import StringProperty
 from bpy_extras.io_utils import ImportHelper
+
+DType = TypeVar("DType", bound=np.generic)
+Vec3 = Annotated[npt.NDArray[DType], Literal[3]]
 
 
 def get_exception_traceback_str(exc: Exception) -> str:
@@ -25,275 +32,96 @@ def get_exception_traceback_str(exc: Exception) -> str:
     return file.getvalue().rstrip()
 
 
-def get_or_create_cube_mesh(name="CubeMesh", size=1.0, force=False):
-    # 1. Reuse if already exists
-    mesh = bpy.data.meshes.get(name)
-    if mesh:
-        if force:
-            bpy.data.meshes.remove(mesh)
-        else:
-            return mesh
-
+def new_cube_mesh(name="CubeMesh", size=1.0):
     mesh = bpy.data.meshes.new(name)
 
-    s = size / 2.0
-    verts = [
-        (-s, -s, -s), (-s, -s, s), (-s, s, -s), (-s, s, s),
-        (s, -s, -s), (s, -s, s), (s, s, -s), (s, s, s),
-    ]
-    faces = [
-        (0, 1, 3, 2),  # -X
-        (4, 6, 7, 5),  # +X
-        (0, 4, 5, 1),  # -Y
-        (2, 3, 7, 6),  # +Y
-        (0, 2, 6, 4),  # -Z
-        (1, 5, 7, 3),  # +Z
-    ]
-    mesh.from_pydata(verts, [], faces)
-    mesh.update()
+    bm = bmesh.new()
+    bmesh.ops.create_cube(bm, size=size)
+    bm.to_mesh(mesh)
+    bm.free()
     return mesh
 
-def get_or_create_material(name, rgb=None):
-    """Create a Principled material with the given RGB (0‑1) color."""
-    mat = bpy.data.materials.get(name)
-    if mat:
-        return mat
 
+def new_bsdf_material(name:str, rgb:Vec3=None):
     mat = bpy.data.materials.new(name)
-    mat.use_nodes = True                     # enable node system
+    mat.use_nodes = True  # enable node system
     bsdf = mat.node_tree.nodes["Principled BSDF"]
-    bsdf.inputs["Base Color"].default_value = (*rgb, 1.0)   # RGBA
+    bsdf.inputs["Base Color"].default_value = (*rgb, 1.0)  # RGBA
+    print(rgb)
     return mat
 
+def new_gp_material(name:str, rgb:Vec3=None):
+    gp_mat = bpy.data.materials.new(name=name)
+    if not gp_mat.is_grease_pencil:
+        bpy.data.materials.create_gpencil_data(gp_mat)
+    gp_mat.grease_pencil.color = (*rgb, 1.0)
+    return gp_mat
 
 
-def hex_color(rgb=None, r=None, g=None, b=None):
-    if rgb:
-        r, g, b = rgb
-    return '#%02x%02x%02x' % (r, g, b)
+def new_line_art(name:str,color:Vec3,width,collection):
+    gp = bpy.data.grease_pencils.new(name)
+    obj = bpy.data.objects.new(name, gp)
+    collection.objects.link(obj)
 
+    layer = gp.layers.new(name="Line Art", set_active=True)
+    layer.frames.new(1)
 
-class Vec2:
-    def __init__(self, x, y):
-        self.x = x
-        self.y = y
+    material = new_gp_material("Line Art", color)
+    gp.materials.append(material)
 
-    def __add__(self, other):
-        return Vec2(self.x + other.x, self.y + other.y)
+    mod = obj.modifiers.new(name="LineArt", type='LINEART')
+    mod.source_collection = collection
+    mod.radius = width
+    mod.target_layer = "Line Art"
+    mod.target_material = material
+    return obj
 
-    def __sub__(self, other):
-        return Vec2(self.x - other.x, self.y - other.y)
-
-    def __mul__(self, other):
-        if isinstance(other, int) or isinstance(other, float):
-            return Vec2(self.x * other, self.y * other)
-        elif isinstance(other, Vec2):
-            return Vec2(self.x * other.x, self.y * other.y)
-        else:
-            raise NotImplementedError(
-                "Not implemented: Vec2 * {}".format(str(type(other))))
-
-    def __str__(self):
-        return "({}, {})".format(self.x, self.y)
-
-    def __len__(self):
-        return 2
-
-    def __repr__(self):
-        return "Vec2({}, {})".format(self.x, self.y)
-
-    def __eq__(self, other):
-        return (self.x, self.y) == (other.x, other.y)
-
-    def __ne__(self, other):
-        return (self.x, self.y) != (other.x, other.y)
-
-    def __hash__(self):
-        return hash((self.x, self.y))
-
-    def __getitem__(self, item):
-        if isinstance(item, int):
-            return (self.x, self.y)[item]
-        return None
-
-    def __setitem__(self, key, value):
-        if isinstance(key, int):
-            if key == 0:
-                self.x = value
-            elif key == 1:
-                self.y = value
-            else:
-                raise IndexError("Vec2 has two dimensions, got: {}".format(key))
-        else:
-            raise KeyError(
-                "Vec2 has integer dimensions, got: {}".format(type(key)))
-
-    def __iter__(self):
-        return iter([self.x, self.y])
-
-    def magnitude(self, l_norm=1) -> float:
-        if l_norm == 1:
-            return abs(self.x) + abs(self.y)
-        else:
-            return pow(abs(self.x ** l_norm) + abs(self.y ** l_norm),
-                       1.0 / l_norm)
-
-    def dot(self, other):
-        return self.x * other.x + self.y * other.y
-
-    def ortho(self):
-        return Vec2(-self.y, self.x)
-
-
-class Vec3:
-    def __init__(self, x, y, z):
-        self.x = x
-        self.y = y
-        self.z = z
-
-    def __add__(self, other):
-        return Vec3(self.x + other.x, self.y + other.y, self.z + other.z)
-
-    def __sub__(self, other):
-        return Vec3(self.x - other.x, self.y - other.y, self.z - other.z)
-
-    def __mul__(self, other):
-        if isinstance(other, int) or isinstance(other, float):
-            return Vec3(self.x * other, self.y * other, self.z * other)
-        elif isinstance(other, Vec3):
-            return Vec3(self.x * other.x, self.y * other.y, self.z * other.z)
-        else:
-            raise NotImplementedError(
-                "Not implemented: Vec3 * {}".format(str(type(other))))
-
-    def __str__(self):
-        return "({}, {}, {})".format(self.x, self.y, self.z)
-
-    def __len__(self):
-        return 3
-
-    def __repr__(self):
-        return "Vec3({}, {}, {})".format(self.x, self.y, self.z)
-
-    def __iter__(self):
-        return iter([self.x, self.y, self.z])
-
-    def __eq__(self, other):
-        return (self.x, self.y, self.z) == (other.x, other.y, other.z)
-
-    def __ne__(self, other):
-        return (self.x, self.y, self.z) != (other.x, other.y, other.z)
-
-    def __hash__(self):
-        return hash((self.x, self.y, self.z))
-
-    def __getitem__(self, item):
-        if isinstance(item, int):
-            return (self.x, self.y, self.z)[item]
-        return None
-
-    def __setitem__(self, key, value):
-        if isinstance(key, int):
-            if key == 0:
-                self.x = value
-            elif key == 1:
-                self.y = value
-            elif key == 2:
-                self.z = value
-            else:
-                raise IndexError(
-                    "Vec3 has three dimensions, got: {}".format(key))
-        else:
-            raise KeyError(
-                "Vec3 has integer dimensions, got: {}".format(type(key)))
-
-    def project(self, orthogonal_axis=0):
-        v = Vec3(self.x, self.y, self.z)
-        v[orthogonal_axis] = 0
-        return v
-
-    def project2d(self, orthogonal_axis=0) -> Vec2:
-        assert isinstance(orthogonal_axis, int) and 0 <= orthogonal_axis < 3
-        v = Vec2(0, 0)
-        i = 0
-        for dimension in range(len(self)):
-            if dimension != orthogonal_axis:
-                v[i] = self[dimension]
-                i += 1
-        return v
-
-    def magnitude(self, l_norm=1) -> float:
-        if l_norm == 1:
-            return abs(self.x) + abs(self.y) + abs(self.z)
-        else:
-            return pow(abs(self.x ** l_norm) + abs(self.y ** l_norm) + abs(
-                self.z ** l_norm), 1.0 / l_norm)
-
-    def normalize(self, l_norm=1):
-        magnitude = self.magnitude(l_norm)
-        self.x /= magnitude
-        self.y /= magnitude
-        self.z /= magnitude
-        return self
-
-    def dot(self, other) -> float:
-        return self.x * other.x + self.y * other.y + self.z * other.z
-
-    def cross(self, other):
-        return Vec3(self.y * other.z - self.z * other.y,
-                    self.z * other.x - self.x * other.z,
-                    self.x * other.y - self.y * other.x)
 
 
 class UMLScenario:
     class RobotType:
-        def __init__(self, identifier: int, color: Vec3, size: float):
+        def __init__(self, identifier: int, color: Vec3[np.float32],
+                     size: float):
             self.identifier = identifier
             self.color = color
             self.size = size
 
     class Robot:
         def __init__(self, identifier: int, robot_type: int,
-                     pos0: Vec3):
+                     pos0: Vec3[np.int32]):
             self.identifier = identifier
             self.type_identifier = robot_type
             self.pos0 = pos0
 
     class RobotMove:
-        def __init__(self, robot: int, move_type: int, delta: Vec3):
+        def __init__(self, robot: int, move_type: int, delta: Vec3[np.int32]):
             self.robot_identifier = robot
             self.move_type = abs(move_type)
             self.delta = delta
 
-        def anchor_direction(self):
-            if self.move_type == 1:
-                return Vec3(1, 0, 0)
-            elif self.move_type == 2:
-                return Vec3(0, 1, 0)
-            elif self.move_type == 3:
-                return Vec3(0, 0, 1)
-            elif self.move_type == 4:
-                return Vec3(-1, 0, 0)
-            elif self.move_type == 5:
-                return Vec3(0, -1, 0)
-            elif self.move_type == 6:
-                return Vec3(0, 0, -1)
-            # Default: None
-            return Vec3(0, 0, 0)
+        def anchor_direction(self) -> Vec3:
+            d = np.zeros(3)
+            if not 0 < self.move_type < 7:
+                return d
+            else:
+                d[(self.move_type - 1) % 3] = 1
+                if self.move_type > 3:
+                    d *= -1
+                return d
+
+        def magnitude(self):
+            return np.sqrt(self.delta.dot(self.delta))
 
         def is_convex_transition(self):
-            return self.delta.magnitude() > 1
+            return self.magnitude() > 1
 
-        def transition_steps(self, out=print):
+        def transition_steps(self) -> np.ndarray:
             if not self.is_convex_transition():
-                assert self.delta.magnitude() == 1, "type: {}, delta: {}".format(
-                    self.move_type, self.delta)
                 return self.delta
             else:
-                assert self.delta.magnitude() == 2, "type: {}, delta: {}".format(
-                    self.move_type, self.delta)
-                delta1 = self.delta * self.anchor_direction()
-                return delta1, self.delta - delta1
+                delta1: Vec3 = self.delta * self.anchor_direction()
+                delta2: Vec3 = self.delta - delta1
+                return np.array([delta1, delta2])
 
     class Step:
         def __init__(self, moves: list = None, break_before: bool = False):
@@ -302,7 +130,8 @@ class UMLScenario:
             self.moves: list[UMLScenario.RobotMove] = moves
             self.break_before: bool = break_before
 
-    def __init__(self, robot_types: dict[int, RobotType] = None,
+    def __init__(self, name: str = None,
+                 robot_types: dict[int, RobotType] = None,
                  robots: dict[int, Robot] = None, steps=None):
         if steps is None:
             steps = list()
@@ -310,7 +139,8 @@ class UMLScenario:
             robots = dict()
         if robot_types is None:
             robot_types = dict()
-        self.robot_types = robot_types
+        self.name: str = name
+        self.robot_types: dict[int, UMLScenario.RobotType] = robot_types
         self.robots: dict[int, UMLScenario.Robot] = robots
         self.steps: list[UMLScenario.Step] = steps
 
@@ -325,39 +155,127 @@ class UMLScenario:
         #   0 = Robot Types
         #   1 = Robots
         # >=2 = Frames
-        for line in f:
-            line = line.strip()
-            if "//" in line:
-                line = line[:line.find("//")].strip()
-            if len(line) == 0:
-                in_block += 1
-                if in_block >= 2:
-                    scenario.steps.append(UMLScenario.Step())
-            else:
-                if line[0] not in "0123456789*":
-                    continue  # Hack
-                while line.startswith("*"):
-                    line = line[1:]
-                    scenario.steps[-1].break_before = True
+        lines = iter(f)
 
-                values = [int(entry.strip()) for entry in
-                          filter(lambda v: len(v) > 0, line.split(","))]
-                if in_block == 0:  # style
-                    [identifier, r, g, b, size] = values
-                    scenario.robot_types[
-                        identifier] = UMLScenario.RobotType(identifier,
-                                                            Vec3(r, g,
-                                                                 b) * (1.0 / 255.0),
-                                                            size / 100.0)
-                elif in_block == 1:
-                    [identifier, robot_type, x, y, z] = values
-                    scenario.robots[identifier] = UMLScenario.Robot(
-                        identifier, robot_type, Vec3(x, y, z))
-                elif in_block >= 2:
-                    [robot, move_type, x, y, z] = values
-                    scenario.steps[-1].moves.append(
-                        UMLScenario.RobotMove(robot, move_type, Vec3(x, y, z)))
+        def stripped_scen_line(l: str):
+            l = l.strip()
+            if "//" in l:
+                l = l[:l.find("//")].strip()
+            return l
+
+        def values_from_scen_line(l: str):
+            return map(lambda s: int(s), line.replace(" ", "").split(","))
+
+        # Heading
+        for line in lines:
+            if len(line.strip()) == 0:
+                break
+            line = stripped_scen_line(line)
+            if not scenario.name:
+                scenario.name = line
+
+        # Robot types
+        for line in lines:
+            if len(line.strip()) == 0:
+                break
+            line = stripped_scen_line(line)
+
+            [identifier, r, g, b, size] = values_from_scen_line(line)
+            rtype = UMLScenario.RobotType(identifier,
+                                          np.array([r, g, b]) / 255.0,
+                                          size / 100.0)
+            scenario.robot_types[identifier] = rtype
+
+        # Robots
+        for line in lines:
+            if len(line.strip()) == 0:
+                break
+            line = stripped_scen_line(line)
+
+            [identifier, rtype, x, y, z] = values_from_scen_line(line)
+            robot = UMLScenario.Robot(identifier, rtype, np.array([x, y, z]))
+            scenario.robots[identifier] = robot
+
+        # Steps
+        scenario.steps.append(UMLScenario.Step())
+        for line in lines:
+            if len(line.strip()) == 0:
+                if len(scenario.steps[-1].moves) > 0:
+                    scenario.steps.append(UMLScenario.Step())
+                continue
+
+            line = stripped_scen_line(line)
+
+            while line.startswith("*"):
+                line = line[1:]
+                scenario.steps[-1].break_before = True
+
+            [identifier, mtype, x, y, z] = values_from_scen_line(line)
+            move = UMLScenario.RobotMove(identifier, mtype, np.array([x, y, z]))
+            scenario.steps[-1].moves.append(move)
+
         return scenario
+
+    def create_in_blender(self, keyframes_per_step: int, pause_keyframes: int):
+        scen_coll = bpy.data.collections.new(self.name)
+        bpy.context.scene.collection.children.link(scen_coll)
+
+        meshes = dict()
+        materials = dict()
+        for (identifier, rtype) in self.robot_types.items():
+            mesh = new_cube_mesh("RobotType[%02i]" % identifier)
+            material = new_bsdf_material("RobotType[%02i]" % identifier,
+                                         rtype.color)
+            materials[identifier] = material
+            meshes[identifier] = mesh
+
+        robots = dict()
+        keyframe = 1
+        for (identifier, robot_data) in self.robots.items():
+            name = "Robot[%02i]" % identifier
+            material = materials[robot_data.type_identifier]
+            mesh = meshes[robot_data.type_identifier]
+            robot = bpy.data.objects.new(name, mesh)
+            if robot.data.materials:
+                robot.data.materials[0] = material  # replace first slot
+            else:
+                robot.data.materials.append(material)  # add new slot
+            robot.location = tuple(robot_data.pos0)
+            robot.scale = np.ones(3) * self.robot_types[
+                robot_data.type_identifier].size
+            robot.keyframe_insert("location", frame=keyframe)
+            robot.keyframe_insert("scale", frame=keyframe)
+
+            scen_coll.objects.link(robot)
+            robots[robot_data.identifier] = robot
+
+        for step in self.steps:
+            if step.break_before:
+                keyframe += keyframes_per_step
+                for robot in robots.values():
+                    robot.keyframe_insert("location", frame=keyframe)
+
+            for move in step.moves:
+                robot = robots[move.robot_identifier]
+                step = move.transition_steps()
+                if step.shape == (3,):
+                    robot.location = tuple(np.array(robot.location) + step)
+                else:
+                    robot.location = tuple(np.array(robot.location) + step[0])
+                    robot.keyframe_insert("location",
+                                          frame=keyframe + keyframes_per_step // 2)
+                    robot.location = tuple(np.array(robot.location) + step[1])
+
+            keyframe += keyframes_per_step
+            for (identifier, robot) in robots.items():
+                robot.keyframe_insert("location", frame=keyframe)
+                if pause_keyframes > 0:
+                    robot.keyframe_insert("location",
+                                          frame=keyframe + pause_keyframes)
+            keyframe += pause_keyframes
+
+        new_line_art("Line Art", np.zeros(3), 0.05, scen_coll)
+        bpy.context.scene.simulation_frame_end = keyframe
 
 
 class ScenarioImportHelper(bpy.types.Operator, ImportHelper):
@@ -407,10 +325,6 @@ class ScenarioImportHelper(bpy.types.Operator, ImportHelper):
 
     def load_scenario_data(self, path, keyframe_step=10, freeze_step=5):
         scenario: UMLScenario | None = None
-        friendly_name = pathlib.Path(path).stem
-
-        uml_collection = bpy.data.collections.new(friendly_name)
-        bpy.context.scene.collection.children.link(uml_collection)
 
         with (open(path, 'r', encoding='utf-8') as f):
             scenario = UMLScenario.from_file(f)
@@ -421,55 +335,10 @@ class ScenarioImportHelper(bpy.types.Operator, ImportHelper):
 
         self.report({'INFO'}, str(scenario))
 
-        for robot_type in scenario.robot_types.values():
-            mesh = get_or_create_cube_mesh(
-                "RobotType[%02i]" % robot_type.identifier, robot_type.size,
-                True)
-            material = get_or_create_material("RobotType[%02i]" % robot_type.identifier, robot_type.color)
+        if not scenario.name:
+            scenario.name = pathlib.Path(path).stem
 
-        objects = dict()
-        keyframe = 1
-        for robot in scenario.robots.values():
-            key = "RobotType[%02i]" % robot.type_identifier
-            mesh = get_or_create_cube_mesh(key)
-            material = get_or_create_material(key)
-            obj = bpy.data.objects.new(key, mesh)
-            if obj.data.materials:
-                obj.data.materials[0] = material  # replace first slot
-            else:
-                obj.data.materials.append(material)  # add new slot
-            obj.location = tuple(robot.pos0)
-            obj.keyframe_insert("location", frame=keyframe)
-
-            uml_collection.objects.link(obj)
-            objects[robot.identifier] = obj
-        for step in scenario.steps:
-            # if step.break_before:
-            #     keyframe += keyframe_step
-            #     for robot_identifier in scenario.robots.keys():
-            #         objects[robot_identifier].keyframe_insert("location",
-            #                                                   frame=keyframe)
-
-            for move in step.moves:
-                obj = objects[move.robot_identifier]
-                step = move.transition_steps()
-                if isinstance(step, Vec3):
-                    obj.location = tuple(Vec3(*obj.location) + step)
-                else:
-                    obj.location = tuple(Vec3(*obj.location) + step[0])
-                    objects[move.robot_identifier].keyframe_insert("location",
-                                                                   frame=keyframe + keyframe_step // 2)
-                    obj.location = tuple(Vec3(*obj.location) + step[1])
-
-            keyframe += keyframe_step
-            for robot_identifier in scenario.robots.keys():
-                objects[robot_identifier].keyframe_insert("location",
-                                                          frame=keyframe)
-                if freeze_step > 0:
-                    objects[robot_identifier].keyframe_insert("location",
-                                                              frame=keyframe + freeze_step)
-            keyframe += freeze_step
-        bpy.context.scene.simulation_frame_end = keyframe
+        scenario.create_in_blender(keyframe_step, freeze_step)
 
         return {'FINISHED'}
 
