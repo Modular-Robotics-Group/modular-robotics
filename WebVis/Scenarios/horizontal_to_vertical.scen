@@ -1,0 +1,27 @@
+Sliding Cube: Scaffolding Phase (a) to (b)
+Demonstrates a block climbing the scaffolding tower 
+CUBE
+
+0, 200, 200, 200, 85    // Group 0: Light Gray (Static Scaffolding)
+1,  50,  50,  50, 85    // Group 1: Dark Gray (Moving Block)
+
+00,  0,  0,  0,  0      
+01,  0,  0,  0,  1      
+02,  0,  0,  0,  2      
+10,  0,  1,  0,  0      
+11,  0,  1,  0,  1      
+12,  0,  1,  0,  2      
+13,  0,  1,  0,  3      
+14,  0,  1,  0,  4      
+15,  0,  1,  0,  5      
+16,  0,  1,  0,  6      
+22,  0,  2,  0,  2      // Middle gap top
+30,  0,  3,  0,  0      // Right leg bottom
+31,  0,  3,  0,  1      // Right leg middle
+32,  0,  3,  0,  2      // Right leg top
+42,  0,  4,  0,  2      // Right overhang
+99,  1,  0,  0,  3      // Dark block resting on left leg, adjacent to tower
+
+*99, -3,  0,  0,  1      // Step 1: Block slides up the tower by 1 unit
+
+*99, -3,  0,  0,  1      // Step 2: Block continues sliding up, matching Fig 8
