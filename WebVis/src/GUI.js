@@ -23,7 +23,7 @@ let EXAMPLE_SCENARIOS = [
     "socg2025",
     // "socg2025-2piv+slide",
     'Catom Example 2',
-    'horizontal_to_vertical'
+    // 'parallel-squares-nphard'
 ]
 
 // Opacity settings for changing layers / visualizing adjacent layers
