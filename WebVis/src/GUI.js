@@ -284,7 +284,7 @@ const selectedModuleColor = { color: 0x808080 };
 
 document.addEventListener("DOMContentLoaded", async function () {
     // Visualizer Controls
-    gAnimGui.add(new GuiGlobalsHelper('gwAnimSpeed', 1.0, SliderType.QUADRATIC), 'value', 0.0, 1000.0, 0.1).name("Anim Speed");
+    gAnimGui.add(new GuiGlobalsHelper('gwAnimSpeed', 1.0, SliderType.QUADRATIC), 'value', 0.0, 10.0, 0.1).name("Anim Speed");
     gAnimGui.add(new GuiGlobalsHelper('gwAutoAnimate', false), 'value').name("Auto Animate");
     style_controller = gGraphicsGui.add(window.gwUser, 'toggleCameraStyle').name("Toggle Camera Style");
     gGraphicsGui.add(window, '_toggleBackgroundColor').name("Toggle Background Color");
