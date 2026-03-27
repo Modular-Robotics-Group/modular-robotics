@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import {CameraType, ModuleType, MoveType, VisConfigData} from "./utils.js";
+import {CameraType, ModuleType, MoveType, VisConfigData, pathfinderData} from "./utils.js";
 import { Module } from "./Module.js";
 import { Move } from "./Move.js";
 import { MoveSet } from "./MoveSet.js";
@@ -24,6 +24,10 @@ export class Scenario {
         // Reset Data
         VisConfigData.nextModID = 0;
         VisConfigData.clearBounds();
+        
+        // Store the scenario content for export
+        pathfinderData.currentScenario = rawString;
+        console.log("Stored scenario content, length:", rawString ? rawString.length : 0);
 
         // remove '\r' characters
         rawString = rawString.replace(/\r/g, '');
@@ -37,6 +41,10 @@ export class Scenario {
         let metadataLines = metadataString.split('\n');
         let scenarioName = metadataLines[0];
         let scenarioDescription = metadataLines[1];
+        
+        // Store the scenario name for export
+        pathfinderData.currentScenarioName = scenarioName;
+        
         let scenarioModuleType;
         switch (metadataLines[2]) {
             case 'CUBE': scenarioModuleType = ModuleType.CUBE; break;

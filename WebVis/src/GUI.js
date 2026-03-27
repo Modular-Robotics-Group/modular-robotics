@@ -1,10 +1,10 @@
 import * as THREE from 'three';
 import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
 import { Scenario } from './Scenario.js';
-import { gScene, gLights, gRenderer, gModules, gReferenceModule, gModulePositions, gCanvas, gHighlightModule } from './main.js';
+import { gScene, gLights, gRenderer, gModules, gReferenceModule, gModulePositions, gCanvas, gHighlightModule, cancelActiveMove } from './main.js';
 import { moduleBrush, pathfinderData, WorkerType, MessageType, ContentType, VisConfigData, ModuleType, getModuleAtPosition } from './utils.js';
 import { CameraType } from "./utils.js";
-import { saveConfiguration, downloadConfiguration } from './utils.js';
+import { saveConfiguration, downloadConfiguration, downloadScenario, downloadCurrentConfiguration, parseConfigurationJSON } from './utils.js';
 import { Module } from './Module.js';
 
 // Exact filenames of example scenarios in /Scenarios/
@@ -65,6 +65,91 @@ const SliderType = Object.freeze({
     LINEAR: 0,
     QUADRATIC: 1
 });
+
+/**
+ * Load a configuration from JSON and display it in the scene
+ * @param {string} configJSON - The JSON string of the configuration
+ * @returns {boolean} - True if successful, false otherwise
+ */
+function loadConfigurationFromJSON(configJSON) {
+    const configData = parseConfigurationJSON(configJSON);
+
+    if (!configData) {
+        console.error("Failed to parse configuration JSON");
+        return false;
+    }
+
+    // Clear existing modules
+    for (let module in gModules) {
+        gModules[module].destroy();
+    }
+    cancelActiveMove();
+
+    // Reset Data
+    VisConfigData.nextModID = 0;
+    VisConfigData.clearBounds();
+
+    // Reset and invalidate move sequence
+    if (window.gwMoveSetSequence) {
+        window.gwMoveSetSequence.reset();
+        window.gwMoveSetSequence.invalidate();
+    }
+
+    // Create modules from configuration
+    configData.modules.forEach((moduleData, index) => {
+        const pos = moduleData.position;
+        // Handle 2D positions (add z=0) or 3D positions
+        const position = new THREE.Vector3(
+            pos[0],
+            pos[1],
+            pos.length === 3 ? pos[2] : 0
+        );
+
+        // Parse color - can be array [r,g,b] or hex number
+        let colorHex;
+        const colorData = moduleData.properties?.colorProperty?.color;
+        if (Array.isArray(colorData)) {
+            // Convert RGB array to hex
+            const r = colorData[0];
+            const g = colorData[1];
+            const b = colorData[2];
+            colorHex = (r << 16) | (g << 8) | b;
+        } else if (typeof colorData === 'number') {
+            colorHex = colorData;
+        } else {
+            colorHex = 0xFFFFFF; // Default white
+        }
+
+        // Create the module
+        const module = new Module(configData.moduleType, index, position, colorHex, 0.9);
+
+        // Set static property if specified
+        if (moduleData.static) {
+            module.markStatic();
+        }
+    });
+
+    // Position camera
+    const centroid = VisConfigData.getCentroid();
+    const radius = VisConfigData.getRadius();
+
+    window.gwUser.camera.position.x = centroid.x;
+    window.gwUser.camera.position.y = centroid.y;
+    window.gwUser.camera.position.z = centroid.z + radius + 3.0;
+    window.gwUser.controls.target.set(centroid.x, centroid.y, centroid.z);
+
+    window.gwUser.miniCamera.position.x = centroid.x;
+    window.gwUser.miniCamera.position.y = centroid.y;
+    window.gwUser.miniCamera.position.z = centroid.z + radius + 3.0;
+    window.gwUser.miniControls.target.set(centroid.x, centroid.y, centroid.z);
+
+    // Update reference module to match the loaded configuration type
+    gReferenceModule.swapType(configData.moduleType);
+    gHighlightModule.swapType(configData.moduleType);
+
+    console.log(`Loaded configuration "${configData.name}" with ${configData.modules.length} modules`);
+    return true;
+}
 
 class GuiGlobalsHelper {
     constructor(prop, defaultVal, sliderType = SliderType.LINEAR) {
@@ -219,10 +304,19 @@ window._pathfinderRun = function() {
                     pathfinder_controller.enable();
                     pathfinderData.scen_out = msg.data[1];
                     pathfinderWorker.terminate();
-                    // TODO: provide option to delay loading found path instead of always instantly loading
-                    new Scenario(pathfinderData.scen_out);
-                    pathfinderProgressBar.style.backgroundColor = "rgba(255, 255, 255, 0.5)";
-                    pathfinderProgressBar.style.width = "100%";
+
+                    // Check if the result is valid before trying to load it
+                    if (!pathfinderData.scen_out || pathfinderData.scen_out.length === 0 || pathfinderData.scen_out.trim() === '') {
+                        console.error("Pathfinder returned empty result - no path found");
+                        alert("Pathfinder could not find a path between the initial and final configurations.\n\nPossible reasons:\n1. Configurations are not connected (modules too far apart)\n2. Wrong move set selected for the module type\n3. Configurations have different number of modules\n4. Path requires too many moves (timeout)\n\nCheck the console for more details.");
+                        pathfinderProgressBar.style.backgroundColor = "rgba(255, 0, 0, 0.5)";
+                        pathfinderProgressBar.style.width = "100%";
+                    } else {
+                        // Valid result, load the scenario
+                        new Scenario(pathfinderData.scen_out);
+                        pathfinderProgressBar.style.backgroundColor = "rgba(0, 255, 0, 0.5)";
+                        pathfinderProgressBar.style.width = "100%";
+                    }
                     pathfinderReverseProgressBar.style.width = "0%";
                     break;
                 case MessageType.DATA:
@@ -257,17 +351,17 @@ window._pathfinderRun = function() {
 /* GUI setup */
 /* ****************************** */
 // GUI elements for general settings
-export const gGraphicsGui = new GUI( { title: "Graphics",width: window.innerWidth*.1, container: document.getElementById("controlBar") } ).close();
+export const gGraphicsGui = new GUI( { title: "Graphics",width: window.innerWidth*.08, container: document.getElementById("controlBar") } ).close();
 let style_controller;
 // GUI elements for Visualizer Mode
-export const gAnimGui = new GUI( { title: "Animation",width: window.innerWidth*.1, container: document.getElementById("controlBar") } );
-export const gScenGui = new GUI( { title: "Scenario",width: window.innerWidth*.1, container: document.getElementById("controlBar") } ).close();
+export const gAnimGui = new GUI( { title: "Animation",width: window.innerWidth*.08, container: document.getElementById("controlBar") } );
+export const gScenGui = new GUI( { title: "Scenario",width: window.innerWidth*.08, container: document.getElementById("controlBar") } ).close();
 
 // GUI elements for Configurizer Mode
-export const gModuleBrushGui = new GUI( { title: "Brush",width: window.innerWidth*.1, container: document.getElementById("controlBar") } ).hide();
+export const gModuleBrushGui = new GUI( { title: "Brush",width: window.innerWidth*.08, container: document.getElementById("controlBar") } ).hide();
 let brushColor_selector;
-export const gLayerGui = new GUI( { title: "Layer",width: window.innerWidth*.1, container: document.getElementById("controlBar") } ).hide();
-export const gSelectedModuleGui = new GUI( { title: "Selected Module",width: window.innerWidth*.1, container: document.getElementById("controlBar") } ).hide();
+export const gLayerGui = new GUI( { title: "Layer",width: window.innerWidth*.08, container: document.getElementById("controlBar") } ).hide();
+export const gSelectedModuleGui = new GUI( { title: "Selected Module",width: window.innerWidth*.08, container: document.getElementById("controlBar") } ).hide();
 export const zSliceController = gLayerGui.add(moduleBrush, 'zSlice', VisConfigData.bounds.z.min - 2, VisConfigData.bounds.z.max + 2, 1).name("Layer").onChange((value) => {
     if (window._isPainterModeActive) {
         updateVisibleModules(value);
@@ -275,8 +369,9 @@ export const zSliceController = gLayerGui.add(moduleBrush, 'zSlice', VisConfigDa
 });
 
 // GUI element for Pathfinder and developer options
-export const gPathfinderGui = new GUI( { title: "Pathfinder",width: window.innerWidth*.1, container: document.getElementById("controlBar") } ).close();
-export const gModeGui = new GUI( { title: "View/Edit",width: window.innerWidth*.1, container: document.getElementById("controlBar") } );
+export const gPathfinderGui = new GUI( { title: "Pathfinder",width: window.innerWidth*.12, container: document.getElementById("controlBar") } ).close();
+export const gExportGui = new GUI( { title: "Import/Export",width: window.innerWidth*.08, container: document.getElementById("controlBar") } );
+export const gModeGui = new GUI( { title: "View/Edit",width: window.innerWidth*.12, container: document.getElementById("controlBar") } );
 // Global variables for module selection
 let selectedModule = null;
 const selectedModuleColor = { color: 0x808080 };
@@ -371,8 +466,32 @@ document.addEventListener("DOMContentLoaded", async function () {
         }
     });
 
-    // Create configuration button controls using object literals
-    gPathfinderGui.add({
+    // Import/Export Controls
+    gExportGui.add({
+        import: function() {
+            document.getElementById("configUploadButton").click();
+        }
+    }, 'import').name("Import");
+
+    gExportGui.add({
+        downloadCurrent: function() {
+            downloadCurrentConfiguration();
+        }
+    }, 'downloadCurrent').name("Download Current");
+
+    gExportGui.add({
+        importScenario: function() {
+            document.getElementById("scenarioUploadButton").click();
+        }
+    }, 'importScenario').name("Import Scenario");
+
+    gExportGui.add({
+        downloadScenario: function() {
+            downloadScenario();
+        }
+    }, 'downloadScenario').name("Download Scenario");
+
+    gExportGui.add({
         saveInitial: function() {
             saveConfiguration(true);
             console.log("Initial configuration saved");
@@ -382,7 +501,7 @@ document.addEventListener("DOMContentLoaded", async function () {
         }
     }, 'saveInitial').name("Save Initial Config");
 
-    gPathfinderGui.add({
+    gExportGui.add({
         saveFinal: function() {
             saveConfiguration(false);
             console.log("Final configuration saved");
@@ -392,76 +511,43 @@ document.addEventListener("DOMContentLoaded", async function () {
         }
     }, 'saveFinal').name("Save Final Config");
 
-    gPathfinderGui.add({
-        loadInitial: function() {
-            if (window.Worker) {
-                if (config2ScenWorker != null) {
-                    config2ScenWorker.terminate();
+    gExportGui.add({
+        viewInitial: function() {
+            try {
+                const config = JSON.parse(pathfinderData.config_i);
+                if (!config.exists) {
+                    alert("No initial configuration saved. Please save an initial configuration first.");
+                    return;
                 }
-                config2ScenWorker = new Worker("src/PathfinderWorker.js");
-                config2ScenWorker.postMessage([WorkerType.CONFIG2SCEN, pathfinderData.config_i]);
-                config2ScenWorker.onmessage = (msg) => {
-                    switch (msg.data[0]) {
-                        case MessageType.ERROR:
-                            console.log("config2Scen task encountered an error.");
-                            config2ScenWorker.terminate();
-                            break;
-                        case MessageType.RESULT:
-                            config2ScenWorker.terminate();
-                            new Scenario(msg.data[1]);
-                            break;
-                        case MessageType.DATA:
-                            // Currently unused for config2Scen
-                            console.log(msg.data[1]);
-                    }
+                const success = loadConfigurationFromJSON(pathfinderData.config_i);
+                if (!success) {
+                    alert("Failed to load initial configuration. Please check the console for errors.");
                 }
-                console.log("Started config2Scen task");
-            } else {
-                console.log("Browser does not support web workers.");
+            } catch (error) {
+                console.error("Error loading initial configuration:", error);
+                alert("No initial configuration saved or invalid configuration.");
             }
         }
-    }, 'loadInitial').name("Load Initial Config");
+    }, 'viewInitial').name("View Initial Config");
 
-    gPathfinderGui.add({
-        loadFinal: function() {
-            if (window.Worker) {
-                if (config2ScenWorker != null) {
-                    config2ScenWorker.terminate();
+    gExportGui.add({
+        viewFinal: function() {
+            try {
+                const config = JSON.parse(pathfinderData.config_f);
+                if (!config.exists) {
+                    alert("No final configuration saved. Please save a final configuration first.");
+                    return;
                 }
-                config2ScenWorker = new Worker("src/PathfinderWorker.js");
-                config2ScenWorker.postMessage([WorkerType.CONFIG2SCEN, pathfinderData.config_f]);
-                config2ScenWorker.onmessage = (msg) => {
-                    switch (msg.data[0]) {
-                        case MessageType.ERROR:
-                            console.log("config2Scen task encountered an error.");
-                            config2ScenWorker.terminate();
-                            break;
-                        case MessageType.RESULT:
-                            config2ScenWorker.terminate();
-                            new Scenario(msg.data[1]);
-                            break;
-                        case MessageType.DATA:
-                            // Currently unused for config2Scen
-                            console.log(msg.data[1]);
-                    }
+                const success = loadConfigurationFromJSON(pathfinderData.config_f);
+                if (!success) {
+                    alert("Failed to load final configuration. Please check the console for errors.");
                 }
-                console.log("Started config2Scen task");
-            } else {
-                console.log("Browser does not support web workers.");
+            } catch (error) {
+                console.error("Error loading final configuration:", error);
+                alert("No final configuration saved or invalid configuration.");
             }
         }
-    }, 'loadFinal').name("Load Final Config");
-    gPathfinderGui.add({
-        downloadInitial: function() {
-            downloadConfiguration(true);
-        }
-    }, 'downloadInitial').name("Download Initial");
-
-    gPathfinderGui.add({
-        downloadFinal: function() {
-            downloadConfiguration(false);
-        }
-    }, 'downloadFinal').name("Download Final");
+    }, 'viewFinal').name("View Final Config");
 
     const _folder = gScenGui.addFolder("Example Scenarios");
     for (let i in EXAMPLE_SCENARIOS) {
@@ -479,6 +565,33 @@ document.addEventListener("DOMContentLoaded", async function () {
                 selectedModule.mesh.material.uniforms.diffuse.value.setFromColor(new THREE.Color(value));
             }
         });
+
+    // Add event listener for configuration file upload
+    const configUploadElement = document.getElementById("configUploadButton");
+    configUploadElement.onchange = (e) => {
+        const file = configUploadElement.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const jsonContent = e.target.result;
+            try {
+                // Load and display the configuration directly
+                const success = loadConfigurationFromJSON(jsonContent);
+                if (!success) {
+                    alert("Failed to load configuration. Please check the console for errors.");
+                }
+            } catch (error) {
+                console.error("Invalid JSON file:", error);
+                alert("Invalid JSON file. Please select a valid configuration file.");
+            }
+        }
+        reader.onerror = (e) => {
+            console.error("Error reading file:", e.target.error);
+        }
+        reader.readAsText(file);
+        // Reset the input so the same file can be selected again
+        configUploadElement.value = '';
+    };
 });
 
 /**
