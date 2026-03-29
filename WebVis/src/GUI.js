@@ -371,7 +371,7 @@ export const zSliceController = gLayerGui.add(moduleBrush, 'zSlice', VisConfigDa
 
 // GUI element for Pathfinder and developer options
 export const gPathfinderGui = new GUI( { title: "Pathfinder",width: window.innerWidth*.12, container: document.getElementById("controlBar") } ).close();
-export const gExportGui = new GUI( { title: "Import/Export",width: window.innerWidth*.08, container: document.getElementById("controlBar") } );
+export const gExportGui = new GUI( { title: "Import/Export",width: window.innerWidth*.08, container: document.getElementById("controlBar") } ).close();
 export const gModeGui = new GUI( { title: "View/Edit",width: window.innerWidth*.12, container: document.getElementById("controlBar") } );
 // Global variables for module selection
 let selectedModule = null;
