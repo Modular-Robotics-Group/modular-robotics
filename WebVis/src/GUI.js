@@ -377,6 +377,8 @@ export const gModeGui = new GUI( { title: "View/Edit",width: window.innerWidth*.
 let selectedModule = null;
 const selectedModuleColor = { color: 0x808080 };
 
+
+
 document.addEventListener("DOMContentLoaded", async function () {
     // Visualizer Controls
     gAnimGui.add(new GuiGlobalsHelper('gwAnimSpeed', 1.0, SliderType.QUADRATIC), 'value', 0.0, 10.0, 0.1).name("Anim Speed");

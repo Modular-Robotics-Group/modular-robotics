@@ -139,6 +139,9 @@ function keydown_input_callback(event) {
         case 'M': toggleRenderMode(); break;
         case 'P': console.log(gRenderer.domElement); break;
         case `c`: selectModule(mx, my); break;
+        case 'ArrowUp': _increasePlaySpeed(); break;
+        case 'ArrowDown': _decreasePlaySpeed(); break;
+        case ' ': _toggleAutoPlay(); break;
         default: break;
     }
 }
@@ -178,3 +181,17 @@ window._requestBackwardAnim = function () {
     window.gwForward = false;
 }
 
+window._increasePlaySpeed = function() {
+    if(window._isPainterModeActive) return;
+    window.gwAnimSpeed += .5;
+}
+
+window._decreasePlaySpeed = function() {
+    if(window._isPainterModeActive) return;
+    window.gwAnimSpeed -= .5;
+}
+
+window._toggleAutoPlay = function() {
+    if(window._isPainterModeActive) return;
+    window.gwAutoAnimate = !window.gwAutoAnimate;
+}
