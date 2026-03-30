@@ -183,12 +183,12 @@ window._requestBackwardAnim = function () {
 
 window._increasePlaySpeed = function() {
     if(window._isPainterModeActive) return;
-    window.gwAnimSpeed += .5;
+    window.gwAnimSpeed += 1;
 }
 
 window._decreasePlaySpeed = function() {
     if(window._isPainterModeActive) return;
-    window.gwAnimSpeed -= .5;
+    window.gwAnimSpeed -= 1;
 }
 
 window._toggleAutoPlay = function() {
