@@ -6,6 +6,8 @@ import { moduleBrush, pathfinderData, WorkerType, MessageType, ContentType, VisC
 import { CameraType } from "./utils.js";
 import { saveConfiguration, downloadConfiguration, downloadScenario, downloadCurrentConfiguration, parseConfigurationJSON } from './utils.js';
 import { Module } from './Module.js';
+import { TransparencyMode } from './ModuleMaterials.js';
+import { PainterModeHistory } from './PainterModeHistory.js';
 
 // Exact filenames of example scenarios in /Scenarios/
 let EXAMPLE_SCENARIOS = [
@@ -188,6 +190,36 @@ window._toggleFullbright = function() {
     gLights.headlamp.intensity = gLights._fullbright ? 0 : gLights._defaultHeadlampIntensity;
     gLights.miniHeadlamp.intensity = gLights._fullbright ? 0 : gLights._defaultMiniHeadlampIntensity;
 }
+
+// Toggle transparency mode (X-ray mode)
+window._toggleTransparencyMode = function() {
+    const enabled = !TransparencyMode.enabled;
+    TransparencyMode.setTransparencyMode(enabled);
+    window._applyTransparencyMode(enabled);
+}
+
+// Apply transparency effect to all scene materials
+window._applyTransparencyMode = function(enabled) {
+    gScene.traverse((obj) => {
+        if (!obj.material) return;
+        
+        // Handle both single material and array of materials
+        const materials = Array.isArray(obj.material) ? obj.material : [obj.material];
+        
+        materials.forEach((mat) => {
+            // Store original opacity on first toggle
+            if (mat.userData.originalOpacity === undefined) {
+                mat.userData.originalOpacity = mat.opacity;
+            }
+            
+            // Apply transparency settings
+            mat.transparent = true;
+            mat.opacity = enabled ? 0.3 : mat.userData.originalOpacity;
+            mat.depthWrite = !enabled;  // Critical: disable depth writing to show interior
+        });
+    });
+}
+
 
 // Painter Mode Toggle
 window._toggleMRWTMode = function() {
@@ -386,12 +418,21 @@ document.addEventListener("DOMContentLoaded", async function () {
     style_controller = gGraphicsGui.add(window.gwUser, 'toggleCameraStyle').name("Toggle Camera Style");
     gGraphicsGui.add(window, '_toggleBackgroundColor').name("Toggle Background Color");
     gGraphicsGui.add(window, '_toggleFullbright').name("Toggle Fullbright");
+    gGraphicsGui.add(window, '_toggleTransparencyMode').name("Transparency Mode");
     gAnimGui.add(window, '_requestForwardAnim').name("Step Forward");
     gAnimGui.add(window, '_requestBackwardAnim').name("Step Backward");
     // Configurizer Controls
-    brushColor_selector = gModuleBrushGui.addColor(moduleBrush, 'color').name("Module Color");
+    brushColor_selector = gModuleBrushGui.addColor(moduleBrush, 'color').name("Module Color").onChange((value) => {
+        if (window._isPainterModeActive) {
+            window.gwPainterHistory.pushSnapshot("Change brush color");
+        }
+    });
     gModuleBrushGui.add({ beginColorPick: () => { window._toolMode = TOOL_MODES.PICK_COLOR } }, 'beginColorPick');
-    gModuleBrushGui.add(moduleBrush, 'static').name("Static Module");
+    gModuleBrushGui.add(moduleBrush, 'static').name("Static Module").onChange((value) => {
+        if (window._isPainterModeActive) {
+            window.gwPainterHistory.pushSnapshot("Toggle static module");
+        }
+    });
     gLayerGui.add(moduleBrush, 'adjSlicesVisible').name("Visualize Adjacent Layers").onChange((value) => {
         if (window._isPainterModeActive) {
             updateVisibleModules(moduleBrush.zSlice);
@@ -402,6 +443,9 @@ document.addEventListener("DOMContentLoaded", async function () {
             "Rhombic Dodecahedron": ModuleType.RHOMBIC_DODECAHEDRON,
             "Catom": ModuleType.CATOM
         }).name("Module Type").onChange((value) => {
+            if (window._isPainterModeActive) {
+                window.gwPainterHistory.pushSnapshot("Change module type");
+            }
             window._clearConfig();
             gReferenceModule.swapType(value);
             gHighlightModule.swapType(value);
@@ -759,6 +803,9 @@ function toggleModuleAtPosition(x, y, z) {
     window.gwMoveSetSequence.invalidate();
 
     if (!existingModule && window._drawMode === DRAW_MODES.PLACE) {
+        // Capture state before adding module
+        window.gwPainterHistory.pushSnapshot("Add module");
+        
         // Create a new module at the position
         const pos = new THREE.Vector3(x, y, z);
 
@@ -774,6 +821,8 @@ function toggleModuleAtPosition(x, y, z) {
         }
         updateModuleVisibility(module, z, moduleBrush.zSlice);
     } else if (existingModule && window._drawMode === DRAW_MODES.ERASE) {
+        // Capture state before removing module
+        window.gwPainterHistory.pushSnapshot("Remove module");
         gModules[existingModule.id].destroy();
     }
 }

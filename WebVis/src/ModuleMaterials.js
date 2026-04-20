@@ -238,3 +238,11 @@ export const ModuleMaterialConstructors = new Map([
     [ModuleType.RHOMBIC_DODECAHEDRON, _constructBorderedMaterial],
     [ModuleType.CATOM, _constructBorderedMaterial],
 ]);
+
+// Global transparency mode state
+export const TransparencyMode = {
+    enabled: false,
+    setTransparencyMode(enabled) {
+        this.enabled = enabled;
+    }
+};

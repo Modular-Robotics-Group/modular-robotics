@@ -129,12 +129,25 @@ function mousemove_callback(event) {
     my = event.clientY;
 }
 
-function keydown_input_callback(event) {
-    let key = event.key;
+
+    // Handle Ctrl+Z (undo) and Ctrl+Y (redo) for painter mode
+    if (event.ctrlKey || event.metaKey) {
+        if (key === 'z') {
+            event.preventDefault();
+            if (window.gwPainterHistory) {
+                window.gwPainterHistory.undo();
+            }
+            return;
+        } else if (key === 'y') {
+            event.preventDefault();
+            if (window.gwPainterHistory) {
+                window.gwPainterHistory.redo();
+            }
+            return;
+        }
+    }
+
     switch (key) {
-        case 'p': gUser.toggleCameraStyle(); break;
-        case 'r': gUser.resetCamera(); break;
-        case 'ArrowRight': _requestForwardAnim(); break;
         case 'ArrowLeft': _requestBackwardAnim(); break;
         case 'M': toggleRenderMode(); break;
         case 'P': console.log(gRenderer.domElement); break;
