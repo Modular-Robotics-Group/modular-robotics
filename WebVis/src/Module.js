@@ -58,17 +58,19 @@ function _createModuleBorder(moduleType, scale = 1.0) {
 }
 
 export class Module {
-    constructor(moduleType, id, pos, color = 0x808080, scale = 1.0) {
+    constructor(moduleType, id, pos, color = 0x808080, scale = 1.0, opacity = 1.0) {
         this.moduleType = moduleType;
         this.id = id;
         this.pos = pos;
         this.color = color;
         this.scale = scale;
+        this.opacity = opacity;
+        this.visgroupId = null; // Set by Scenario after construction
         this.isStatic = false;
 
         this.cumulativeRotationMatrix = new THREE.Matrix4();
 
-        this.mesh = _createModuleMesh(moduleType, color, scale);
+        this.mesh = _createModuleMesh(moduleType, color, scale, opacity);
         this._setMeshMatrix();
         this.parentMesh = new THREE.Object3D(); // Parent object will never rotate
         this.parentMesh.position.set(...pos);
@@ -101,6 +103,29 @@ export class Module {
     unMarkStatic() {
         this.isStatic = false;
         this.mesh.material.uniforms.border_extra = { value: 0.0 };
+    }
+
+    updateAppearance(color, scale, opacity = this.opacity) {
+        this.color = color;
+        this.scale = scale;
+        this.opacity = opacity;
+        let newMesh = _createModuleMesh(this.moduleType, color, scale, opacity);
+        // Preserve the cumulative rotation state and static border
+        newMesh.matrixAutoUpdate = false;
+        if (this.isStatic) {
+            newMesh.material.uniforms.border_extra = { value: 0.375 };
+        }
+        // Disable depth writing for transparent modules so they composite correctly
+        if (opacity < 1.0) {
+            newMesh.material.depthWrite = false;
+        }
+        this.parentMesh.remove(this.mesh);
+        this.mesh.geometry.dispose();
+        this.mesh.material.dispose();
+        this.mesh = newMesh;
+        this.parentMesh.add(this.mesh);
+        // Recompute the mesh matrix using the new scale and existing cumulative rotation
+        this._setMeshMatrix(this.cumulativeRotationMatrix);
     }
 
     destroy() {

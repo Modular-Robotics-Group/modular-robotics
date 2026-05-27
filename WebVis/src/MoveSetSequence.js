@@ -28,6 +28,17 @@ export class MoveSetSequence {
         this.currentMoveSet++;
         if (moveSet.checkpoint) { this.currentCheckpoint += 1; }
 
+        // Apply any visgroup redefinitions attached to this MoveSet
+        if (moveSet.visgroupUpdates) {
+            for (let update of moveSet.visgroupUpdates) {
+                for (let modId in gModules) {
+                    if (gModules[modId].visgroupId === update.id) {
+                        gModules[modId].updateAppearance(update.newColor, update.newScale, update.newOpacity);
+                    }
+                }
+            }
+        }
+
         this.undostack.push(moveSet);
         
         this.updateMoveProgressString();
@@ -46,6 +57,17 @@ export class MoveSetSequence {
         this.currentMoveSet--;
 
         this.moveSets.unshift(moveSet);
+
+        // Revert any visgroup redefinitions attached to this MoveSet
+        if (moveSet.visgroupUpdates) {
+            for (let update of moveSet.visgroupUpdates) {
+                for (let modId in gModules) {
+                    if (gModules[modId].visgroupId === update.id) {
+                        gModules[modId].updateAppearance(update.oldColor, update.oldScale, update.oldOpacity);
+                    }
+                }
+            }
+        }
 
         this.updateMoveProgressString();
         return moveSet.reverse();
