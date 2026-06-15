@@ -102,6 +102,44 @@ int main(int argc, char* argv[]) {
         }
     }
     std::size_t trimPos;
+
+    // Batch run handling
+    if (std::filesystem::is_directory(initialFile)) {
+        // Build command to run
+        std::string command;
+        for (int i = 0; i < argc; ++i) {
+            std::string a = argv[i];
+            if (a == "-I" || a == "-initial-file" || a == "-F" || a == "-final-file") {
+                // skip -I and -F, as well as their arguments
+                i++;
+                continue;
+            }
+            command += a + " ";
+        }
+        // Search for state files in the directory to find paths between
+        // TODO: the _initial and _final in the filenames are required for this to work (for now)
+        for (const auto& state_file : std::filesystem::directory_iterator(initialFile)) {
+            if (!state_file.is_regular_file() || state_file.path().extension() != ".json" || !state_file.path().stem().string().contains("_initial")) continue;
+            std::string initialState = state_file.path().string();
+            std::string finalState = initialState;
+            if ((trimPos = initialState.find("_initial")) != std::string::npos) {
+                finalState.erase(trimPos, 8);
+                finalState.insert(trimPos, "_final");
+            } else {
+                std::cerr << "Couldn't generate final state path from initial path " << initialState << "!" << std::endl;
+                continue;
+            }
+            if (!std::filesystem::exists(finalState) || !std::filesystem::is_regular_file(finalState)) {
+                std::cerr << "Couldn't find final state at path " << finalState << "!" << std::endl;
+                continue;
+            }
+            std::string command_final = command + "-I " + initialState + " -F " + finalState;
+            std::cout << "Executing pathfinder using " << command_final << std::endl;
+            std::system(command_final.c_str());
+        }
+        return 0;
+    }
+
 #if !GENERATE_FINAL_STATE
     if (finalFile.empty()) {
         if ((trimPos = initialFile.find("_initial")) != std::string::npos) {
