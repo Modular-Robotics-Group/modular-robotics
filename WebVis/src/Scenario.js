@@ -6,9 +6,10 @@ import { MoveSet } from "./MoveSet.js";
 import { MoveSetSequence } from "./MoveSetSequence.js";
 import { gModules, gReferenceModule, gHighlightModule, gModulePositions, gRenderer, gUser, cancelActiveMove } from "./main.js";
 
-function Visgroup(r, g, b, scale) {
+function Visgroup(r, g, b, scale, opacity = 100) {
     this.color = `rgb(${r}, ${g}, ${b})`;
     this.scale = scale / 100;
+    this.opacity = opacity / 100;
 }
 
 // TODO this doesn't really need to be a class, with the way the code is structured
@@ -63,6 +64,7 @@ export class Scenario {
         let totalMass = new THREE.Vector3(0.0, 0.0, 0.0);
         let minCoords, maxCoords;
         let maxRadius = 1.0;
+        let pendingVisgroupUpdates = []; // Visgroup redefinitions waiting to be attached to the next MoveSet
         for (let iLine = 0; iLine < dataLines.length; iLine++) {
 
             // Read the line, sanitize it (remove comments and whitespace)
@@ -75,9 +77,40 @@ export class Scenario {
             if (!line) { 
                 nBlock++;
                 if (moveSet.moves.length > 0) {
+                    if (pendingVisgroupUpdates.length > 0) {
+                        moveSet.visgroupUpdates = [...pendingVisgroupUpdates];
+                        pendingVisgroupUpdates = [];
+                    }
                     moveSets.push(moveSet);
                     moveSet = new MoveSet();
                     checkpointMove = false;
+                }
+                continue;
+            }
+
+            // check if it's a visgroup redefinition (first character is #)
+            //  format: # <gid>, <r>, <g>, <b>, <scale>
+            //  this can appear in any block after the initial visgroup definitions
+            //  and updates the visgroup for all subsequently defined/moved modules
+            if (line[0] == '#') {
+                let redefVals = line.substring(1).split(',').map((val) => parseInt(val));
+                let redefId = redefVals[0];
+                if (visgroups[redefId] !== undefined) {
+                    // Store the old values so undo can revert, then update visgroups for future module definitions
+                    let newOpacity = isNaN(redefVals[5]) ? visgroups[redefId].opacity * 100 : redefVals[5];
+                    pendingVisgroupUpdates.push({
+                        id:         redefId,
+                        newColor:   `rgb(${redefVals[1]}, ${redefVals[2]}, ${redefVals[3]})`,
+                        newScale:   redefVals[4] / 100,
+                        newOpacity: newOpacity / 100,
+                        oldColor:   visgroups[redefId].color,
+                        oldScale:   visgroups[redefId].scale,
+                        oldOpacity: visgroups[redefId].opacity,
+                    });
+                    visgroups[redefId] = new Visgroup(redefVals[1], redefVals[2], redefVals[3], redefVals[4], newOpacity);
+                    console.log(`Visgroup ${redefId} redefined to rgb(${redefVals[1]},${redefVals[2]},${redefVals[3]}) scale=${redefVals[4]} (pending next MoveSet)`);
+                } else {
+                    console.warn(`Visgroup redefinition references unknown group id ${redefId} -- ignoring`);
                 }
                 continue;
             }
@@ -100,14 +133,16 @@ export class Scenario {
                     let g = lineVals[2];
                     let b = lineVals[3];
                     let scale = lineVals[4];
-                    visgroups[vgId] = new Visgroup(r, g, b, scale);
+                    let opacity = isNaN(lineVals[5]) ? 100 : lineVals[5];
+                    visgroups[vgId] = new Visgroup(r, g, b, scale, opacity);
                     break;
                 }
                 case 1: { // Module definitions
                     let moduleId = lineVals[0];
                     let vg = visgroups[lineVals[1]];
                     let pos = new THREE.Vector3(lineVals[2], lineVals[3], lineVals[4]);
-                    new Module(scenarioModuleType, moduleId, pos, vg.color, vg.scale);
+                    new Module(scenarioModuleType, moduleId, pos, vg.color, vg.scale, vg.opacity);
+                    gModules[moduleId].visgroupId = lineVals[1]; // Store for later visgroup redefinitions
                     // gModules[moduleId].markStatic(); // Initially set all modules static
 
                     if (!minCoords) {
@@ -133,7 +168,13 @@ export class Scenario {
                 }
             }  // end Switch statement
         } // end For loop (line iteration)
-        if (moveSet.moves.length > 0) { moveSets.push(moveSet); }
+        if (moveSet.moves.length > 0) {
+            if (pendingVisgroupUpdates.length > 0) {
+                moveSet.visgroupUpdates = [...pendingVisgroupUpdates];
+                pendingVisgroupUpdates = [];
+            }
+            moveSets.push(moveSet);
+        }
 
         let centroid = totalMass.divideScalar(numModules);
         let radius = Math.max(...maxCoords.sub(minCoords).toArray());
