@@ -50,7 +50,7 @@ able to run a web version of Pathfinder.
 
 [Documentation](https://github.com/gShahr/modular-robotics/wiki/Visualization-Tool)
 
-[Open WebVis](https://Modular-Robotics-Group.github.io/modular-robotics/WebVis/index.html)
+[Open WebVis](https://Modular-Robotics-Group.github.io/modular-robotics/)
 
 ## Pathfinder
 
