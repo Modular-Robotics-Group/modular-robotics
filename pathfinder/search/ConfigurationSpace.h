@@ -40,71 +40,78 @@
 #define CONFIG_OUTPUT_JSON false
 #endif
 
-class SearchExcept final : std::exception {
+class SearchExcept final : std::exception
+{
 public:
     [[nodiscard]]
-    const char* what() const noexcept override;
+    const char *what() const noexcept override;
 };
 
-class HeuristicExcept final : public std::exception {
-    public:
+class HeuristicExcept final : public std::exception
+{
+public:
     [[nodiscard]]
-    const char* what() const noexcept override;
+    const char *what() const noexcept override;
 };
 
 class Configuration;
 
 // For comparing the state of a lattice and a configuration
-class HashedState {
+class HashedState
+{
 private:
     size_t seed;
     std::set<ModuleData> moduleData;
-    const Configuration* foundAt;
+    const Configuration *foundAt;
     int depth;
+
 public:
     HashedState() = delete;
 
-    explicit HashedState(const std::set<ModuleData>& modData, int depth = 0);
+    explicit HashedState(const std::set<ModuleData> &modData, int depth = 0);
 
-    HashedState(const HashedState& other);
+    HashedState(const HashedState &other);
 
     [[nodiscard]]
     size_t GetSeed() const;
 
     [[nodiscard]]
-    const std::set<ModuleData>& GetState() const;
+    const std::set<ModuleData> &GetState() const;
 
-    void SetFounder(const Configuration* founder);
+    void SetFounder(const Configuration *founder);
 
     [[nodiscard]]
-    const Configuration* FoundAt() const;
+    const Configuration *FoundAt() const;
 
     void SetDepth(int depth);
 
     [[nodiscard]]
     int GetDepth() const;
 
-    bool operator==(const HashedState& other) const;
+    bool operator==(const HashedState &other) const;
 
-    bool operator!=(const HashedState& other) const;
+    bool operator!=(const HashedState &other) const;
 };
 
-template<>
-struct std::hash<HashedState> {
-    size_t operator()(const HashedState& state) const noexcept;
+template <>
+struct std::hash<HashedState>
+{
+    size_t operator()(const HashedState &state) const noexcept;
 };
 
 // For tracking the state of a lattice
-class Configuration {
+class Configuration
+{
 protected:
-    Configuration* parent = nullptr;
-    std::vector<Configuration*> next;
+    Configuration *parent = nullptr;
+    std::vector<Configuration *> next;
     HashedState hash;
     int cost;
+
 public:
     int depth = 0;
 
-    explicit Configuration(const std::set<ModuleData>& modData);
+    explicit Configuration(const std::set<ModuleData> &modData);
 
     virtual ~Configuration();
 
@@ -114,87 +121,96 @@ public:
     [[nodiscard]]
     std::vector<std::set<ModuleData>> MakeAllMovesForAllVertices() const;
 
-    virtual Configuration* AddEdge(const std::set<ModuleData>& modData);
+    virtual Configuration *AddEdge(const std::set<ModuleData> &modData);
 
     [[nodiscard]]
-    Configuration* GetParent() const;
+    Configuration *GetParent() const;
 
     [[nodiscard]]
-    std::vector<Configuration*> GetNext() const;
+    std::vector<Configuration *> GetNext() const;
 
     [[nodiscard]]
-    const HashedState& GetHash() const;
+    const HashedState &GetHash() const;
 
     [[nodiscard]]
-    const std::set<ModuleData>& GetModData() const;
+    const std::set<ModuleData> &GetModData() const;
 
-    void SetParent(Configuration* configuration);
+    void SetParent(Configuration *configuration);
 
-    friend std::ostream& operator<<(std::ostream& out, const Configuration& config);
+    void RemoveLastChild(); // Used for IDA_Star, to free up memory
+
+    friend std::ostream &operator<<(std::ostream &out, const Configuration &config);
 
     int GetCost() const;
 
     void SetCost(int cost);
 
     template <typename Heuristic>
-    static auto CompareConfiguration(const Configuration* final, Heuristic heuristic);
+    static auto CompareConfiguration(const Configuration *final, Heuristic heuristic);
 
-    struct ValarrayComparator {
-        bool operator()(const std::valarray<int>& lhs, const std::valarray<int>& rhs) const;
+    struct ValarrayComparator
+    {
+        bool operator()(const std::valarray<int> &lhs, const std::valarray<int> &rhs) const;
     };
 
-    float ManhattanDistance(const Configuration* final) const;
+    float ManhattanDistance(const Configuration *final) const;
 
-    float SymmetricDifferenceHeuristic(const Configuration* final) const;
+    float SymmetricDifferenceHeuristic(const Configuration *final) const;
 
-    float ChebyshevDistance(const Configuration* final) const;
+    float ChebyshevDistance(const Configuration *final) const;
 
-    float TrueChebyshevDistance(const Configuration* final) const;
+    float TrueChebyshevDistance(const Configuration *final) const;
 
-    float CacheChebyshevDistance(const Configuration* final) const;
+    float CacheChebyshevDistance(const Configuration *final) const;
 
-    float CacheMoveOffsetDistance(const Configuration* final) const;
+    float CacheMoveOffsetDistance(const Configuration *final) const;
 
-    float CacheMoveOffsetPropertyDistance(const Configuration* final) const;
+    float CacheMoveOffsetPropertyDistance(const Configuration *final) const;
 };
 
-enum Origin {
+enum Origin
+{
     START = 0,
     END = 1
 };
 
-class BDConfiguration : public Configuration {
+class BDConfiguration : public Configuration
+{
 private:
     Origin origin = START;
+
 public:
-    explicit BDConfiguration(const std::set<ModuleData>& modData, Origin origin);
+    explicit BDConfiguration(const std::set<ModuleData> &modData, Origin origin);
 
     Origin GetOrigin() const;
 
-    BDConfiguration* AddEdge(const std::set<ModuleData>& modData) override;
+    BDConfiguration *AddEdge(const std::set<ModuleData> &modData) override;
 
     template <typename Heuristic>
-    static auto CompareBDConfiguration(const BDConfiguration* start, const BDConfiguration* final, Heuristic heuristic);
+    static auto CompareBDConfiguration(const BDConfiguration *start, const BDConfiguration *final, Heuristic heuristic);
 
-    float BDCacheMoveOffsetDistance(const Configuration* final) const;
+    float BDCacheMoveOffsetDistance(const Configuration *final) const;
 
-    float BDCacheMoveOffsetPropertyDistance(const Configuration* final) const;
+    float BDCacheMoveOffsetPropertyDistance(const Configuration *final) const;
 };
 
-namespace ConfigurationSpace {
+namespace ConfigurationSpace
+{
     extern int depth;
 
-    std::vector<const Configuration*> BFS(Configuration* start, const Configuration* final);
+    std::vector<const Configuration *> BFS(Configuration *start, const Configuration *final);
 
-    std::vector<const Configuration*> BiDirectionalBFS(BDConfiguration* start, BDConfiguration* final);
+    std::vector<const Configuration *> BiDirectionalBFS(BDConfiguration *start, BDConfiguration *final);
 
-    std::vector<const Configuration*> AStar(Configuration* start, const Configuration* final, const std::string& heuristic);
+    std::vector<const Configuration *> AStar(Configuration *start, const Configuration *final, const std::string &heuristic);
 
-    std::vector<const Configuration*> BDAStar(BDConfiguration* start, BDConfiguration* final, const std::string& heuristic);
+    std::vector<const Configuration *> BDAStar(BDConfiguration *start, BDConfiguration *final, const std::string &heuristic);
 
-    std::vector<const Configuration*> FindPath(const Configuration* start, const Configuration* final, bool shouldReverse = true);
+    std::vector<const Configuration *> FindPath(const Configuration *start, const Configuration *final, bool shouldReverse = true);
+
+    std::vector<const Configuration *> IDA_Star(Configuration *start, const Configuration *final, const std::string &heuristic);
 
     Configuration GenerateRandomFinal(int targetMoves = 8);
 }
 
-#endif //MODULAR_ROBOTICS_CONFIGURATIONSPACE_H
+#endif // MODULAR_ROBOTICS_CONFIGURATIONSPACE_H
