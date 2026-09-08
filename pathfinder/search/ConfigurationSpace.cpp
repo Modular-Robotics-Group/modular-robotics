@@ -4,6 +4,7 @@
 #include <queue>
 #include <set>
 #include <utility>
+#include "TranspositionTable.hpp"
 #include "../moves/MoveManager.h"
 #include "ConfigurationSpace.h"
 #include "HeuristicCache.h"
@@ -1568,3 +1569,151 @@ std::vector<const Configuration *> ConfigurationSpace::IDA_Star(Configuration *s
         }
     }
 }
+
+
+
+template <typename Heuristic>
+int Search_DFSTT1( std::vector<Configuration *> &Path, int g, int bound, std::unordered_set<HashedState> &hash_table, HashTranspositionTable &TT, Heuristic hFunc, const Configuration *final)
+{
+    Configuration *current = Path.back();
+    HashedState currentHash = current->GetHash();
+
+    hash_table.insert(currentHash);
+
+    current->SetCost(g);
+    current->depth = g;
+
+    // Look up heuristic estimate in the transposition table.
+    TTEntry *entry = TT.lookup(currentHash);
+
+    float h;
+
+    if (entry != nullptr)
+    {
+        h = entry->estimate;
+    }
+    else
+    {
+        h = (current->*hFunc)(final);
+        TT.store(TTEntry(currentHash, h));
+    }
+
+    int f = g + static_cast<int>(h);
+
+    // Threshold exceeded.
+    if (f > bound)
+    {
+        hash_table.erase(currentHash);
+        return f;
+    }
+
+    // Goal found.
+    if (currentHash == final->GetHash())
+    {
+        hash_table.erase(currentHash);
+        return -1;
+    }
+
+    int min = INT_MAX;
+
+    auto adjList = current->MakeAllMoves();
+
+    for (const auto &moduleInfo : adjList)
+    {
+        HashedState hashedState(moduleInfo);
+
+        // Prevent cycles in the current path.
+        if (hash_table.find(hashedState) == hash_table.end())
+        {
+            Path.push_back(current->AddEdge(moduleInfo));
+
+            int t = Search_DFSTT1( Path, g + 1, bound, hash_table, TT, hFunc, final);
+
+            if (t == -1) return -1;
+
+            if (t < min) min = t;
+
+            Path.pop_back();
+            current->RemoveLastChild();
+        }
+    }
+
+    hash_table.erase(currentHash);
+
+    // Store the backed-up estimate.
+    if (min != INT_MAX)
+    {
+        TT.store(TTEntry(currentHash, min - g));
+    }
+
+    return min;
+}
+
+
+std::vector<const Configuration *> ConfigurationSpace::DFSTT1( Configuration *start, const Configuration *final, const std::string &heuristic)
+{
+    float (Configuration::*hFunc)(const Configuration *final) const;
+
+    if (heuristic == "Symmetric Difference" || heuristic == "symmetric difference" || heuristic == "SymDiff" || heuristic == "symdiff")
+    {
+        hFunc = &Configuration::SymmetricDifferenceHeuristic;
+    }
+    else if (heuristic == "Manhattan" || heuristic == "manhattan")
+    {
+        hFunc = &Configuration::ManhattanDistance;
+    }
+    else if (heuristic == "Chebyshev" || heuristic == "chebyshev")
+    {
+        hFunc = &Configuration::TrueChebyshevDistance;
+    }
+    else if (heuristic == "Nearest Chebyshev" || heuristic == "nearest chebyshev")
+    {
+        hFunc = &Configuration::CacheChebyshevDistance;
+    }
+    else if (Lattice::ignoreProperties || ModuleProperties::AnyDynamicPropertiesLinked())
+    {
+        hFunc = &Configuration::CacheMoveOffsetDistance;
+    }
+    else
+    {
+        hFunc = &Configuration::CacheMoveOffsetPropertyDistance;
+    }
+
+    start->SetCost(0);
+
+    int f = static_cast<int>((start->*hFunc)(final));
+
+    std::vector<Configuration *> Path;
+    Path.push_back(start);
+
+    // Transposition table for DFSTT1.
+    HashTranspositionTable TT(1000000, std::make_unique<NoReplacement>());
+
+    // Path-based cycle detection.
+    std::unordered_set<HashedState> hash_table;
+
+    while (true)
+    {
+        int t = Search_DFSTT1( Path, 0, f, hash_table, TT, hFunc, final);
+
+        if (t == -1)
+        {
+            std::cout << "DFSTT1 Final Depth: "<< Path.size() - 1 << std::endl;
+
+            std::cout << "DFSTT1 Path length: " << Path.size() << " configurations" << std::endl;
+
+            return std::vector<const Configuration *>( Path.begin(), Path.end());
+        }
+        else if (t == INT_MAX)
+        {
+            throw SearchExcept();
+        }
+        else
+        {
+            f = t;
+        }
+    }
+}
+
+
+

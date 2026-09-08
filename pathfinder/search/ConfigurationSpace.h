@@ -210,6 +210,8 @@ namespace ConfigurationSpace
 
     std::vector<const Configuration *> IDA_Star(Configuration *start, const Configuration *final, const std::string &heuristic);
 
+    std::vector<const Configuration *> DFSTT1(Configuration *start, const Configuration *final, const std::string &heuristic);
+
     Configuration GenerateRandomFinal(int targetMoves = 8);
 }
 

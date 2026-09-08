@@ -360,6 +360,10 @@ int main(int argc, char *argv[])
         {
             path = ConfigurationSpace::IDA_Star(&start, &end, heuristic);
         }
+        else if (searchMethod == "DFSTT1" || searchMethod == "DFSTT1" || searchMethod == "DFSTT1")
+        {
+            path = ConfigurationSpace::DFSTT1(&start, &end, heuristic);
+        }
         const auto timeEnd = std::chrono::high_resolution_clock::now();
         const auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(timeEnd - timeBegin);
         std::cout << "Search completed in " << duration.count() << " ms." << std::endl;
