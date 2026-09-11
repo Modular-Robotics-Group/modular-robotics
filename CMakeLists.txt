@@ -7,13 +7,17 @@ endif()
 
 # Normal variables
 set(CMAKE_CXX_STANDARD 23)
+
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
 set(CMAKE_VERBOSE_MAKEFILE ON)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/Module Properties")
 set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
+
 # Cache entries
 set(INCLUDE_TESTS OFF CACHE BOOL "Whether or not unit tests should be built alongside the Pathfinder.")
 set(LINK_TBB OFF CACHE BOOL "Whether or not TBB should be linked.")
+
 # Environment variables
 set(ENV{CTEST_OUTPUT_ON_FAILURE} ON)
 
@@ -21,12 +25,28 @@ if(${LINK_TBB})
     find_package(TBB REQUIRED COMPONENTS tbb)
 endif()
 
-find_package(Boost 1.83 REQUIRED COMPONENTS filesystem system)
-if(Boost_FOUND)
-    include_directories(${Boost_INCLUDE_DIRS})
-endif()
+# =========================
+# BOOST FIX (1.88.0 FORCED)
+
+# =========================
+set(Boost_NO_SYSTEM_PATHS ON)
+
+execute_process(
+    COMMAND brew --prefix boost@1.88.0
+    OUTPUT_VARIABLE BOOST_ROOT
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+
+set(BOOST_ROOT ${BOOST_ROOT})
+set(BOOST_INCLUDEDIR ${BOOST_ROOT}/include)
+set(BOOST_LIBRARYDIR ${BOOST_ROOT}/lib)
+
+find_package(Boost REQUIRED COMPONENTS filesystem system)
+
+# =========================
 
 find_package(nlohmann_json REQUIRED)
+
 
 if(${WIN32})
     find_package(unofficial-getopt-win32 REQUIRED)
@@ -60,11 +80,9 @@ endif()
 
 add_library(PropertyLib SHARED pathfinder/modules/ModuleProperties.cpp)
 
-target_link_libraries(PropertyLib ${Boost_LIBRARIES})
 
-target_link_libraries(PropertyLib Boost::system)
 
-target_link_libraries(PropertyLib Boost::filesystem)
+target_link_libraries(PropertyLib Boost::system Boost::filesystem nlohmann_json::nlohmann_json)
 
 set_target_properties(PropertyLib PROPERTIES PREFIX "")
 
@@ -147,14 +165,12 @@ if(${INCLUDE_TESTS})
             LATTICE_RD_EDGECHECK=false
             CONFIG_PARALLEL_MOVES=false
             MOVEMANAGER_CHECK_BY_OFFSET=true)
-#    target_compile_definitions(Pathfinder_Rhombic PUBLIC
-#            LATTICE_RD_EDGECHECK=true
-#            CONFIG_PARALLEL_MOVES=false
-#            MOVEMANAGER_CHECK_BY_OFFSET=true)
+
     target_compile_definitions(Pathfinder_Parallel PUBLIC
             LATTICE_RD_EDGECHECK=false
             CONFIG_PARALLEL_MOVES=true
             MOVEMANAGER_CHECK_BY_OFFSET=true)
+
     target_compile_definitions(Pathfinder_FullCheck PUBLIC
             LATTICE_RD_EDGECHECK=false
             CONFIG_PARALLEL_MOVES=false
@@ -163,11 +179,6 @@ if(${INCLUDE_TESTS})
     add_dependencies(Pathfinder_FullCheck OrientationPropertyLib)
 
     enable_testing()
-
-    # Following are some very basic tests to ensure functionality of A* search and associated heuristics.
-    # The tests work by making sure A* final depth matches that of BFS.
-    # In certain cases it also checks the amounts of states processed, this is mostly to ensure that certain
-    # desirable properties of the MRSH-1 heuristic remain intact.
 
     add_test(NAME Test2DSolo COMMAND Pathfinder_Standard
             -I ./Test-Resources/Heuristic-Checker_initial.json
@@ -245,33 +256,4 @@ if(${INCLUDE_TESTS})
 
     set_property(TEST TestMovePropertyChecks PROPERTY PASS_REGULAR_EXPRESSION "A* Final Depth: 14")
 
-    # Disabled until orientation property is repaired
-#    add_test(NAME TestOrientationProperty COMMAND Pathfinder_FullCheck
-#            -I ./Test-Resources/Orientation_initial.json
-#            -F ./Test-Resources/Orientation_final.json
-#            -e ./Test-Resources/Output/OrientationProperty.scen
-#            -a ./Test-Resources/Output/OrientationProperty_analysis.json
-#            -m ./Test-Resources/Moves_Orientation
-#            -s BDBFS)
-#
-#    set_property(TEST TestOrientationProperty PROPERTY PASS_REGULAR_EXPRESSION "BDBFS Final Depth: 4")
-#
-#    add_test(NAME TestOrientationProperty3D COMMAND Pathfinder_FullCheck
-#            -I ./Test-Resources/Orientation3D_initial.json
-#            -F ./Test-Resources/Orientation3D_final.json
-#            -e ./Test-Resources/Output/OrientationProperty3D.scen
-#            -a ./Test-Resources/Output/OrientationProperty3D_analysis.json
-#            -m ./Test-Resources/Moves_Orientation
-#            -s BDBFS)
-#
-#    set_property(TEST TestOrientationProperty3D PROPERTY PASS_REGULAR_EXPRESSION "BDBFS Final Depth: 6")
-
-    # This test takes too long to complete
-#    add_test(NAME 15PuzzleGen COMMAND Pathfinder_Standard
-#            -I ./Test-Resources/15_Puzzle_initial.json
-#            -e ./Test-Resources/Output/15_Puzzle.scen
-#            -a ./Test-Resources/Output/15_Puzzle_analysis.json
-#            -m ./Test-Resources/Moves_15_Puzzle)
-#
-#    set_property(TEST 15PuzzleGen PROPERTY PASS_REGULAR_EXPRESSION "Exporting moves...   Done.")
 endif()

@@ -24,13 +24,13 @@ void IModuleProperty::CallFunction(const std::string &funcKey, const nlohmann::b
     }
 }
 
-void IModuleProperty::CallFunction(const boost::shared_ptr<boost::any(*)(IModuleProperty*)>& func) {
+void IModuleProperty::CallFunction(const std::shared_ptr<boost::any(*)(IModuleProperty*)>& func) {
     if (*func) {
         (*func)(this);
     }
 }
 
-void IModuleProperty::CallFunction(const boost::shared_ptr<boost::any(*)(IModuleProperty*, const nlohmann::basic_json<>&)>& func, const nlohmann::basic_json<>& args) {
+void IModuleProperty::CallFunction(const std::shared_ptr<boost::any(*)(IModuleProperty*, const nlohmann::basic_json<>&)>& func, const nlohmann::basic_json<>& args) {
     if (*func) {
         (*func)(this, args);
     }
@@ -51,23 +51,23 @@ std::unordered_map<std::string, IModuleProperty* (*)(const nlohmann::basic_json<
     return _constructors;
 }
 
-std::unordered_map<std::string, boost::shared_ptr<boost::any (*)()>>& ModuleProperties::Functions() {
-    static std::unordered_map<std::string, boost::shared_ptr<boost::any (*)()>> _functions;
+std::unordered_map<std::string, std::shared_ptr<boost::any (*)()>>& ModuleProperties::Functions() {
+    static std::unordered_map<std::string, std::shared_ptr<boost::any (*)()>> _functions;
     return _functions;
 }
 
-std::unordered_map<std::string, boost::shared_ptr<boost::any (*)(IModuleProperty*)>>& ModuleProperties::InstFunctions() {
-    static std::unordered_map<std::string, boost::shared_ptr<boost::any (*)(IModuleProperty*)>> _functions;
+std::unordered_map<std::string, std::shared_ptr<boost::any (*)(IModuleProperty*)>>& ModuleProperties::InstFunctions() {
+    static std::unordered_map<std::string, std::shared_ptr<boost::any (*)(IModuleProperty*)>> _functions;
     return _functions;
 }
 
-std::unordered_map<std::string, boost::shared_ptr<boost::any (*)(const nlohmann::basic_json<>&)>>& ModuleProperties::ArgFunctions() {
-    static std::unordered_map<std::string, boost::shared_ptr<boost::any (*)(const nlohmann::basic_json<>&)>> _functions;
+std::unordered_map<std::string, std::shared_ptr<boost::any (*)(const nlohmann::basic_json<>&)>>& ModuleProperties::ArgFunctions() {
+    static std::unordered_map<std::string, std::shared_ptr<boost::any (*)(const nlohmann::basic_json<>&)>> _functions;
     return _functions;
 }
 
-std::unordered_map<std::string, boost::shared_ptr<boost::any (*)(IModuleProperty*, const nlohmann::basic_json<>&)>>& ModuleProperties::ArgInstFunctions() {
-    static std::unordered_map<std::string, boost::shared_ptr<boost::any (*)(IModuleProperty*, const nlohmann::basic_json<>&)>> _functions;
+std::unordered_map<std::string, std::shared_ptr<boost::any (*)(IModuleProperty*, const nlohmann::basic_json<>&)>>& ModuleProperties::ArgInstFunctions() {
+    static std::unordered_map<std::string, std::shared_ptr<boost::any (*)(IModuleProperty*, const nlohmann::basic_json<>&)>> _functions;
     return _functions;
 }
 
@@ -177,13 +177,13 @@ void ModuleProperties::CallFunction(const std::string &funcKey, const nlohmann::
     }
 }
 
-void ModuleProperties::CallFunction(const boost::shared_ptr<boost::any(*)()>& func) {
+void ModuleProperties::CallFunction(const std::shared_ptr<boost::any(*)()>& func) {
     if (*func) {
         (*func)();
     }
 }
 
-void ModuleProperties::CallFunction(const boost::shared_ptr<boost::any(*)(const nlohmann::basic_json<>&)>& func, const nlohmann::basic_json<>& args) {
+void ModuleProperties::CallFunction(const std::shared_ptr<boost::any(*)(const nlohmann::basic_json<>&)>& func, const nlohmann::basic_json<>& args) {
     if (*func) {
         (*func)(args);
     }
